@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-app_db}
       POSTGRES_USER: ${POSTGRES_USER:-app_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app_password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       TZ: ${TZ:-Asia/Seoul}
     ports:
       - "${LOCAL_DB_PORT:-5433}:5432"
