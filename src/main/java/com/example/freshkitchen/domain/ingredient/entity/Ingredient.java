@@ -19,6 +19,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,7 +30,7 @@ import java.util.Set;
 
 @Getter
 @Entity
-@Table(name = "INGREDIENT")
+@Table(name = "ingredient")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Ingredient extends BaseTimeEntity {
 
@@ -52,7 +53,7 @@ public class Ingredient extends BaseTimeEntity {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "registrated_at")
+    @Column(name = "registered_at")
     private LocalDate registeredAt;
 
     @Column(name = "expires_at")
@@ -79,6 +80,10 @@ public class Ingredient extends BaseTimeEntity {
     @Column(name = "source_type", nullable = false)
     private IngredientSourceType sourceType;
 
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
     @OneToMany(mappedBy = "ingredient", fetch = FetchType.LAZY)
     private Set<IngredientImage> ingredientImages = new LinkedHashSet<>();
 
@@ -94,7 +99,7 @@ public class Ingredient extends BaseTimeEntity {
             IngredientSourceType sourceType
     ) {
         this.user = requireNonNull(user, "user");
-        this.storage = requireNonNull(storage, "storage");
+        this.storage = requireOwnedStorage(user, storage);
         this.catalog = catalog;
         this.name = requireNonBlank(name, "name");
         this.registeredAt = registeredAt;
@@ -124,7 +129,7 @@ public class Ingredient extends BaseTimeEntity {
         requireNonNull(command, "command");
 
         if (command.storage() != null) {
-            this.storage = requireNonNull(command.storage(), "storage");
+            this.storage = requireOwnedStorage(this.user, command.storage());
         }
         if (command.catalogSet()) {
             this.catalog = command.catalog();
@@ -190,6 +195,15 @@ public class Ingredient extends BaseTimeEntity {
                 this.consumedAt = null;
             }
         }
+    }
+
+    private static Storage requireOwnedStorage(User user, Storage storage) {
+        requireNonNull(user, "user");
+        Storage validatedStorage = requireNonNull(storage, "storage");
+        if (validatedStorage.getUser() != user) {
+            throw new IllegalArgumentException("storage must belong to user");
+        }
+        return validatedStorage;
     }
 
     public record CreateCommand(

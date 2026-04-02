@@ -29,6 +29,13 @@ public abstract class BaseEntity {
         return value;
     }
 
+    protected static int requireNonNegative(int value, String fieldName) {
+        if (value < 0) {
+            throw new IllegalArgumentException(fieldName + " must not be negative");
+        }
+        return value;
+    }
+
     protected static <T> LinkedHashSet<T> toLinkedHashSet(Set<T> values) {
         return values == null ? new LinkedHashSet<>() : new LinkedHashSet<>(values);
     }

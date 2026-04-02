@@ -16,6 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -46,6 +47,10 @@ public class UserProfile extends BaseTimeEntity {
 
     @Column(name = "bio")
     private String bio;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 
     @ElementCollection
     @CollectionTable(name = "USER_PROFILE_PREFERRED_INGREDIENT", joinColumns = @JoinColumn(name = "user_id"))

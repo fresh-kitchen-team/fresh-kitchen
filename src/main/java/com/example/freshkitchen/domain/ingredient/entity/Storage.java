@@ -15,6 +15,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,7 +26,13 @@ import java.util.Set;
 
 @Getter
 @Entity
-@Table(name = "STORAGE")
+@Table(
+        name = "storage",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_storage_user_storage_type",
+                columnNames = {"user_id", "storage_type"}
+        )
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Storage extends BaseTimeEntity {
 
@@ -36,12 +44,19 @@ public class Storage extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "user_id", nullable = false, insertable = false, updatable = false)
+    private Long userId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "storage_type", nullable = false)
     private StorageType storageType;
 
     @Column(name = "name", nullable = false)
     private String name;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 
     @OneToMany(mappedBy = "storage", fetch = FetchType.LAZY)
     private Set<Ingredient> ingredients = new LinkedHashSet<>();

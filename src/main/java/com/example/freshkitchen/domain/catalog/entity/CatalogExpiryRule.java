@@ -49,7 +49,7 @@ public class CatalogExpiryRule extends BaseTimeEntity {
     ) {
         this.catalog = requireNonNull(catalog, "catalog");
         this.storageType = requireNonNull(storageType, "storageType");
-        this.shelfLifeDays = requirePositive(shelfLifeDays, "shelfLifeDays");
+        this.shelfLifeDays = requireNonNegative(shelfLifeDays, "shelfLifeDays");
         this.referenceNote = referenceNote;
     }
 
@@ -70,7 +70,7 @@ public class CatalogExpiryRule extends BaseTimeEntity {
             this.storageType = requireNonNull(command.storageType(), "storageType");
         }
         if (command.shelfLifeDays() != null) {
-            this.shelfLifeDays = requirePositive(command.shelfLifeDays(), "shelfLifeDays");
+            this.shelfLifeDays = requireNonNegative(command.shelfLifeDays(), "shelfLifeDays");
         }
         if (command.referenceNoteSet()) {
             this.referenceNote = command.referenceNote();
