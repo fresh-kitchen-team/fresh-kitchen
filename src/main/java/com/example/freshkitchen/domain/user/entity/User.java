@@ -1,0 +1,118 @@
+package com.example.freshkitchen.domain.user.entity;
+
+import com.example.freshkitchen.domain.common.entity.BaseTimeEntity;
+import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
+import com.example.freshkitchen.domain.ingredient.entity.Storage;
+import com.example.freshkitchen.domain.image.entity.ImageAsset;
+import com.example.freshkitchen.domain.user.enums.Provider;
+import com.example.freshkitchen.domain.user.enums.UserStatus;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+@Getter
+@Entity
+@Table(
+        name = "\"USER\"",
+        uniqueConstraints = @UniqueConstraint(name = "uk_user_provider_user_id", columnNames = "provider_user_id")
+)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class User extends BaseTimeEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "provider_user_id", nullable = false, unique = true)
+    private String providerUserId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "provider", nullable = false)
+    private Provider provider;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private UserStatus status;
+
+    @Column(name = "inactive_at")
+    private LocalDateTime inactiveAt;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private UserProfile profile;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<Storage> storages = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<Ingredient> ingredients = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<ImageAsset> imageAssets = new LinkedHashSet<>();
+
+    private User(String providerUserId, Provider provider) {
+        this.providerUserId = requireNonBlank(providerUserId, "providerUserId");
+        this.provider = requireNonNull(provider, "provider");
+        this.status = UserStatus.ACTIVE;
+    }
+
+    public static User create(CreateCommand command) {
+        requireNonNull(command, "command");
+        return new User(command.providerUserId(), command.provider());
+    }
+
+    public void apply(UpdateCommand command) {
+        requireNonNull(command, "command");
+
+        if (command.providerUserId() != null) {
+            this.providerUserId = requireNonBlank(command.providerUserId(), "providerUserId");
+        }
+        if (command.status() != null) {
+            changeStatus(command.status(), command.inactiveAt());
+        }
+    }
+
+    public void assignProfile(UserProfile profile) {
+        requireNonNull(profile, "profile");
+        this.profile = profile;
+        profile.attachUser(this);
+    }
+
+    private void changeStatus(UserStatus nextStatus, LocalDateTime inactiveAt) {
+        this.status = requireNonNull(nextStatus, "status");
+        if (nextStatus == UserStatus.INACTIVE) {
+            this.inactiveAt = inactiveAt != null ? inactiveAt : LocalDateTime.now();
+            return;
+        }
+        this.inactiveAt = null;
+    }
+
+    public record CreateCommand(
+            String providerUserId,
+            Provider provider
+    ) {
+    }
+
+    public record UpdateCommand(
+            String providerUserId,
+            UserStatus status,
+            LocalDateTime inactiveAt
+    ) {
+    }
+}
