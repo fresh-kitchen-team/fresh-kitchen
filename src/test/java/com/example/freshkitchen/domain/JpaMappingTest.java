@@ -24,8 +24,8 @@ import com.example.freshkitchen.domain.user.enums.CookingTool;
 import com.example.freshkitchen.domain.user.enums.FoodStyle;
 import com.example.freshkitchen.domain.user.enums.Provider;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 
 import java.time.LocalDate;
@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @DataJpaTest
 class JpaMappingTest {
 
-    @Autowired
+    @PersistenceContext
     private EntityManager entityManager;
 
     @Test
