@@ -38,18 +38,18 @@ public class IngredientCatalog extends BaseTimeEntity {
     @JoinColumn(name = "default_image_asset_id")
     private ImageAsset defaultImageAsset;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 100)
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "category", nullable = false)
+    @Column(name = "category", nullable = false, length = 30)
     private CatalogCategory category;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "default_storage_type", nullable = false)
+    @Column(name = "default_storage_type", nullable = false, length = 20)
     private StorageType defaultStorageType;
 
-    @Column(name = "icon_url")
+    @Column(name = "icon_url", columnDefinition = "TEXT")
     private String iconUrl;
 
     @OneToMany(mappedBy = "catalog", fetch = FetchType.LAZY)

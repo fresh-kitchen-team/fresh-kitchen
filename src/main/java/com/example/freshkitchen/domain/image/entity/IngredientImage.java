@@ -40,7 +40,7 @@ public class IngredientImage extends CreatedAtEntity {
     private boolean primary;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "source_type", nullable = false)
+    @Column(name = "source_type", nullable = false, length = 20)
     private IngredientImageSourceType sourceType;
 
     private IngredientImage(

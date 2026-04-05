@@ -48,10 +48,10 @@ public class Storage extends BaseTimeEntity {
     private Long userId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "storage_type", nullable = false)
+    @Column(name = "storage_type", nullable = false, length = 20)
     private StorageType storageType;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 100)
     private String name;
 
     @Version

@@ -50,7 +50,7 @@ public class Ingredient extends BaseTimeEntity {
     @JoinColumn(name = "catalog_id")
     private IngredientCatalog catalog;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 100)
     private String name;
 
     @Column(name = "registered_at")
@@ -60,11 +60,11 @@ public class Ingredient extends BaseTimeEntity {
     private LocalDate expiresAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "expiry_source_type", nullable = false)
+    @Column(name = "expiry_source_type", nullable = false, length = 20)
     private ExpirySourceType expirySourceType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, length = 20)
     private IngredientStatus status;
 
     @Column(name = "consumed_at")
@@ -73,11 +73,11 @@ public class Ingredient extends BaseTimeEntity {
     @Column(name = "discarded_at")
     private LocalDate discardedAt;
 
-    @Column(name = "note")
+    @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "source_type", nullable = false)
+    @Column(name = "source_type", nullable = false, length = 20)
     private IngredientSourceType sourceType;
 
     @Version

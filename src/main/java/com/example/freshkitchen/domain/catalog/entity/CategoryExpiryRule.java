@@ -26,17 +26,17 @@ public class CategoryExpiryRule extends BaseTimeEntity {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "category", nullable = false)
+    @Column(name = "category", nullable = false, length = 30)
     private CatalogCategory category;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "storage_type", nullable = false)
+    @Column(name = "storage_type", nullable = false, length = 20)
     private StorageType storageType;
 
     @Column(name = "shelf_life_days", nullable = false)
     private int shelfLifeDays;
 
-    @Column(name = "reference_note")
+    @Column(name = "reference_note", columnDefinition = "TEXT")
     private String referenceNote;
 
     private CategoryExpiryRule(

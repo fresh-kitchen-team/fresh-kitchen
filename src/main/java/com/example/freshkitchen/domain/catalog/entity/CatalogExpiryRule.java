@@ -32,13 +32,13 @@ public class CatalogExpiryRule extends BaseTimeEntity {
     private IngredientCatalog catalog;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "storage_type", nullable = false)
+    @Column(name = "storage_type", nullable = false, length = 20)
     private StorageType storageType;
 
     @Column(name = "shelf_life_days", nullable = false)
     private int shelfLifeDays;
 
-    @Column(name = "reference_note")
+    @Column(name = "reference_note", columnDefinition = "TEXT")
     private String referenceNote;
 
     private CatalogExpiryRule(

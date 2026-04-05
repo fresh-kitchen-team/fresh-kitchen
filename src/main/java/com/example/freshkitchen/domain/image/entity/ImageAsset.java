@@ -39,18 +39,18 @@ public class ImageAsset extends CreatedAtEntity {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "asset_type", nullable = false)
+    @Column(name = "asset_type", nullable = false, length = 30)
     private AssetType assetType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "kind", nullable = false)
+    @Column(name = "kind", nullable = false, length = 30)
     private ImageKind kind;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "storage_provider", nullable = false)
+    @Column(name = "storage_provider", nullable = false, length = 20)
     private StorageProvider storageProvider;
 
-    @Column(name = "image_url", nullable = false)
+    @Column(name = "image_url", nullable = false, columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(name = "width")

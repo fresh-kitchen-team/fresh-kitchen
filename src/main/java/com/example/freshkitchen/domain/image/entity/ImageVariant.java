@@ -32,10 +32,10 @@ public class ImageVariant extends CreatedAtEntity {
     private ImageAsset imageAsset;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "variant_type", nullable = false)
+    @Column(name = "variant_type", nullable = false, length = 20)
     private ImageVariantType variantType;
 
-    @Column(name = "image_url", nullable = false)
+    @Column(name = "image_url", nullable = false, columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(name = "width", nullable = false)

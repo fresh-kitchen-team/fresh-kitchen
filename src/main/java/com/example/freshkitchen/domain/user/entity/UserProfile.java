@@ -39,13 +39,13 @@ public class UserProfile extends BaseTimeEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(name = "nickname", nullable = false)
+    @Column(name = "nickname", nullable = false, length = 100)
     private String nickname;
 
-    @Column(name = "profile_image_url")
+    @Column(name = "profile_image_url", columnDefinition = "TEXT")
     private String profileImageUrl;
 
-    @Column(name = "bio")
+    @Column(name = "bio", columnDefinition = "TEXT")
     private String bio;
 
     @Version
@@ -54,25 +54,25 @@ public class UserProfile extends BaseTimeEntity {
 
     @ElementCollection
     @CollectionTable(name = "USER_PROFILE_PREFERRED_INGREDIENT", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "ingredient_name", nullable = false)
+    @Column(name = "ingredient_name", nullable = false, length = 100)
     private Set<String> preferredIngredients = new LinkedHashSet<>();
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "USER_PROFILE_FOOD_STYLE", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "food_style", nullable = false)
+    @Column(name = "food_style", nullable = false, length = 50)
     private Set<FoodStyle> foodStyles = new LinkedHashSet<>();
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "USER_PROFILE_ALLERGY", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "allergy_type", nullable = false)
+    @Column(name = "allergy_type", nullable = false, length = 50)
     private Set<AllergyType> allergies = new LinkedHashSet<>();
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "USER_PROFILE_COOKING_TOOL", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "cooking_tool", nullable = false)
+    @Column(name = "cooking_tool", nullable = false, length = 50)
     private Set<CookingTool> cookingTools = new LinkedHashSet<>();
 
     private UserProfile(

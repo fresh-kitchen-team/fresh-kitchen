@@ -44,15 +44,15 @@ public class User extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "provider_user_id", nullable = false)
+    @Column(name = "provider_user_id", nullable = false, length = 255)
     private String providerUserId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "provider", nullable = false)
+    @Column(name = "provider", nullable = false, length = 20)
     private Provider provider;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, length = 20)
     private UserStatus status;
 
     @Column(name = "inactive_at")
