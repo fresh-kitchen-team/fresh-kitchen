@@ -17,9 +17,9 @@ import com.example.freshkitchen.domain.user.enums.Provider;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestConstructor;
 
 import java.util.Comparator;
 
@@ -28,16 +28,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @Import(IngredientImagePrimaryService.class)
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class IngredientImagePrimaryServiceTest {
+
+    private final IngredientImagePrimaryService ingredientImagePrimaryService;
+    private final IngredientRepository ingredientRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Autowired
-    private IngredientImagePrimaryService ingredientImagePrimaryService;
-
-    @Autowired
-    private IngredientRepository ingredientRepository;
+    IngredientImagePrimaryServiceTest(
+            IngredientImagePrimaryService ingredientImagePrimaryService,
+            IngredientRepository ingredientRepository
+    ) {
+        this.ingredientImagePrimaryService = ingredientImagePrimaryService;
+        this.ingredientRepository = ingredientRepository;
+    }
 
     @Test
     void changePrimaryImage_replacesPrimaryInsideSingleTransaction() {
