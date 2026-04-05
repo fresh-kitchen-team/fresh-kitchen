@@ -190,6 +190,59 @@ class IngredientEntityTest {
     }
 
     @Test
+    void ingredientImage_cannotBeReattachedToAnotherIngredient() {
+        User user = User.create(new User.CreateCommand("provider-user", Provider.GOOGLE));
+        Storage storage = Storage.create(new Storage.CreateCommand(user, StorageType.FRIDGE, "Main fridge"));
+        Ingredient firstIngredient = Ingredient.create(new Ingredient.CreateCommand(
+                user,
+                storage,
+                null,
+                "Milk",
+                null,
+                null,
+                ExpirySourceType.UNKNOWN,
+                null,
+                IngredientSourceType.PHOTO
+        ));
+        Ingredient secondIngredient = Ingredient.create(new Ingredient.CreateCommand(
+                user,
+                storage,
+                null,
+                "Cheese",
+                null,
+                null,
+                ExpirySourceType.UNKNOWN,
+                null,
+                IngredientSourceType.PHOTO
+        ));
+        ImageAsset asset = ImageAsset.create(new ImageAsset.CreateCommand(
+                user,
+                AssetType.USER_UPLOAD,
+                ImageKind.INGREDIENT,
+                StorageProvider.LOCAL,
+                "https://cdn.example/milk.png",
+                300,
+                300
+        ));
+
+        IngredientImage image = IngredientImage.create(new IngredientImage.CreateCommand(
+                firstIngredient,
+                asset,
+                true,
+                IngredientImageSourceType.PHOTO
+        ));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                secondIngredient.addImage(image)
+        );
+
+        assertEquals("ingredient image is already attached to another ingredient", exception.getMessage());
+        assertEquals(firstIngredient, image.getIngredient());
+        assertTrue(firstIngredient.getIngredientImages().contains(image));
+        assertTrue(secondIngredient.getIngredientImages().isEmpty());
+    }
+
+    @Test
     void create_acceptsStorageOwnedByUserWithSameIdDifferentReference() {
         User storageOwner = User.create(new User.CreateCommand("provider-user", Provider.GOOGLE));
         User ingredientOwner = User.create(new User.CreateCommand("provider-user", Provider.GOOGLE));

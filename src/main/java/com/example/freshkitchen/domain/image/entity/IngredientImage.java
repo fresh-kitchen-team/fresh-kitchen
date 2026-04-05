@@ -86,7 +86,14 @@ public class IngredientImage extends CreatedAtEntity {
     }
 
     public void attachIngredient(Ingredient ingredient) {
-        this.ingredient = requireNonNull(ingredient, "ingredient");
+        Ingredient nextIngredient = requireNonNull(ingredient, "ingredient");
+        if (this.ingredient == null) {
+            this.ingredient = nextIngredient;
+            return;
+        }
+        if (!sameEntity(this.ingredient, nextIngredient, Ingredient::getId)) {
+            throw new IllegalArgumentException("ingredient image is already attached to another ingredient");
+        }
     }
 
     public void forcePrimary(boolean primary) {
