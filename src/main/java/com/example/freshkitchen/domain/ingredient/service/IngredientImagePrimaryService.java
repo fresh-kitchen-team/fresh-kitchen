@@ -25,11 +25,11 @@ public class IngredientImagePrimaryService {
         Ingredient ingredient = ingredientRepository.findByIdWithImagesForUpdate(ingredientId)
                 .orElseThrow(() -> new IllegalArgumentException("ingredient not found"));
 
-        IngredientImage primaryImage = ingredient.getIngredientImages().stream()
+        IngredientImage targetImage = ingredient.getIngredientImages().stream()
                 .filter(ingredientImage -> ingredientImage.getId().equals(ingredientImageId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("ingredient image must belong to ingredient"));
 
-        ingredient.enforcePrimaryImage(primaryImage);
+        ingredient.enforcePrimaryImage(targetImage);
     }
 }
