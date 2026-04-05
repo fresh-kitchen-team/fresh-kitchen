@@ -15,6 +15,9 @@ public class IngredientImagePrimaryService {
 
     @Transactional
     public void changePrimaryImage(Long ingredientId, Long ingredientImageId) {
+        if (ingredientId == null) {
+            throw new IllegalArgumentException("ingredientId must not be null");
+        }
         if (ingredientImageId == null) {
             throw new IllegalArgumentException("ingredientImageId must not be null");
         }

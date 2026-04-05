@@ -140,4 +140,14 @@ class IngredientImagePrimaryServiceTest {
 
         assertEquals("ingredientImageId must not be null", exception.getMessage());
     }
+
+    @Test
+    void changePrimaryImage_rejectsNullIngredientId() {
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> ingredientImagePrimaryService.changePrimaryImage(null, 1L)
+        );
+
+        assertEquals("ingredientId must not be null", exception.getMessage());
+    }
 }
