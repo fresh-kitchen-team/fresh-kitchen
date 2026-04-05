@@ -4,7 +4,7 @@
 -- 1. `users` is used instead of `user` because `user` is reserved in PostgreSQL.
 -- 2. V1 scope is limited to user/profile/storage/ingredient/catalog/image domains.
 -- 3. Basic storage bootstrap (FRIDGE/FREEZER/PANTRY) is created by application logic, not by the database.
--- 4. "At least one primary image per ingredient" remains an application invariant in V1.
+-- 4. An ingredient may have multiple images, and if any exist exactly one must be marked as primary.
 -- 5. Mutable aggregate roots include a `version` column for JPA optimistic locking.
 
 CREATE TABLE users (
@@ -277,6 +277,30 @@ CREATE TABLE ingredient_image (
         UNIQUE (ingredient_id, image_asset_id)
 );
 
+CREATE OR REPLACE FUNCTION enforce_ingredient_image_primary_invariant()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    target_ingredient_id BIGINT;
+    image_count BIGINT;
+    primary_count BIGINT;
+BEGIN
+    target_ingredient_id := COALESCE(NEW.ingredient_id, OLD.ingredient_id);
+
+    SELECT COUNT(*), COUNT(*) FILTER (WHERE is_primary = TRUE)
+      INTO image_count, primary_count
+      FROM ingredient_image
+     WHERE ingredient_id = target_ingredient_id;
+
+    IF image_count > 0 AND primary_count <> 1 THEN
+        RAISE EXCEPTION 'ingredient % must have exactly one primary image', target_ingredient_id;
+    END IF;
+
+    RETURN NULL;
+END;
+$$;
+
 CREATE INDEX idx_ingredient_user_status_expires_at
     ON ingredient (user_id, status, expires_at);
 
@@ -289,6 +313,12 @@ CREATE INDEX idx_ingredient_catalog_id
 CREATE UNIQUE INDEX uk_ingredient_image_primary
     ON ingredient_image (ingredient_id)
     WHERE is_primary = TRUE;
+
+CREATE CONSTRAINT TRIGGER ck_ingredient_image_exactly_one_primary
+    AFTER INSERT OR UPDATE OR DELETE ON ingredient_image
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW
+    EXECUTE FUNCTION enforce_ingredient_image_primary_invariant();
 
 CREATE INDEX idx_ingredient_image_asset_id
     ON ingredient_image (image_asset_id);

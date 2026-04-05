@@ -17,8 +17,11 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class IngredientEntityTest {
 
@@ -140,7 +143,84 @@ class IngredientEntityTest {
         assertNotNull(primary.getIngredient());
         assertEquals(ingredient, secondary.getIngredient());
         assertEquals(secondAsset, secondary.getImageAsset());
-        assertEquals(false, primary.isPrimary());
-        assertEquals(true, secondary.isPrimary());
+        assertFalse(primary.isPrimary());
+        assertTrue(secondary.isPrimary());
+    }
+
+    @Test
+    void ingredientImage_firstImageMustBePrimary() {
+        User user = User.create(new User.CreateCommand("provider-user", Provider.KAKAO));
+        Storage storage = Storage.create(new Storage.CreateCommand(user, StorageType.PANTRY, "Dry shelf"));
+        Ingredient ingredient = Ingredient.create(new Ingredient.CreateCommand(
+                user,
+                storage,
+                null,
+                "Onion",
+                null,
+                null,
+                ExpirySourceType.UNKNOWN,
+                null,
+                IngredientSourceType.PHOTO
+        ));
+        ImageAsset asset = ImageAsset.create(new ImageAsset.CreateCommand(
+                user,
+                AssetType.USER_UPLOAD,
+                ImageKind.INGREDIENT,
+                StorageProvider.LOCAL,
+                "https://cdn.example/onion.png",
+                120,
+                120
+        ));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                IngredientImage.create(new IngredientImage.CreateCommand(
+                        ingredient,
+                        asset,
+                        false,
+                        IngredientImageSourceType.PHOTO
+                ))
+        );
+
+        assertEquals("first ingredient image must be primary", exception.getMessage());
+    }
+
+    @Test
+    void ingredientImage_cannotUnsetOnlyPrimary() {
+        User user = User.create(new User.CreateCommand("provider-user", Provider.GOOGLE));
+        Storage storage = Storage.create(new Storage.CreateCommand(user, StorageType.FRIDGE, "Main fridge"));
+        Ingredient ingredient = Ingredient.create(new Ingredient.CreateCommand(
+                user,
+                storage,
+                null,
+                "Milk",
+                null,
+                null,
+                ExpirySourceType.UNKNOWN,
+                null,
+                IngredientSourceType.PHOTO
+        ));
+        ImageAsset asset = ImageAsset.create(new ImageAsset.CreateCommand(
+                user,
+                AssetType.USER_UPLOAD,
+                ImageKind.INGREDIENT,
+                StorageProvider.LOCAL,
+                "https://cdn.example/milk.png",
+                300,
+                300
+        ));
+
+        IngredientImage image = IngredientImage.create(new IngredientImage.CreateCommand(
+                ingredient,
+                asset,
+                true,
+                IngredientImageSourceType.PHOTO
+        ));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                image.apply(new IngredientImage.UpdateCommand(null, false, null))
+        );
+
+        assertEquals("ingredient must have one primary image", exception.getMessage());
+        assertTrue(image.isPrimary());
     }
 }

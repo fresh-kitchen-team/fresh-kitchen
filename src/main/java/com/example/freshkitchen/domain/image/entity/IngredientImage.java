@@ -74,9 +74,10 @@ public class IngredientImage extends CreatedAtEntity {
             this.imageAsset = requireNonNull(command.imageAsset(), "imageAsset");
         }
         if (command.primary() != null) {
-            this.primary = command.primary();
-            if (this.primary && this.ingredient != null) {
-                this.ingredient.enforcePrimaryImage(this);
+            if (this.ingredient == null) {
+                this.primary = command.primary();
+            } else {
+                this.ingredient.changeImagePrimary(this, command.primary());
             }
         }
         if (command.sourceType() != null) {

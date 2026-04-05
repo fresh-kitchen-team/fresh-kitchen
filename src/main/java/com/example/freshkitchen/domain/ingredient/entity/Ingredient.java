@@ -166,16 +166,56 @@ public class Ingredient extends BaseTimeEntity {
 
     public void addImage(IngredientImage ingredientImage) {
         requireNonNull(ingredientImage, "ingredientImage");
+        if (ingredientImages.isEmpty() && !ingredientImage.isPrimary()) {
+            throw new IllegalArgumentException("first ingredient image must be primary");
+        }
         ingredientImage.attachIngredient(this);
         this.ingredientImages.add(ingredientImage);
         if (ingredientImage.isPrimary()) {
             enforcePrimaryImage(ingredientImage);
         }
+        ensurePrimaryImageInvariant();
     }
 
     public void enforcePrimaryImage(IngredientImage primaryImage) {
+        requireNonNull(primaryImage, "primaryImage");
+        if (!ingredientImages.contains(primaryImage)) {
+            throw new IllegalArgumentException("primary image must belong to ingredient");
+        }
         for (IngredientImage ingredientImage : ingredientImages) {
             ingredientImage.forcePrimary(ingredientImage == primaryImage);
+        }
+    }
+
+    public void changeImagePrimary(IngredientImage ingredientImage, boolean primary) {
+        requireNonNull(ingredientImage, "ingredientImage");
+        if (!ingredientImages.contains(ingredientImage)) {
+            throw new IllegalArgumentException("ingredient image must belong to ingredient");
+        }
+
+        if (primary) {
+            enforcePrimaryImage(ingredientImage);
+            return;
+        }
+
+        if (ingredientImage.isPrimary()) {
+            throw new IllegalArgumentException("ingredient must have one primary image");
+        }
+
+        ingredientImage.forcePrimary(false);
+        ensurePrimaryImageInvariant();
+    }
+
+    private void ensurePrimaryImageInvariant() {
+        if (ingredientImages.isEmpty()) {
+            return;
+        }
+
+        long primaryCount = ingredientImages.stream()
+                .filter(IngredientImage::isPrimary)
+                .count();
+        if (primaryCount != 1) {
+            throw new IllegalStateException("ingredient must have exactly one primary image");
         }
     }
 
