@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 public class IngredientImagePrimaryService {
@@ -26,7 +28,7 @@ public class IngredientImagePrimaryService {
                 .orElseThrow(() -> new IllegalArgumentException("ingredient not found"));
 
         IngredientImage targetImage = ingredient.getIngredientImages().stream()
-                .filter(ingredientImage -> ingredientImage.getId().equals(ingredientImageId))
+                .filter(ingredientImage -> Objects.equals(ingredientImage.getId(), ingredientImageId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("ingredient image must belong to ingredient"));
 
