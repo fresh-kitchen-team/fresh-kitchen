@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class IngredientEntityTest {
 
     @Test
-    void apply_changesStatusAndKeepsConsumedDiscardedDatesExclusive() {
+    void markStatus_changesStatusAndKeepsConsumedDiscardedDatesExclusive() {
         User user = User.create(new User.CreateCommand("provider-user", Provider.GOOGLE));
         Storage storage = Storage.create(new Storage.CreateCommand(user, StorageType.FRIDGE, "Main fridge"));
         Ingredient ingredient = Ingredient.create(new Ingredient.CreateCommand(
@@ -41,49 +41,13 @@ class IngredientEntityTest {
                 IngredientSourceType.MANUAL
         ));
 
-        ingredient.apply(new Ingredient.UpdateCommand(
-                null,
-                null,
-                false,
-                null,
-                null,
-                false,
-                null,
-                false,
-                null,
-                IngredientStatus.CONSUMED,
-                LocalDate.of(2026, 4, 3),
-                false,
-                null,
-                false,
-                null,
-                false,
-                null
-        ));
+        ingredient.markConsumed(LocalDate.of(2026, 4, 3));
 
         assertEquals(IngredientStatus.CONSUMED, ingredient.getStatus());
         assertEquals(LocalDate.of(2026, 4, 3), ingredient.getConsumedAt());
         assertNull(ingredient.getDiscardedAt());
 
-        ingredient.apply(new Ingredient.UpdateCommand(
-                null,
-                null,
-                false,
-                null,
-                null,
-                false,
-                null,
-                false,
-                null,
-                IngredientStatus.DISCARDED,
-                null,
-                false,
-                LocalDate.of(2026, 4, 4),
-                false,
-                null,
-                false,
-                null
-        ));
+        ingredient.markDiscarded(LocalDate.of(2026, 4, 4));
 
         assertEquals(IngredientStatus.DISCARDED, ingredient.getStatus());
         assertNull(ingredient.getConsumedAt());

@@ -152,16 +152,18 @@ public class Ingredient extends BaseTimeEntity {
         if (command.sourceType() != null) {
             this.sourceType = requireNonNull(command.sourceType(), "sourceType");
         }
-        if (command.status() != null) {
-            changeStatus(command.status(), command.consumedAt(), command.discardedAt());
-        } else {
-            if (command.consumedAtSet()) {
-                this.consumedAt = command.consumedAt();
-            }
-            if (command.discardedAtSet()) {
-                this.discardedAt = command.discardedAt();
-            }
-        }
+    }
+
+    public void markConsumed(LocalDate consumedAt) {
+        this.status = IngredientStatus.CONSUMED;
+        this.consumedAt = consumedAt != null ? consumedAt : LocalDate.now();
+        this.discardedAt = null;
+    }
+
+    public void markDiscarded(LocalDate discardedAt) {
+        this.status = IngredientStatus.DISCARDED;
+        this.discardedAt = discardedAt != null ? discardedAt : LocalDate.now();
+        this.consumedAt = null;
     }
 
     public void addImage(IngredientImage ingredientImage) {
@@ -219,24 +221,6 @@ public class Ingredient extends BaseTimeEntity {
         }
     }
 
-    private void changeStatus(IngredientStatus nextStatus, LocalDate consumedAt, LocalDate discardedAt) {
-        this.status = requireNonNull(nextStatus, "status");
-        switch (nextStatus) {
-            case ACTIVE -> {
-                this.consumedAt = null;
-                this.discardedAt = null;
-            }
-            case CONSUMED -> {
-                this.consumedAt = consumedAt != null ? consumedAt : LocalDate.now();
-                this.discardedAt = null;
-            }
-            case DISCARDED -> {
-                this.discardedAt = discardedAt != null ? discardedAt : LocalDate.now();
-                this.consumedAt = null;
-            }
-        }
-    }
-
     private static Storage requireOwnedStorage(User user, Storage storage) {
         requireNonNull(user, "user");
         Storage validatedStorage = requireNonNull(storage, "storage");
@@ -269,11 +253,6 @@ public class Ingredient extends BaseTimeEntity {
             LocalDate expiresAt,
             boolean expiresAtSet,
             ExpirySourceType expirySourceType,
-            IngredientStatus status,
-            LocalDate consumedAt,
-            boolean consumedAtSet,
-            LocalDate discardedAt,
-            boolean discardedAtSet,
             String note,
             boolean noteSet,
             IngredientSourceType sourceType
