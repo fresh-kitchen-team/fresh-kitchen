@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-@Table(name = "CATEGORY_EXPIRY_RULE")
+@Table(name = "category_expiry_rule")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CategoryExpiryRule extends BaseTimeEntity {
 

@@ -26,7 +26,7 @@ import java.util.Set;
 
 @Getter
 @Entity
-@Table(name = "USER_PROFILE")
+@Table(name = "user_profile")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserProfile extends BaseTimeEntity {
 
@@ -53,25 +53,25 @@ public class UserProfile extends BaseTimeEntity {
     private Long version;
 
     @ElementCollection
-    @CollectionTable(name = "USER_PROFILE_PREFERRED_INGREDIENT", joinColumns = @JoinColumn(name = "user_id"))
+    @CollectionTable(name = "user_profile_preferred_ingredient", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "ingredient_name", nullable = false, length = 100)
     private Set<String> preferredIngredients = new LinkedHashSet<>();
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "USER_PROFILE_FOOD_STYLE", joinColumns = @JoinColumn(name = "user_id"))
+    @CollectionTable(name = "user_profile_food_style", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "food_style", nullable = false, length = 50)
     private Set<FoodStyle> foodStyles = new LinkedHashSet<>();
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "USER_PROFILE_ALLERGY", joinColumns = @JoinColumn(name = "user_id"))
+    @CollectionTable(name = "user_profile_allergy", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "allergy_type", nullable = false, length = 50)
     private Set<AllergyType> allergies = new LinkedHashSet<>();
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "USER_PROFILE_COOKING_TOOL", joinColumns = @JoinColumn(name = "user_id"))
+    @CollectionTable(name = "user_profile_cooking_tool", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "cooking_tool", nullable = false, length = 50)
     private Set<CookingTool> cookingTools = new LinkedHashSet<>();
 

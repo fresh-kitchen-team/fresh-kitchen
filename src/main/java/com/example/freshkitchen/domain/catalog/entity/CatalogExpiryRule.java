@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-@Table(name = "CATALOG_EXPIRY_RULE")
+@Table(name = "catalog_expiry_rule")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CatalogExpiryRule extends BaseTimeEntity {
 

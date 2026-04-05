@@ -26,7 +26,7 @@ import java.util.Set;
 
 @Getter
 @Entity
-@Table(name = "INGREDIENT_CATALOG")
+@Table(name = "ingredient_catalog")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class IngredientCatalog extends BaseTimeEntity {
 

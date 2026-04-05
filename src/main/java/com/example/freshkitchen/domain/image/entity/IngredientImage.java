@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-@Table(name = "INGREDIENT_IMAGE")
+@Table(name = "ingredient_image")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class IngredientImage extends CreatedAtEntity {
 

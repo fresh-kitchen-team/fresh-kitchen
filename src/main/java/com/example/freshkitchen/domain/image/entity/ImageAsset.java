@@ -26,7 +26,7 @@ import java.util.Set;
 
 @Getter
 @Entity
-@Table(name = "IMAGE_ASSET")
+@Table(name = "image_asset")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ImageAsset extends CreatedAtEntity {
 

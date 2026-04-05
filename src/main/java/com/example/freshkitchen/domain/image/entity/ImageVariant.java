@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-@Table(name = "IMAGE_VARIANT")
+@Table(name = "image_variant")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ImageVariant extends CreatedAtEntity {
 
