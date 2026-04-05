@@ -181,17 +181,17 @@ public class Ingredient extends BaseTimeEntity {
 
     public void enforcePrimaryImage(IngredientImage primaryImage) {
         requireNonNull(primaryImage, "primaryImage");
-        if (!ingredientImages.contains(primaryImage)) {
+        if (!containsImage(primaryImage)) {
             throw new IllegalArgumentException("primary image must belong to ingredient");
         }
         for (IngredientImage ingredientImage : ingredientImages) {
-            ingredientImage.forcePrimary(ingredientImage == primaryImage);
+            ingredientImage.forcePrimary(sameEntity(ingredientImage, primaryImage, IngredientImage::getId));
         }
     }
 
     public void changeImagePrimary(IngredientImage ingredientImage, boolean primary) {
         requireNonNull(ingredientImage, "ingredientImage");
-        if (!ingredientImages.contains(ingredientImage)) {
+        if (!containsImage(ingredientImage)) {
             throw new IllegalArgumentException("ingredient image must belong to ingredient");
         }
 
@@ -224,10 +224,15 @@ public class Ingredient extends BaseTimeEntity {
     private static Storage requireOwnedStorage(User user, Storage storage) {
         requireNonNull(user, "user");
         Storage validatedStorage = requireNonNull(storage, "storage");
-        if (validatedStorage.getUser() != user) {
+        if (!sameEntity(validatedStorage.getUser(), user, User::getId)) {
             throw new IllegalArgumentException("storage must belong to user");
         }
         return validatedStorage;
+    }
+
+    private boolean containsImage(IngredientImage candidate) {
+        return ingredientImages.stream()
+                .anyMatch(ingredientImage -> sameEntity(ingredientImage, candidate, IngredientImage::getId));
     }
 
     public record CreateCommand(

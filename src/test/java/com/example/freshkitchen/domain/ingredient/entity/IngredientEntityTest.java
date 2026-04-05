@@ -13,6 +13,7 @@ import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.domain.user.entity.User;
 import com.example.freshkitchen.domain.user.enums.Provider;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 
@@ -186,5 +187,30 @@ class IngredientEntityTest {
 
         assertEquals("ingredient must have one primary image", exception.getMessage());
         assertTrue(image.isPrimary());
+    }
+
+    @Test
+    void create_acceptsStorageOwnedByUserWithSameIdDifferentReference() {
+        User storageOwner = User.create(new User.CreateCommand("provider-user", Provider.GOOGLE));
+        User ingredientOwner = User.create(new User.CreateCommand("provider-user", Provider.GOOGLE));
+        ReflectionTestUtils.setField(storageOwner, "id", 1L);
+        ReflectionTestUtils.setField(ingredientOwner, "id", 1L);
+
+        Storage storage = Storage.create(new Storage.CreateCommand(storageOwner, StorageType.FRIDGE, "Main fridge"));
+
+        Ingredient ingredient = Ingredient.create(new Ingredient.CreateCommand(
+                ingredientOwner,
+                storage,
+                null,
+                "Apple",
+                null,
+                null,
+                ExpirySourceType.MANUAL,
+                null,
+                IngredientSourceType.MANUAL
+        ));
+
+        assertEquals(ingredientOwner, ingredient.getUser());
+        assertEquals(storage, ingredient.getStorage());
     }
 }

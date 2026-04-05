@@ -4,6 +4,7 @@ import jakarta.persistence.MappedSuperclass;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.Function;
 
 @MappedSuperclass
 public abstract class BaseEntity {
@@ -42,5 +43,18 @@ public abstract class BaseEntity {
 
     protected static <T> LinkedHashSet<T> toLinkedHashSet(Set<T> values) {
         return values == null ? new LinkedHashSet<>() : new LinkedHashSet<>(values);
+    }
+
+    protected static <T, ID> boolean sameEntity(T left, T right, Function<T, ID> idExtractor) {
+        if (left == right) {
+            return true;
+        }
+        if (left == null || right == null) {
+            return false;
+        }
+
+        ID leftId = idExtractor.apply(left);
+        ID rightId = idExtractor.apply(right);
+        return leftId != null && rightId != null && leftId.equals(rightId);
     }
 }
