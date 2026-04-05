@@ -117,10 +117,10 @@ public class UserProfile extends BaseTimeEntity {
         if (command.nickname() != null) {
             this.nickname = requireNonBlank(command.nickname(), "nickname");
         }
-        if (command.profileImageUrl() != null) {
+        if (command.profileImageUrlSet()) {
             this.profileImageUrl = command.profileImageUrl();
         }
-        if (command.bio() != null) {
+        if (command.bioSet()) {
             this.bio = command.bio();
         }
         if (command.preferredIngredients() != null) {
@@ -179,7 +179,9 @@ public class UserProfile extends BaseTimeEntity {
     public record UpdateCommand(
             String nickname,
             String profileImageUrl,
+            boolean profileImageUrlSet,
             String bio,
+            boolean bioSet,
             Set<String> preferredIngredients,
             Set<FoodStyle> foodStyles,
             Set<AllergyType> allergies,

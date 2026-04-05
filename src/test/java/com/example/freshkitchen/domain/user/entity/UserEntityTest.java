@@ -44,7 +44,9 @@ class UserEntityTest {
         profile.apply(new UserProfile.UpdateCommand(
                 "chef",
                 null,
+                false,
                 null,
+                false,
                 Set.of("garlic", "carrot"),
                 Set.of(FoodStyle.WESTERN, FoodStyle.JAPANESE),
                 Set.of(AllergyType.MILK),
@@ -61,6 +63,36 @@ class UserEntityTest {
         assertEquals(Set.of(CookingTool.OVEN, CookingTool.BLENDER), profile.getCookingTools());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
         assertNull(user.getInactiveAt());
+    }
+
+    @Test
+    void userProfileApply_canClearOptionalFields() {
+        User user = User.create(new User.CreateCommand("provider-1", Provider.KAKAO));
+        UserProfile profile = UserProfile.create(new UserProfile.CreateCommand(
+                user,
+                "fresh",
+                "https://image.example/profile.png",
+                "bio",
+                Set.of("onion"),
+                Set.of(FoodStyle.KOREAN),
+                Set.of(AllergyType.EGG),
+                Set.of(CookingTool.PAN)
+        ));
+
+        profile.apply(new UserProfile.UpdateCommand(
+                null,
+                null,
+                true,
+                null,
+                true,
+                null,
+                null,
+                null,
+                null
+        ));
+
+        assertNull(profile.getProfileImageUrl());
+        assertNull(profile.getBio());
     }
 
     @Test
