@@ -24,6 +24,7 @@ import org.springframework.test.context.TestConstructor;
 import java.util.Comparator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
@@ -128,5 +129,15 @@ class IngredientImagePrimaryServiceTest {
         assertEquals(secondary.getId(), persistedPrimary.getId());
         assertTrue(persistedIngredient.getIngredientImages().stream()
                 .anyMatch(ingredientImage -> ingredientImage.getId().equals(primary.getId()) && !ingredientImage.isPrimary()));
+    }
+
+    @Test
+    void changePrimaryImage_rejectsNullIngredientImageId() {
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> ingredientImagePrimaryService.changePrimaryImage(1L, null)
+        );
+
+        assertEquals("ingredientImageId must not be null", exception.getMessage());
     }
 }

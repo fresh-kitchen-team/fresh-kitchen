@@ -15,6 +15,10 @@ public class IngredientImagePrimaryService {
 
     @Transactional
     public void changePrimaryImage(Long ingredientId, Long ingredientImageId) {
+        if (ingredientImageId == null) {
+            throw new IllegalArgumentException("ingredientImageId must not be null");
+        }
+
         Ingredient ingredient = ingredientRepository.findByIdWithImagesForUpdate(ingredientId)
                 .orElseThrow(() -> new IllegalArgumentException("ingredient not found"));
 
