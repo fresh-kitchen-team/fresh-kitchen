@@ -1,5 +1,6 @@
 package com.example.freshkitchen.domain.ingredient.service;
 
+import com.example.freshkitchen.support.PostgreSqlTestContainerSupport;
 import com.example.freshkitchen.domain.image.entity.ImageAsset;
 import com.example.freshkitchen.domain.image.entity.IngredientImage;
 import com.example.freshkitchen.domain.image.enums.AssetType;
@@ -30,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DataJpaTest
 @Import(IngredientImagePrimaryService.class)
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-class IngredientImagePrimaryServiceTest {
+class IngredientImagePrimaryServiceTest extends PostgreSqlTestContainerSupport {
 
     private final IngredientImagePrimaryService ingredientImagePrimaryService;
     private final IngredientRepository ingredientRepository;

@@ -1,5 +1,6 @@
 package com.example.freshkitchen.domain;
 
+import com.example.freshkitchen.support.PostgreSqlTestContainerSupport;
 import com.example.freshkitchen.domain.catalog.entity.CatalogExpiryRule;
 import com.example.freshkitchen.domain.catalog.entity.CategoryExpiryRule;
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
@@ -35,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DataJpaTest
-class JpaMappingTest {
+class JpaMappingTest extends PostgreSqlTestContainerSupport {
 
     @PersistenceContext
     private EntityManager entityManager;
