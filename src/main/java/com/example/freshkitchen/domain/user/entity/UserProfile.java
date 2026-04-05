@@ -151,17 +151,26 @@ public class UserProfile extends BaseTimeEntity {
 
     private void replaceFoodStyles(Set<FoodStyle> foodStyles) {
         this.foodStyles.clear();
-        this.foodStyles.addAll(toLinkedHashSet(foodStyles));
+        toLinkedHashSet(foodStyles)
+                .stream()
+                .map(value -> requireNonNull(value, "foodStyle"))
+                .forEach(this.foodStyles::add);
     }
 
     private void replaceAllergies(Set<AllergyType> allergies) {
         this.allergies.clear();
-        this.allergies.addAll(toLinkedHashSet(allergies));
+        toLinkedHashSet(allergies)
+                .stream()
+                .map(value -> requireNonNull(value, "allergy"))
+                .forEach(this.allergies::add);
     }
 
     private void replaceCookingTools(Set<CookingTool> cookingTools) {
         this.cookingTools.clear();
-        this.cookingTools.addAll(toLinkedHashSet(cookingTools));
+        toLinkedHashSet(cookingTools)
+                .stream()
+                .map(value -> requireNonNull(value, "cookingTool"))
+                .forEach(this.cookingTools::add);
     }
 
     public record CreateCommand(
