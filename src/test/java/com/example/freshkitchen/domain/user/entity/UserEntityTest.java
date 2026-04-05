@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -60,5 +61,23 @@ class UserEntityTest {
         assertEquals(Set.of(CookingTool.OVEN, CookingTool.BLENDER), profile.getCookingTools());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
         assertNull(user.getInactiveAt());
+    }
+
+    @Test
+    void userProfileCreate_requiresUser() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                UserProfile.create(new UserProfile.CreateCommand(
+                        null,
+                        "fresh",
+                        null,
+                        null,
+                        Set.of(),
+                        Set.of(),
+                        Set.of(),
+                        Set.of()
+                ))
+        );
+
+        assertEquals("user must not be null", exception.getMessage());
     }
 }

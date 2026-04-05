@@ -105,7 +105,9 @@ public class UserProfile extends BaseTimeEntity {
                 command.allergies(),
                 command.cookingTools()
         );
-        command.user().assignProfile(profile);
+
+        User user = requireNonNull(command.user(), "user");
+        user.assignProfile(profile);
         return profile;
     }
 
