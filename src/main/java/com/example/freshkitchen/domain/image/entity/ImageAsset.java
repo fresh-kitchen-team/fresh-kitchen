@@ -74,13 +74,13 @@ public class ImageAsset extends CreatedAtEntity {
             Integer width,
             Integer height
     ) {
-        this.user = user;
         this.assetType = requireNonNull(assetType, "assetType");
+        this.user = validateOwnerConsistency(user, this.assetType);
         this.kind = requireNonNull(kind, "kind");
         this.storageProvider = requireNonNull(storageProvider, "storageProvider");
         this.imageUrl = requireNonBlank(imageUrl, "imageUrl");
-        this.width = width;
-        this.height = height;
+        this.width = requirePositiveNullable(width, "width");
+        this.height = requirePositiveNullable(height, "height");
     }
 
     public static ImageAsset create(CreateCommand command) {
@@ -99,12 +99,17 @@ public class ImageAsset extends CreatedAtEntity {
     public void apply(UpdateCommand command) {
         requireNonNull(command, "command");
 
+        User nextUser = this.user;
+        AssetType nextAssetType = this.assetType;
+
         if (command.userSet()) {
-            this.user = command.user();
+            nextUser = command.user();
         }
         if (command.assetType() != null) {
-            this.assetType = requireNonNull(command.assetType(), "assetType");
+            nextAssetType = requireNonNull(command.assetType(), "assetType");
         }
+        this.assetType = nextAssetType;
+        this.user = validateOwnerConsistency(nextUser, nextAssetType);
         if (command.kind() != null) {
             this.kind = requireNonNull(command.kind(), "kind");
         }
@@ -115,11 +120,21 @@ public class ImageAsset extends CreatedAtEntity {
             this.imageUrl = requireNonBlank(command.imageUrl(), "imageUrl");
         }
         if (command.widthSet()) {
-            this.width = command.width();
+            this.width = requirePositiveNullable(command.width(), "width");
         }
         if (command.heightSet()) {
-            this.height = command.height();
+            this.height = requirePositiveNullable(command.height(), "height");
         }
+    }
+
+    private static User validateOwnerConsistency(User user, AssetType assetType) {
+        if (assetType == AssetType.SYSTEM_DEFAULT && user != null) {
+            throw new IllegalArgumentException("user must be null when assetType is SYSTEM_DEFAULT");
+        }
+        if (assetType == AssetType.USER_UPLOAD && user == null) {
+            throw new IllegalArgumentException("user must not be null when assetType is USER_UPLOAD");
+        }
+        return user;
     }
 
     public record CreateCommand(

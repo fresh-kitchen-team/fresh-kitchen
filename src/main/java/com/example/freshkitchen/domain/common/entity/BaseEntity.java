@@ -29,6 +29,10 @@ public abstract class BaseEntity {
         return value;
     }
 
+    protected static Integer requirePositiveNullable(Integer value, String fieldName) {
+        return value == null ? null : requirePositive(value, fieldName);
+    }
+
     protected static int requireNonNegative(int value, String fieldName) {
         if (value < 0) {
             throw new IllegalArgumentException(fieldName + " must not be negative");
