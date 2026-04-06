@@ -1,6 +1,8 @@
 package com.example.freshkitchen.domain.image.entity;
 
 import com.example.freshkitchen.domain.common.entity.CreatedAtEntity;
+import com.example.freshkitchen.domain.image.exception.ImageErrorCode;
+import com.example.freshkitchen.domain.image.exception.ImageException;
 import com.example.freshkitchen.domain.image.enums.AssetType;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
@@ -129,10 +131,10 @@ public class ImageAsset extends CreatedAtEntity {
 
     private static User validateOwnerConsistency(User user, AssetType assetType) {
         if (assetType == AssetType.SYSTEM_DEFAULT && user != null) {
-            throw new IllegalArgumentException("user must be null when assetType is SYSTEM_DEFAULT");
+            throw new ImageException(ImageErrorCode.SYSTEM_DEFAULT_OWNER_MUST_BE_NULL);
         }
         if (assetType == AssetType.USER_UPLOAD && user == null) {
-            throw new IllegalArgumentException("user must not be null when assetType is USER_UPLOAD");
+            throw new ImageException(ImageErrorCode.USER_UPLOAD_OWNER_REQUIRED);
         }
         return user;
     }

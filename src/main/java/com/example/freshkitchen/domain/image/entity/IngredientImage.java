@@ -1,6 +1,8 @@
 package com.example.freshkitchen.domain.image.entity;
 
 import com.example.freshkitchen.domain.common.entity.CreatedAtEntity;
+import com.example.freshkitchen.domain.image.exception.ImageErrorCode;
+import com.example.freshkitchen.domain.image.exception.ImageException;
 import com.example.freshkitchen.domain.image.enums.IngredientImageSourceType;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import jakarta.persistence.Column;
@@ -92,7 +94,7 @@ public class IngredientImage extends CreatedAtEntity {
             return;
         }
         if (!sameEntity(this.ingredient, nextIngredient, Ingredient::getId)) {
-            throw new IllegalArgumentException("ingredient image is already attached to another ingredient");
+            throw new ImageException(ImageErrorCode.INGREDIENT_IMAGE_ALREADY_ATTACHED);
         }
     }
 

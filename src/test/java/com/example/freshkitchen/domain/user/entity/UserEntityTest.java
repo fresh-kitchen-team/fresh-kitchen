@@ -5,6 +5,7 @@ import com.example.freshkitchen.domain.user.enums.CookingTool;
 import com.example.freshkitchen.domain.user.enums.FoodStyle;
 import com.example.freshkitchen.domain.user.enums.Provider;
 import com.example.freshkitchen.domain.user.enums.UserStatus;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -97,7 +98,7 @@ class UserEntityTest {
 
     @Test
     void userProfileCreate_requiresUser() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+        BusinessValidationException exception = assertThrows(BusinessValidationException.class, () ->
                 UserProfile.create(new UserProfile.CreateCommand(
                         null,
                         "fresh",

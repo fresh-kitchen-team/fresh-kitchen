@@ -2,11 +2,13 @@ package com.example.freshkitchen.domain.ingredient.entity;
 
 import com.example.freshkitchen.domain.image.entity.ImageAsset;
 import com.example.freshkitchen.domain.image.entity.IngredientImage;
+import com.example.freshkitchen.domain.image.exception.ImageException;
 import com.example.freshkitchen.domain.image.enums.AssetType;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.IngredientImageSourceType;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
+import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
@@ -137,7 +139,7 @@ class IngredientEntityTest {
                 120
         ));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+        IngredientException exception = assertThrows(IngredientException.class, () ->
                 IngredientImage.create(new IngredientImage.CreateCommand(
                         ingredient,
                         asset,
@@ -181,7 +183,7 @@ class IngredientEntityTest {
                 IngredientImageSourceType.PHOTO
         ));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+        IngredientException exception = assertThrows(IngredientException.class, () ->
                 image.apply(new IngredientImage.UpdateCommand(null, false, null))
         );
 
@@ -232,7 +234,7 @@ class IngredientEntityTest {
                 IngredientImageSourceType.PHOTO
         ));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+        ImageException exception = assertThrows(ImageException.class, () ->
                 secondIngredient.addImage(image)
         );
 

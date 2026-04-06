@@ -1,10 +1,12 @@
 package com.example.freshkitchen.domain.image.entity;
 
+import com.example.freshkitchen.domain.image.exception.ImageException;
 import com.example.freshkitchen.domain.image.enums.AssetType;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.domain.user.entity.User;
 import com.example.freshkitchen.domain.user.enums.Provider;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,7 +16,7 @@ class ImageAssetEntityTest {
 
     @Test
     void create_requiresUserForUserUpload() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+        ImageException exception = assertThrows(ImageException.class, () ->
                 ImageAsset.create(new ImageAsset.CreateCommand(
                         null,
                         AssetType.USER_UPLOAD,
@@ -33,7 +35,7 @@ class ImageAssetEntityTest {
     void create_rejectsUserForSystemDefault() {
         User user = User.create(new User.CreateCommand("provider-user", Provider.GOOGLE));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+        ImageException exception = assertThrows(ImageException.class, () ->
                 ImageAsset.create(new ImageAsset.CreateCommand(
                         user,
                         AssetType.SYSTEM_DEFAULT,
@@ -52,7 +54,7 @@ class ImageAssetEntityTest {
     void create_rejectsNonPositiveDimensions() {
         User user = User.create(new User.CreateCommand("provider-user", Provider.KAKAO));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+        BusinessValidationException exception = assertThrows(BusinessValidationException.class, () ->
                 ImageAsset.create(new ImageAsset.CreateCommand(
                         user,
                         AssetType.USER_UPLOAD,
@@ -80,7 +82,7 @@ class ImageAssetEntityTest {
                 80
         ));
 
-        IllegalArgumentException ownerException = assertThrows(IllegalArgumentException.class, () ->
+        ImageException ownerException = assertThrows(ImageException.class, () ->
                 imageAsset.apply(new ImageAsset.UpdateCommand(
                         null,
                         true,
@@ -96,7 +98,7 @@ class ImageAssetEntityTest {
         );
         assertEquals("user must not be null when assetType is USER_UPLOAD", ownerException.getMessage());
 
-        IllegalArgumentException widthException = assertThrows(IllegalArgumentException.class, () ->
+        BusinessValidationException widthException = assertThrows(BusinessValidationException.class, () ->
                 imageAsset.apply(new ImageAsset.UpdateCommand(
                         null,
                         false,

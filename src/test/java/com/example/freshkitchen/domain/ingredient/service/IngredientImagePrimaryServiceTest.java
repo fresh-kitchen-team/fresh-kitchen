@@ -9,6 +9,7 @@ import com.example.freshkitchen.domain.image.enums.IngredientImageSourceType;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
+import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
@@ -134,8 +135,8 @@ class IngredientImagePrimaryServiceTest extends PostgreSqlTestContainerSupport {
 
     @Test
     void changePrimaryImage_rejectsNullIngredientImageId() {
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+        IngredientException exception = assertThrows(
+                IngredientException.class,
                 () -> ingredientImagePrimaryService.changePrimaryImage(1L, null)
         );
 
@@ -144,8 +145,8 @@ class IngredientImagePrimaryServiceTest extends PostgreSqlTestContainerSupport {
 
     @Test
     void changePrimaryImage_rejectsNullIngredientId() {
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+        IngredientException exception = assertThrows(
+                IngredientException.class,
                 () -> ingredientImagePrimaryService.changePrimaryImage(null, 1L)
         );
 

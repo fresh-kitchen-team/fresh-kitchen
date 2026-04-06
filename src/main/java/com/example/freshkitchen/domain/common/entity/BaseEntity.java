@@ -1,5 +1,6 @@
 package com.example.freshkitchen.domain.common.entity;
 
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import jakarta.persistence.MappedSuperclass;
 
 import java.util.LinkedHashSet;
@@ -11,21 +12,21 @@ public abstract class BaseEntity {
 
     protected static <T> T requireNonNull(T value, String fieldName) {
         if (value == null) {
-            throw new IllegalArgumentException(fieldName + " must not be null");
+            throw new BusinessValidationException(fieldName + " must not be null");
         }
         return value;
     }
 
     protected static String requireNonBlank(String value, String fieldName) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " must not be blank");
+            throw new BusinessValidationException(fieldName + " must not be blank");
         }
         return value;
     }
 
     protected static int requirePositive(int value, String fieldName) {
         if (value <= 0) {
-            throw new IllegalArgumentException(fieldName + " must be positive");
+            throw new BusinessValidationException(fieldName + " must be positive");
         }
         return value;
     }
@@ -36,7 +37,7 @@ public abstract class BaseEntity {
 
     protected static int requireNonNegative(int value, String fieldName) {
         if (value < 0) {
-            throw new IllegalArgumentException(fieldName + " must not be negative");
+            throw new BusinessValidationException(fieldName + " must not be negative");
         }
         return value;
     }

@@ -3,6 +3,8 @@ package com.example.freshkitchen.domain.ingredient.entity;
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
 import com.example.freshkitchen.domain.common.entity.BaseTimeEntity;
 import com.example.freshkitchen.domain.image.entity.IngredientImage;
+import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
+import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
@@ -169,7 +171,7 @@ public class Ingredient extends BaseTimeEntity {
     public void addImage(IngredientImage ingredientImage) {
         requireNonNull(ingredientImage, "ingredientImage");
         if (ingredientImages.isEmpty() && !ingredientImage.isPrimary()) {
-            throw new IllegalArgumentException("first ingredient image must be primary");
+            throw new IngredientException(IngredientErrorCode.FIRST_IMAGE_MUST_BE_PRIMARY);
         }
         ingredientImage.attachIngredient(this);
         this.ingredientImages.add(ingredientImage);
@@ -182,7 +184,7 @@ public class Ingredient extends BaseTimeEntity {
     public void enforcePrimaryImage(IngredientImage primaryImage) {
         requireNonNull(primaryImage, "primaryImage");
         if (!containsImage(primaryImage)) {
-            throw new IllegalArgumentException("primary image must belong to ingredient");
+            throw new IngredientException(IngredientErrorCode.PRIMARY_IMAGE_MUST_BELONG_TO_INGREDIENT);
         }
         for (IngredientImage ingredientImage : ingredientImages) {
             ingredientImage.forcePrimary(sameEntity(ingredientImage, primaryImage, IngredientImage::getId));
@@ -192,7 +194,7 @@ public class Ingredient extends BaseTimeEntity {
     public void changeImagePrimary(IngredientImage ingredientImage, boolean primary) {
         requireNonNull(ingredientImage, "ingredientImage");
         if (!containsImage(ingredientImage)) {
-            throw new IllegalArgumentException("ingredient image must belong to ingredient");
+            throw new IngredientException(IngredientErrorCode.INGREDIENT_IMAGE_NOT_BELONG_TO_INGREDIENT);
         }
 
         if (primary) {
@@ -201,7 +203,7 @@ public class Ingredient extends BaseTimeEntity {
         }
 
         if (ingredientImage.isPrimary()) {
-            throw new IllegalArgumentException("ingredient must have one primary image");
+            throw new IngredientException(IngredientErrorCode.INGREDIENT_PRIMARY_IMAGE_REQUIRED);
         }
 
         ingredientImage.forcePrimary(false);
@@ -217,7 +219,7 @@ public class Ingredient extends BaseTimeEntity {
                 .filter(IngredientImage::isPrimary)
                 .count();
         if (primaryCount != 1) {
-            throw new IllegalStateException("ingredient must have exactly one primary image");
+            throw new IngredientException(IngredientErrorCode.INGREDIENT_PRIMARY_IMAGE_INVARIANT_BROKEN);
         }
     }
 
@@ -225,7 +227,7 @@ public class Ingredient extends BaseTimeEntity {
         requireNonNull(user, "user");
         Storage validatedStorage = requireNonNull(storage, "storage");
         if (!sameEntity(validatedStorage.getUser(), user, User::getId)) {
-            throw new IllegalArgumentException("storage must belong to user");
+            throw new IngredientException(IngredientErrorCode.STORAGE_NOT_OWNED_BY_USER);
         }
         return validatedStorage;
     }
