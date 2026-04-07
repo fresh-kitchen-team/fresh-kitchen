@@ -19,6 +19,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
@@ -88,6 +89,21 @@ class UserRepositoryTest extends PostgreSqlTestContainerSupport {
     @Test
     void findByIdWithProfile_returnsEmptyWhenUserDoesNotExist() {
         assertTrue(userRepository.findByIdWithProfile(Long.MAX_VALUE).isEmpty());
+    }
+
+    @Test
+    void findByIdWithProfile_returnsUserEvenWhenProfileDoesNotExist() {
+        User user = User.create(new User.CreateCommand("provider-user-4", Provider.KAKAO));
+        entityManager.persist(user);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        User foundUser = userRepository.findByIdWithProfile(user.getId())
+                .orElseThrow();
+
+        assertEquals(user.getId(), foundUser.getId());
+        assertNull(foundUser.getProfile());
     }
 
     private User persistUserWithProfile(String providerUserId, Provider provider) {
