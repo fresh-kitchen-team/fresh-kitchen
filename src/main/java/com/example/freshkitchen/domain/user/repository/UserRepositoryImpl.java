@@ -5,12 +5,10 @@ import com.example.freshkitchen.domain.user.entity.UserProfile;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
-import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-@Repository
 @RequiredArgsConstructor
 class UserRepositoryImpl implements UserRepositoryCustom {
 
