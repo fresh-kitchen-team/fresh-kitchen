@@ -134,6 +134,12 @@
 | `INVALID_STATE` | `409` | `COMMON-409` | `Invalid state` | 범용 상태 충돌 fallback |
 | `INTERNAL_SERVER_ERROR` | `500` | `COMMON-500` | `Internal server error` | 미처리 예외 fallback |
 
+공통 에러 코드는 `code` 와 `status` 의 fallback 계약을 제공한다.
+
+- `BusinessValidationException`, `IllegalArgumentException`, `IllegalStateException` 처럼 공통 코드로 처리되는 예외는 응답 `message` 에 상세 메시지가 내려갈 수 있다.
+- 따라서 클라이언트 분기 기준은 `message` 가 아니라 `code` 로 고정한다.
+- `COMMON-500` 만 예외 메시지를 외부에 노출하지 않고 고정 메시지 `Internal server error` 를 사용한다.
+
 ---
 
 ## 6. 현재 정의된 도메인 에러 코드
@@ -186,7 +192,8 @@
 - message 는 현재 영어로 통일한다.
 - 클라이언트/프론트가 그대로 읽어도 의미가 통해야 한다.
 - 너무 내부 구현적인 표현은 피한다.
-- 하나의 에러 코드는 하나의 대표 메시지를 가진다.
+- 도메인 `ErrorCode` 는 하나의 대표 메시지를 가진다.
+- 공통 코드 fallback 응답은 예외별 상세 메시지를 `message` 로 내려줄 수 있다.
 
 ### 7.3 status 선택 기준
 
