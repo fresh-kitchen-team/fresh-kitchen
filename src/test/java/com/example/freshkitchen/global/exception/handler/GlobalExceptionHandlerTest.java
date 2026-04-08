@@ -32,6 +32,28 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void handleIllegalArgumentException_returnsInvalidInputResponse() throws Exception {
+        mockMvc.perform(get("/test-exceptions/illegal-argument"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.message").value("invalid ingredient input"))
+                .andExpect(jsonPath("$.path").value("/test-exceptions/illegal-argument"))
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    void handleIllegalStateException_returnsInvalidStateResponse() throws Exception {
+        mockMvc.perform(get("/test-exceptions/illegal-state"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.code").value("COMMON-409"))
+                .andExpect(jsonPath("$.message").value("ingredient state conflict"))
+                .andExpect(jsonPath("$.path").value("/test-exceptions/illegal-state"))
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
     void handleUnexpectedException_returnsInternalServerErrorResponse() throws Exception {
         mockMvc.perform(get("/test-exceptions/unexpected"))
                 .andExpect(status().isInternalServerError())
@@ -49,6 +71,16 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/domain")
         String domainException() {
             throw new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND);
+        }
+
+        @GetMapping("/illegal-argument")
+        String illegalArgumentException() {
+            throw new IllegalArgumentException("invalid ingredient input");
+        }
+
+        @GetMapping("/illegal-state")
+        String illegalStateException() {
+            throw new IllegalStateException("ingredient state conflict");
         }
 
         @GetMapping("/unexpected")
