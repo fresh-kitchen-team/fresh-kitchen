@@ -26,7 +26,8 @@ public class GlobalExceptionHandler {
                 errorCode.status().value(),
                 request.getRequestURI(),
                 exception.getClass().getSimpleName(),
-                exception.getMessage()
+                exception.getMessage(),
+                exception
         );
         return buildResponse(errorCode, request);
     }
@@ -42,7 +43,8 @@ public class GlobalExceptionHandler {
                 CommonErrorCode.INVALID_INPUT.status().value(),
                 request.getRequestURI(),
                 exception.getClass().getSimpleName(),
-                exception.getMessage()
+                exception.getMessage(),
+                exception
         );
         return buildResponse(CommonErrorCode.INVALID_INPUT, request);
     }
@@ -58,7 +60,8 @@ public class GlobalExceptionHandler {
                 CommonErrorCode.INVALID_STATE.status().value(),
                 request.getRequestURI(),
                 exception.getClass().getSimpleName(),
-                exception.getMessage()
+                exception.getMessage(),
+                exception
         );
         return buildResponse(CommonErrorCode.INVALID_STATE, request);
     }
