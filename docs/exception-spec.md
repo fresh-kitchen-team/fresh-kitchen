@@ -26,7 +26,7 @@
     - `String code()`
     - `String message()`
 
-- `BaseException`
+- `BusinessException`
   - 서비스/도메인 예외의 공통 부모
   - 반드시 하나의 `ErrorCode` 를 가진다.
 
@@ -46,7 +46,7 @@
 ### 2.4 글로벌 핸들러
 
 - `GlobalExceptionHandler`
-  - `BaseException` 처리
+  - `BusinessException` 처리
   - `IllegalArgumentException` 처리
   - `IllegalStateException` 처리
   - 그 외 `Exception` 처리
@@ -138,6 +138,7 @@
 
 - `BusinessValidationException`, `IllegalArgumentException`, `IllegalStateException` 처럼 공통 코드로 처리되는 예외도 응답 `message` 는 항상 `CommonErrorCode` 의 고정 메시지를 사용한다.
 - 예외 상세 내용은 서버 로그에만 남기고 외부 응답에는 포함하지 않는다.
+- 예측 가능한 `4xx` 비즈니스 예외는 운영 로그 노이즈를 줄이기 위해 `debug` 레벨로만 기록한다.
 - 따라서 클라이언트 분기 기준은 `message` 가 아니라 `code` 로 고정한다.
 
 ---
@@ -212,6 +213,12 @@
 - `500 Internal Server Error`
   - 처리되지 않은 예외
   - 서버 내부 예상 밖 오류
+
+### 7.4 로깅 기준
+
+- `BusinessException`, `IllegalArgumentException`, `IllegalStateException` 처럼 예측 가능한 `4xx` 예외는 `debug` 레벨로 기록한다.
+- 이 경우 stack trace 는 `debug` 로그에서만 확인할 수 있다.
+- 처리되지 않은 예외와 `5xx` 응답은 `error` 레벨로 기록한다.
 
 ---
 

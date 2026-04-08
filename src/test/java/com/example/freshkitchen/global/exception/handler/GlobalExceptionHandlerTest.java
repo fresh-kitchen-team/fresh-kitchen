@@ -22,7 +22,7 @@ class GlobalExceptionHandlerTest {
             .build();
 
     @Test
-    void handleBaseException_returnsStandardErrorResponse() throws Exception {
+    void handleBusinessException_returnsStandardErrorResponse() throws Exception {
         mockMvc.perform(get("/test-exceptions/domain"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
@@ -55,7 +55,7 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handleCommonBaseException_returnsFixedCommonErrorMessage() throws Exception {
+    void handleCommonBusinessException_returnsFixedCommonErrorMessage() throws Exception {
         mockMvc.perform(get("/test-exceptions/business-validation"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))

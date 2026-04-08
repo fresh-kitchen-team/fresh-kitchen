@@ -1,6 +1,6 @@
 package com.example.freshkitchen.global.exception.handler;
 
-import com.example.freshkitchen.global.exception.BaseException;
+import com.example.freshkitchen.global.exception.BusinessException;
 import com.example.freshkitchen.global.exception.CommonErrorCode;
 import com.example.freshkitchen.global.exception.ErrorCode;
 import com.example.freshkitchen.global.exception.response.ErrorResponse;
@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(BaseException.class)
-    public ResponseEntity<ErrorResponse> handleBaseException(
-            BaseException exception,
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(
+            BusinessException exception,
             HttpServletRequest request
     ) {
         ErrorCode errorCode = exception.getErrorCode();
-        log.warn(
+        log.debug(
                 "Handled exception: code={}, status={}, path={}, type={}, message={}",
                 errorCode.code(),
                 errorCode.status().value(),
@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
             IllegalArgumentException exception,
             HttpServletRequest request
     ) {
-        log.warn(
+        log.debug(
                 "Handled exception: code={}, status={}, path={}, type={}, message={}",
                 CommonErrorCode.INVALID_INPUT.code(),
                 CommonErrorCode.INVALID_INPUT.status().value(),
@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
             IllegalStateException exception,
             HttpServletRequest request
     ) {
-        log.warn(
+        log.debug(
                 "Handled exception: code={}, status={}, path={}, type={}, message={}",
                 CommonErrorCode.INVALID_STATE.code(),
                 CommonErrorCode.INVALID_STATE.status().value(),

@@ -1,15 +1,15 @@
 package com.example.freshkitchen.global.exception;
 
-public abstract class BaseException extends RuntimeException {
+public abstract class BusinessException extends RuntimeException {
 
     private final ErrorCode errorCode;
 
-    protected BaseException(ErrorCode errorCode) {
+    protected BusinessException(ErrorCode errorCode) {
         super(errorCode.message());
         this.errorCode = errorCode;
     }
 
-    protected BaseException(ErrorCode errorCode, String detailMessage) {
+    protected BusinessException(ErrorCode errorCode, String detailMessage) {
         super(detailMessage);
         this.errorCode = errorCode;
     }
