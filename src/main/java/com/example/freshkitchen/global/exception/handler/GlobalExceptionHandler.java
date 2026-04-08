@@ -6,6 +6,7 @@ import com.example.freshkitchen.global.exception.ErrorCode;
 import com.example.freshkitchen.global.exception.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -20,15 +21,7 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         ErrorCode errorCode = exception.getErrorCode();
-        log.debug(
-                "Handled exception: code={}, status={}, path={}, type={}, message={}",
-                errorCode.code(),
-                errorCode.status().value(),
-                request.getRequestURI(),
-                exception.getClass().getSimpleName(),
-                exception.getMessage(),
-                exception
-        );
+        logHandledException(errorCode.status(), errorCode.code(), request, exception);
         return buildResponse(errorCode, request);
     }
 
@@ -37,13 +30,10 @@ public class GlobalExceptionHandler {
             IllegalArgumentException exception,
             HttpServletRequest request
     ) {
-        log.debug(
-                "Handled exception: code={}, status={}, path={}, type={}, message={}",
+        logHandledException(
+                CommonErrorCode.INVALID_INPUT.status(),
                 CommonErrorCode.INVALID_INPUT.code(),
-                CommonErrorCode.INVALID_INPUT.status().value(),
-                request.getRequestURI(),
-                exception.getClass().getSimpleName(),
-                exception.getMessage(),
+                request,
                 exception
         );
         return buildResponse(CommonErrorCode.INVALID_INPUT, request);
@@ -54,13 +44,10 @@ public class GlobalExceptionHandler {
             IllegalStateException exception,
             HttpServletRequest request
     ) {
-        log.debug(
-                "Handled exception: code={}, status={}, path={}, type={}, message={}",
+        logHandledException(
+                CommonErrorCode.INVALID_STATE.status(),
                 CommonErrorCode.INVALID_STATE.code(),
-                CommonErrorCode.INVALID_STATE.status().value(),
-                request.getRequestURI(),
-                exception.getClass().getSimpleName(),
-                exception.getMessage(),
+                request,
                 exception
         );
         return buildResponse(CommonErrorCode.INVALID_STATE, request);
@@ -96,5 +83,35 @@ public class GlobalExceptionHandler {
 
     private String resolveResponseMessage(ErrorCode errorCode) {
         return errorCode.message();
+    }
+
+    private void logHandledException(
+            HttpStatus status,
+            String code,
+            HttpServletRequest request,
+            Exception exception
+    ) {
+        if (status.is5xxServerError()) {
+            log.error(
+                    "Handled exception: code={}, status={}, path={}, type={}, message={}",
+                    code,
+                    status.value(),
+                    request.getRequestURI(),
+                    exception.getClass().getSimpleName(),
+                    exception.getMessage(),
+                    exception
+            );
+            return;
+        }
+
+        log.debug(
+                "Handled exception: code={}, status={}, path={}, type={}, message={}",
+                code,
+                status.value(),
+                request.getRequestURI(),
+                exception.getClass().getSimpleName(),
+                exception.getMessage(),
+                exception
+        );
     }
 }
