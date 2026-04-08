@@ -49,7 +49,7 @@
   - `BusinessException` 처리
   - `IllegalArgumentException` 처리
   - `IllegalStateException` 처리
-  - 그 외 `Exception` 처리
+  - 그 외 `RuntimeException` 처리
 
 ---
 

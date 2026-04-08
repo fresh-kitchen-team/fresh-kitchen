@@ -66,7 +66,7 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handleUnexpectedException_returnsInternalServerErrorResponse() throws Exception {
+    void handleUnexpectedRuntimeException_returnsInternalServerErrorResponse() throws Exception {
         mockMvc.perform(get("/test-exceptions/unexpected"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))

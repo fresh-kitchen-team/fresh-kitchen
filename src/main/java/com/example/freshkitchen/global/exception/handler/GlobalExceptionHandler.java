@@ -53,9 +53,9 @@ public class GlobalExceptionHandler {
         return buildResponse(CommonErrorCode.INVALID_STATE, request);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(
-            Exception exception,
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(
+            RuntimeException exception,
             HttpServletRequest request
     ) {
         log.error(
