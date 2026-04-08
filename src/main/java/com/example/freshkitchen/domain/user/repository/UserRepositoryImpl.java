@@ -24,7 +24,8 @@ class UserRepositoryImpl implements UserRepositoryCustom {
                 where user.id = :userId
                 """, User.class)
                 .setParameter("userId", userId)
-                .getResultStream()
+                .getResultList()
+                .stream()
                 .findFirst();
 
         user.map(User::getProfile)
