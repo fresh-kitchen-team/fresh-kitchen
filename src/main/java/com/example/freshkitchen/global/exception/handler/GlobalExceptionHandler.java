@@ -19,15 +19,16 @@ public class GlobalExceptionHandler {
             BaseException exception,
             HttpServletRequest request
     ) {
+        ErrorCode errorCode = exception.getErrorCode();
         log.warn(
                 "Handled exception: code={}, status={}, path={}, type={}, message={}",
-                exception.getErrorCode().code(),
-                exception.getErrorCode().status().value(),
+                errorCode.code(),
+                errorCode.status().value(),
                 request.getRequestURI(),
                 exception.getClass().getSimpleName(),
                 exception.getMessage()
         );
-        return buildResponse(exception.getErrorCode(), exception.getMessage(), request);
+        return buildResponse(errorCode, request);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -43,7 +44,7 @@ public class GlobalExceptionHandler {
                 exception.getClass().getSimpleName(),
                 exception.getMessage()
         );
-        return buildResponse(CommonErrorCode.INVALID_INPUT, exception.getMessage(), request);
+        return buildResponse(CommonErrorCode.INVALID_INPUT, request);
     }
 
     @ExceptionHandler(IllegalStateException.class)
@@ -59,7 +60,7 @@ public class GlobalExceptionHandler {
                 exception.getClass().getSimpleName(),
                 exception.getMessage()
         );
-        return buildResponse(CommonErrorCode.INVALID_STATE, exception.getMessage(), request);
+        return buildResponse(CommonErrorCode.INVALID_STATE, request);
     }
 
     @ExceptionHandler(Exception.class)
@@ -78,17 +79,19 @@ public class GlobalExceptionHandler {
         );
         return buildResponse(
                 CommonErrorCode.INTERNAL_SERVER_ERROR,
-                CommonErrorCode.INTERNAL_SERVER_ERROR.message(),
                 request
         );
     }
 
     private ResponseEntity<ErrorResponse> buildResponse(
             ErrorCode errorCode,
-            String message,
             HttpServletRequest request
     ) {
         return ResponseEntity.status(errorCode.status())
-                .body(ErrorResponse.of(errorCode, message, request.getRequestURI()));
+                .body(ErrorResponse.of(errorCode, resolveResponseMessage(errorCode), request.getRequestURI()));
+    }
+
+    private String resolveResponseMessage(ErrorCode errorCode) {
+        return errorCode.message();
     }
 }

@@ -2,6 +2,7 @@ package com.example.freshkitchen.global.exception.handler;
 
 import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -37,7 +38,7 @@ class GlobalExceptionHandlerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
-                .andExpect(jsonPath("$.message").value("invalid ingredient input"))
+                .andExpect(jsonPath("$.message").value("Invalid input"))
                 .andExpect(jsonPath("$.path").value("/test-exceptions/illegal-argument"))
                 .andExpect(jsonPath("$.timestamp").exists());
     }
@@ -48,8 +49,19 @@ class GlobalExceptionHandlerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.code").value("COMMON-409"))
-                .andExpect(jsonPath("$.message").value("ingredient state conflict"))
+                .andExpect(jsonPath("$.message").value("Invalid state"))
                 .andExpect(jsonPath("$.path").value("/test-exceptions/illegal-state"))
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    void handleCommonBaseException_returnsFixedCommonErrorMessage() throws Exception {
+        mockMvc.perform(get("/test-exceptions/business-validation"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.message").value("Invalid input"))
+                .andExpect(jsonPath("$.path").value("/test-exceptions/business-validation"))
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 
@@ -81,6 +93,11 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/illegal-state")
         String illegalStateException() {
             throw new IllegalStateException("ingredient state conflict");
+        }
+
+        @GetMapping("/business-validation")
+        String businessValidationException() {
+            throw new BusinessValidationException("sensitive validation detail");
         }
 
         @GetMapping("/unexpected")
