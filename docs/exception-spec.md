@@ -40,6 +40,7 @@
 
 - `IngredientException`
 - `ImageException`
+- `UserException`
 
 도메인별 예외는 각 도메인의 `ErrorCode` enum 과 1:1로 연결한다.
 
@@ -166,6 +167,12 @@
 | `INGREDIENT_IMAGE_ALREADY_ATTACHED` | `400` | `IMAGE-400-1` | `ingredient image is already attached to another ingredient` | 다른 식재료에 연결된 이미지 재할당 시도 |
 | `SYSTEM_DEFAULT_OWNER_MUST_BE_NULL` | `400` | `IMAGE-400-2` | `user must be null when assetType is SYSTEM_DEFAULT` | 시스템 기본 이미지 소유자 규칙 위반 |
 | `USER_UPLOAD_OWNER_REQUIRED` | `400` | `IMAGE-400-3` | `user must not be null when assetType is USER_UPLOAD` | 사용자 업로드 이미지 소유자 누락 |
+
+### 6.3 UserErrorCode
+
+| Enum | HTTP Status | Code | Message | 의미 |
+|------|-------------|------|---------|------|
+| `USER_NOT_FOUND` | `404` | `USER-404-1` | `user not found` | 대상 사용자 조회 실패 |
 
 ---
 

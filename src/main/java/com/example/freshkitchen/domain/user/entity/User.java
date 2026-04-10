@@ -102,6 +102,10 @@ public class User extends BaseTimeEntity {
         profile.attachUser(this);
     }
 
+    public void removeProfile() {
+        this.profile = null;
+    }
+
     private void changeStatus(UserStatus nextStatus, OffsetDateTime inactiveAt) {
         this.status = requireNonNull(nextStatus, "status");
         if (nextStatus == UserStatus.INACTIVE) {
