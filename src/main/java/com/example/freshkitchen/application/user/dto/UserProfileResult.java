@@ -21,7 +21,7 @@ public record UserProfileResult(
 
     public static UserProfileResult from(User user) {
         UserProfile profile = user.getProfile();
-        if (profile == null) {
+        if (profile == null) {  // 프로필 없는 user는 예외가 아니라 비어있는 결과로 표현
             return new UserProfileResult(
                     user.getId(),
                     null,

@@ -18,9 +18,9 @@ public class GetUserProfileService implements GetUserProfileUseCase {
     private final UserRepository userRepository;
 
     @Override
-    public UserProfileResult get(Query query) {
+    public UserProfileResult get(Query query) { // 유저는 반드시 찾아야 하며, 없으면 Exception
         User user = userRepository.findByIdWithProfile(query.userId())
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
-        return UserProfileResult.from(user);
+        return UserProfileResult.from(user); // '유저는 있는데 프로필이 아직 없는 경우'는 서비스에서 직접 예외로 처리 안하며, dto단에서 결과 객체로 변환하도록(비어있는 결과로)
     }
 }
