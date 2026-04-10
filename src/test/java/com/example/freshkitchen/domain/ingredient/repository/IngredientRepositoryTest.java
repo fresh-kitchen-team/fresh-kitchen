@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.test.context.TestConstructor;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -87,6 +88,26 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
     @Test
     void findByIdWithImagesForUpdate_returnsEmptyWhenIngredientDoesNotExist() {
         assertFalse(ingredientRepository.findByIdWithImagesForUpdate(Long.MAX_VALUE).isPresent());
+    }
+
+    @Test
+    void findAllByUserId_returnsOnlyUserIngredients() {
+        User owner = persistUser("list-owner", Provider.GOOGLE);
+        User otherUser = persistUser("list-other", Provider.KAKAO);
+        Storage ownerStorage = persistStorage(owner, StorageType.FRIDGE, "Owner fridge");
+        Storage otherStorage = persistStorage(otherUser, StorageType.FRIDGE, "Other fridge");
+        Ingredient firstIngredient = persistIngredient(owner, ownerStorage, "Tomato");
+        Ingredient secondIngredient = persistIngredient(owner, ownerStorage, "Milk");
+        persistIngredient(otherUser, otherStorage, "Onion");
+
+        entityManager.flush();
+        entityManager.clear();
+
+        List<Long> ingredientIds = ingredientRepository.findAllByUserId(owner.getId()).stream()
+                .map(Ingredient::getId)
+                .toList();
+
+        assertEquals(List.of(firstIngredient.getId(), secondIngredient.getId()), ingredientIds);
     }
 
     private User persistUser(String providerUserId, Provider provider) {

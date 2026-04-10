@@ -6,6 +6,7 @@ import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -27,6 +28,19 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
                 .getResultList()
                 .stream()
                 .findFirst();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Ingredient> findAllByUserId(Long userId) {
+        return entityManager.createQuery("""
+                select ingredient
+                from Ingredient ingredient
+                where ingredient.user.id = :userId
+                order by ingredient.id asc
+                """, Ingredient.class)
+                .setParameter("userId", userId)
+                .getResultList();
     }
 
     @Override
