@@ -6,7 +6,6 @@ import com.example.freshkitchen.domain.user.entity.UserProfile;
 import com.example.freshkitchen.domain.user.exception.UserErrorCode;
 import com.example.freshkitchen.domain.user.exception.UserException;
 import com.example.freshkitchen.domain.user.repository.UserRepository;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +18,6 @@ import java.util.Set;
 public class UpdateUserProfileService implements UpdateUserProfileUseCase { // update가 create-or-update 방식으로 동작
 
     private final UserRepository userRepository;
-    private final EntityManager entityManager;
 
     @Override
     public void update(Command command) {
@@ -37,7 +35,6 @@ public class UpdateUserProfileService implements UpdateUserProfileUseCase { // u
                     emptyIfNull(command.allergies()),
                     emptyIfNull(command.cookingTools())
             ));
-            entityManager.persist(profile);
             return;
         }
 

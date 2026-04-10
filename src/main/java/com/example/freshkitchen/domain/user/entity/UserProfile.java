@@ -107,7 +107,7 @@ public class UserProfile extends BaseTimeEntity {
         );
 
         User user = requireNonNull(command.user(), "user");
-        user.assignProfile(profile);
+        user.assignProfile(profile); // profile 생성은 user aggregate에 연결되면서 완료
         return profile;
     }
 
@@ -140,6 +140,10 @@ public class UserProfile extends BaseTimeEntity {
     void attachUser(User user) {
         this.user = requireNonNull(user, "user");
     }
+
+    void detachUser() {
+        this.user = null;
+    } // profile 제거 시 User aggregate에서만 호출(내부적으로)
 
     private void replacePreferredIngredients(Set<String> preferredIngredients) {
         this.preferredIngredients.clear();

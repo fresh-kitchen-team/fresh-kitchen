@@ -102,7 +102,12 @@ public class User extends BaseTimeEntity {
         profile.attachUser(this);
     }
 
-    public void removeProfile() {
+    public void removeProfile() { // opphanRemoval(부모와 연관관계 끊긴 자식 엔티티 JPA가 자동 삭제)이 정상 동작 하도록 양방향 연관관계 정리
+        if (this.profile == null) {
+            return;
+        }
+
+        this.profile.detachUser();
         this.profile = null;
     }
 
