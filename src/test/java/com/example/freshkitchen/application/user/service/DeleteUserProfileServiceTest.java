@@ -46,6 +46,7 @@ class DeleteUserProfileServiceTest extends PostgreSqlTestContainerSupport {
     void delete_removesProfileWhenExists() {
         User user = persistUser("profile-user-5", Provider.GOOGLE);
         persistProfile(user);
+        flushAndClear();
 
         deleteUserProfileUseCase.delete(new DeleteUserProfileUseCase.Command(user.getId()));
 
@@ -61,6 +62,7 @@ class DeleteUserProfileServiceTest extends PostgreSqlTestContainerSupport {
     @Test
     void delete_isNoOpWhenProfileDoesNotExist() {
         User user = persistUser("profile-user-6", Provider.KAKAO);
+        flushAndClear();
 
         deleteUserProfileUseCase.delete(new DeleteUserProfileUseCase.Command(user.getId()));
 
@@ -100,5 +102,10 @@ class DeleteUserProfileServiceTest extends PostgreSqlTestContainerSupport {
                 Set.of(AllergyType.EGG, AllergyType.MILK),
                 Set.of(CookingTool.OVEN, CookingTool.PAN)
         )));
+    }
+
+    private void flushAndClear() {
+        entityManager.flush();
+        entityManager.clear();
     }
 }

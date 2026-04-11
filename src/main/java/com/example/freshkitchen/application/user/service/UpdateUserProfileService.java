@@ -6,6 +6,7 @@ import com.example.freshkitchen.domain.user.entity.UserProfile;
 import com.example.freshkitchen.domain.user.exception.UserErrorCode;
 import com.example.freshkitchen.domain.user.exception.UserException;
 import com.example.freshkitchen.domain.user.repository.UserRepository;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,10 +25,12 @@ public class UpdateUserProfileService implements UpdateUserProfileUseCase { // u
         User user = userRepository.findById(command.userId()) // update는 profile 존재 여부만 먼저 확인하고, 필요한 연관만 지연 로딩
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND)); // 유저 없으면 exception 던지기
 
-        if (user.getProfile() == null) {    // 유저 있는데 profile == null이면 새 UserProfile 붙이기
+        UserProfile profile = user.getProfile();
+        if (profile == null) {    // 유저 있는데 profile == null이면 새 UserProfile 붙이기
+            String nickname = requireNicknameForProfileCreation(command.nickname());
             UserProfile.create(new UserProfile.CreateCommand(
                     user,
-                    command.nickname(),
+                    nickname,
                     command.profileImageUrlSet() ? command.profileImageUrl() : null, // "유지 vs null로 지우기" 구분하기 위한 플래그
                     command.bioSet() ? command.bio() : null,
                     emptyIfNull(command.preferredIngredients()),
@@ -38,7 +41,7 @@ public class UpdateUserProfileService implements UpdateUserProfileUseCase { // u
             return;
         }
 
-        user.getProfile().apply(new UserProfile.UpdateCommand( // 이미 profile 있다면 apply로 수정하기
+        profile.apply(new UserProfile.UpdateCommand( // 이미 profile 있다면 apply로 수정하기
                 command.nickname(),
                 command.profileImageUrl(),
                 command.profileImageUrlSet(),
@@ -53,5 +56,12 @@ public class UpdateUserProfileService implements UpdateUserProfileUseCase { // u
 
     private static <T> Set<T> emptyIfNull(Set<T> values) {
         return values != null ? values : Set.of();
+    }
+
+    private static String requireNicknameForProfileCreation(String nickname) {
+        if (nickname == null || nickname.isBlank()) {
+            throw new BusinessValidationException("nickname must not be blank");
+        }
+        return nickname;
     }
 }

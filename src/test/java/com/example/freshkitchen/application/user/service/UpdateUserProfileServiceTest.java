@@ -9,6 +9,7 @@ import com.example.freshkitchen.domain.user.enums.FoodStyle;
 import com.example.freshkitchen.domain.user.enums.Provider;
 import com.example.freshkitchen.domain.user.exception.UserException;
 import com.example.freshkitchen.domain.user.repository.UserRepository;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.support.PostgreSqlTestContainerSupport;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -45,6 +46,7 @@ class UpdateUserProfileServiceTest extends PostgreSqlTestContainerSupport {
     @Test
     void update_createsProfileWhenMissing() {
         User user = persistUser("profile-user-3", Provider.GOOGLE);
+        flushAndClear();
 
         updateUserProfileUseCase.update(new UpdateUserProfileUseCase.Command(
                 user.getId(),
@@ -79,6 +81,7 @@ class UpdateUserProfileServiceTest extends PostgreSqlTestContainerSupport {
     void update_appliesPartialChangesAndKeepsUnsetCollections() {
         User user = persistUser("profile-user-4", Provider.KAKAO);
         persistProfile(user);
+        flushAndClear();
 
         updateUserProfileUseCase.update(new UpdateUserProfileUseCase.Command(
                 user.getId(),
@@ -107,6 +110,30 @@ class UpdateUserProfileServiceTest extends PostgreSqlTestContainerSupport {
         assertEquals(Set.of(FoodStyle.JAPANESE), profile.getFoodStyles());
         assertEquals(Set.of(AllergyType.EGG, AllergyType.MILK), profile.getAllergies());
         assertEquals(Set.of(CookingTool.BLENDER), profile.getCookingTools());
+    }
+
+    @Test
+    void update_rejectsMissingNicknameWhenCreatingProfile() {
+        User user = persistUser("profile-user-7", Provider.GOOGLE);
+        flushAndClear();
+
+        BusinessValidationException exception = assertThrows(
+                BusinessValidationException.class,
+                () -> updateUserProfileUseCase.update(new UpdateUserProfileUseCase.Command(
+                        user.getId(),
+                        null,
+                        null,
+                        false,
+                        null,
+                        false,
+                        null,
+                        null,
+                        null,
+                        null
+                ))
+        );
+
+        assertEquals("nickname must not be blank", exception.getMessage());
     }
 
     @Test
@@ -147,5 +174,10 @@ class UpdateUserProfileServiceTest extends PostgreSqlTestContainerSupport {
                 Set.of(AllergyType.EGG, AllergyType.MILK),
                 Set.of(CookingTool.OVEN, CookingTool.PAN)
         )));
+    }
+
+    private void flushAndClear() {
+        entityManager.flush();
+        entityManager.clear();
     }
 }
