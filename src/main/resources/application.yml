@@ -1,0 +1,9 @@
+spring:
+
+  jpa:
+    hibernate:
+      ddl-auto: update # 운영 환경에서는 validate 또는 none 권장
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
