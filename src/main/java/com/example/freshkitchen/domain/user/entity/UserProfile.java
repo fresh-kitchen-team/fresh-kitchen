@@ -141,10 +141,6 @@ public class UserProfile extends BaseTimeEntity {
         this.user = requireNonNull(user, "user");
     }
 
-    void detachUser() {
-        this.user = null;
-    } // profile 제거 시 User aggregate에서만 호출(내부적으로)
-
     private void replacePreferredIngredients(Set<String> preferredIngredients) {
         this.preferredIngredients.clear();
         toLinkedHashSet(preferredIngredients)

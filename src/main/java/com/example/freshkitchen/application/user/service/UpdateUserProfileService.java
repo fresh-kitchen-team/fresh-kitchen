@@ -25,7 +25,7 @@ public class UpdateUserProfileService implements UpdateUserProfileUseCase { // u
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND)); // 유저 없으면 exception 던지기
 
         if (user.getProfile() == null) { // 유저 있는데 profile == null이면 새 UserProfile 붙이기
-            UserProfile profile = UserProfile.create(new UserProfile.CreateCommand(
+            UserProfile.create(new UserProfile.CreateCommand(
                     user,
                     command.nickname(),
                     command.profileImageUrlSet() ? command.profileImageUrl() : null, // "유지 vs null로 지우기" 구분하기 위한 플래그
