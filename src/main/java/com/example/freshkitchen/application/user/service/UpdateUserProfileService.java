@@ -21,10 +21,10 @@ public class UpdateUserProfileService implements UpdateUserProfileUseCase { // u
 
     @Override
     public void update(Command command) {
-        User user = userRepository.findByIdWithProfile(command.userId())
+        User user = userRepository.findById(command.userId()) // update는 profile 존재 여부만 먼저 확인하고, 필요한 연관만 지연 로딩
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND)); // 유저 없으면 exception 던지기
 
-        if (user.getProfile() == null) { // 유저 있는데 profile == null이면 새 UserProfile 붙이기
+        if (user.getProfile() == null) {    // 유저 있는데 profile == null이면 새 UserProfile 붙이기
             UserProfile.create(new UserProfile.CreateCommand(
                     user,
                     command.nickname(),

@@ -19,13 +19,9 @@ public class DeleteUserProfileService implements DeleteUserProfileUseCase {
 
     @Override
     public void delete(Command command) {
-        User user = userRepository.findByIdWithProfile(command.userId())
+        User user = userRepository.findById(command.userId()) // delete는 profile 존재 여부만 확인하면 되므로 기본 조회로 충분
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND)); // 유저 없으면
 
-        if (user.getProfile() == null) {
-            return; // 프로필이 없으면 아무것도 안함 -> 프로필이 있으면 다음으로 remove
-        }
-
-        user.removeProfile();
+        user.removeProfile(); // profile이 없으면 no-op, 있으면 orphanRemoval로 삭제
     }
 }
