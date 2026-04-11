@@ -42,7 +42,7 @@ class DeleteUserProfileServiceTest extends PostgreSqlTestContainerSupport {
         this.userRepository = userRepository;
     }
 
-    @Test
+    @Test // delete는 user를 지우는 것이 아니라 UserProfile 연결만 제거
     void delete_removesProfileWhenExists() {
         User user = persistUser("profile-user-5", Provider.GOOGLE);
         persistProfile(user);

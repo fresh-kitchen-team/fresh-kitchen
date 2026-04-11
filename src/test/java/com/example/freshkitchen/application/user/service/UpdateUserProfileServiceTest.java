@@ -77,7 +77,7 @@ class UpdateUserProfileServiceTest extends PostgreSqlTestContainerSupport {
         assertEquals(Set.of(CookingTool.OVEN, CookingTool.PAN), profile.getCookingTools());
     }
 
-    @Test
+    @Test // null 컬렉션은 유지하고, 빈 Set은 명시적으로 비우는 계약을 검증
     void update_appliesPartialChangesAndKeepsUnsetCollections() {
         User user = persistUser("profile-user-4", Provider.KAKAO);
         persistProfile(user);
@@ -117,6 +117,7 @@ class UpdateUserProfileServiceTest extends PostgreSqlTestContainerSupport {
         User user = persistUser("profile-user-7", Provider.GOOGLE);
         flushAndClear();
 
+        // profile 최초 생성 시에는 nickname이 필수라서, 누락되면 validation 예외를 던지도록
         BusinessValidationException exception = assertThrows(
                 BusinessValidationException.class,
                 () -> updateUserProfileUseCase.update(new UpdateUserProfileUseCase.Command(

@@ -64,6 +64,7 @@ class GetUserProfileServiceTest extends PostgreSqlTestContainerSupport {
         entityManager.flush();
         entityManager.clear();
 
+        // 프로필 미작성 상태는 예외가 아니라, 빈 profile 결과로 반환
         UserProfileResult result = getUserProfileUseCase.get(new GetUserProfileUseCase.Query(user.getId()));
 
         assertEquals(user.getId(), result.userId());
@@ -83,6 +84,7 @@ class GetUserProfileServiceTest extends PostgreSqlTestContainerSupport {
                 () -> getUserProfileUseCase.get(new GetUserProfileUseCase.Query(Long.MAX_VALUE))
         );
 
+        // 조회기준은 profile 존재 여부가 아니라, user 존재 여부
         assertEquals("user not found", exception.getMessage());
     }
 

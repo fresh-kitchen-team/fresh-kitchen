@@ -21,6 +21,7 @@ class UserEntityTest {
     void createAndApply_manageUserStateWithinEntity() {
         User user = User.create(new User.CreateCommand("provider-1", Provider.GOOGLE));
 
+        // status를 INACTIVE로 바꿀 때, inactiveAt은 현재 시각으로 자동 설정
         user.apply(new User.UpdateCommand("provider-2", UserStatus.INACTIVE, null));
 
         assertEquals("provider-2", user.getProviderUserId());
@@ -42,6 +43,7 @@ class UserEntityTest {
                 Set.of(CookingTool.PAN)
         ));
 
+        // profile 수정 시 컬렉션 필드는 전달된 값으로 통째로 교체
         profile.apply(new UserProfile.UpdateCommand(
                 "chef",
                 null,
@@ -66,7 +68,7 @@ class UserEntityTest {
         assertNull(user.getInactiveAt());
     }
 
-    @Test
+    @Test   // (profileImageUrlSet / bioSet) 플래그로 유지할지, null로 비울지 구분하기
     void userProfileApply_canClearOptionalFields() {
         User user = User.create(new User.CreateCommand("provider-1", Provider.KAKAO));
         UserProfile profile = UserProfile.create(new UserProfile.CreateCommand(
@@ -99,7 +101,7 @@ class UserEntityTest {
     @Test
     void userProfileCreate_requiresUser() {
         BusinessValidationException exception = assertThrows(BusinessValidationException.class, () ->
-                UserProfile.create(new UserProfile.CreateCommand(
+                UserProfile.create(new UserProfile.CreateCommand( // profile은 반드시 User aggregate에 연결된 상태로만 생성 가능
                         null,
                         "fresh",
                         null,
