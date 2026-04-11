@@ -22,7 +22,8 @@ public class UpdateUserProfileService implements UpdateUserProfileUseCase { // u
 
     @Override
     public void update(Command command) {
-        User user = userRepository.findById(command.userId()) // update는 profile 존재 여부만 먼저 확인하고, 필요한 연관만 지연 로딩
+        Long userId = requireUserId(command);
+        User user = userRepository.findById(userId) // update는 profile 존재 여부만 먼저 확인하고, 필요한 연관만 지연 로딩
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND)); // 유저 없으면 exception 던지기
 
         UserProfile profile = user.getProfile();
@@ -63,5 +64,12 @@ public class UpdateUserProfileService implements UpdateUserProfileUseCase { // u
             throw new BusinessValidationException("nickname must not be blank");
         }
         return nickname;
+    }
+
+    private static Long requireUserId(Command command) {
+        if (command == null || command.userId() == null) {
+            throw new BusinessValidationException("userId must not be null");
+        }
+        return command.userId();
     }
 }

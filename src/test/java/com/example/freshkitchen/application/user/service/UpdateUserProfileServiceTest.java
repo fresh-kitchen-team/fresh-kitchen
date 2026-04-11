@@ -138,6 +138,27 @@ class UpdateUserProfileServiceTest extends PostgreSqlTestContainerSupport {
     }
 
     @Test
+    void update_rejectsNullUserId() {
+        BusinessValidationException exception = assertThrows(
+                BusinessValidationException.class,
+                () -> updateUserProfileUseCase.update(new UpdateUserProfileUseCase.Command(
+                        null,
+                        "fresh-user",
+                        null,
+                        false,
+                        null,
+                        false,
+                        null,
+                        null,
+                        null,
+                        null
+                ))
+        );
+
+        assertEquals("userId must not be null", exception.getMessage());
+    }
+
+    @Test
     void update_rejectsMissingUser() {
         UserException exception = assertThrows(
                 UserException.class,

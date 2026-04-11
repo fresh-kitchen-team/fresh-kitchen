@@ -9,6 +9,7 @@ import com.example.freshkitchen.domain.user.enums.CookingTool;
 import com.example.freshkitchen.domain.user.enums.FoodStyle;
 import com.example.freshkitchen.domain.user.enums.Provider;
 import com.example.freshkitchen.domain.user.exception.UserException;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.support.PostgreSqlTestContainerSupport;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -86,6 +87,16 @@ class GetUserProfileServiceTest extends PostgreSqlTestContainerSupport {
 
         // 조회기준은 profile 존재 여부가 아니라, user 존재 여부
         assertEquals("user not found", exception.getMessage());
+    }
+
+    @Test
+    void get_rejectsNullUserId() {
+        BusinessValidationException exception = assertThrows(
+                BusinessValidationException.class,
+                () -> getUserProfileUseCase.get(new GetUserProfileUseCase.Query(null))
+        );
+
+        assertEquals("userId must not be null", exception.getMessage());
     }
 
     private User persistUser(String providerUserId, Provider provider) {
