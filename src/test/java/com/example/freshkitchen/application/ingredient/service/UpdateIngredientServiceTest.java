@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
-@Import(UpdateIngredientService.class)
+@Import({DefaultStorageService.class, UpdateIngredientService.class})
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class UpdateIngredientServiceTest extends PostgreSqlTestContainerSupport {
 

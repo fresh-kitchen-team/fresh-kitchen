@@ -23,10 +23,13 @@ public class CreateIngredientService implements CreateIngredientUseCase {
     private final IngredientRepository ingredientRepository;
     private final StorageRepository storageRepository;
     private final IngredientCatalogRepository ingredientCatalogRepository;
+    private final DefaultStorageService defaultStorageService;
     private final EntityManager entityManager;
 
     @Override
     public Long create(Command command) {
+        defaultStorageService.ensureDefaultStorages(command.userId());
+
         Storage storage = storageRepository.findByIdAndUserId(command.storageId(), command.userId())
                 .orElseThrow(() -> new IngredientException(IngredientErrorCode.STORAGE_NOT_FOUND));
         IngredientCatalog catalog = resolveCatalog(command.catalogId());

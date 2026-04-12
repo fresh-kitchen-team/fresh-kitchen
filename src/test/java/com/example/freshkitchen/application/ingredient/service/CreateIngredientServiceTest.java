@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
-@Import(CreateIngredientService.class)
+@Import({DefaultStorageService.class, CreateIngredientService.class})
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
 
@@ -117,6 +117,38 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
         );
 
         assertEquals("ingredient catalog not found", exception.getMessage());
+    }
+
+    @Test
+    void create_bootstrapsMissingDefaultStoragesBeforePersistingIngredient() {
+        User user = persistUser("bootstrap-user", Provider.GOOGLE);
+        Storage pantry = persistStorage(user, StorageType.PANTRY, "Pantry");
+
+        Long ingredientId = createIngredientUseCase.create(new CreateIngredientUseCase.Command(
+                user.getId(),
+                pantry.getId(),
+                null,
+                "Soy sauce",
+                null,
+                null,
+                ExpirySourceType.UNKNOWN,
+                null,
+                IngredientSourceType.MANUAL
+        ));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        assertEquals(3, entityManager.createQuery("""
+                select count(storage)
+                from Storage storage
+                where storage.user.id = :userId
+                """, Long.class)
+                .setParameter("userId", user.getId())
+                .getSingleResult());
+        assertEquals("Soy sauce", ingredientRepository.findByIdAndUserId(ingredientId, user.getId())
+                .orElseThrow()
+                .getName());
     }
 
     private User persistUser(String providerUserId, Provider provider) {

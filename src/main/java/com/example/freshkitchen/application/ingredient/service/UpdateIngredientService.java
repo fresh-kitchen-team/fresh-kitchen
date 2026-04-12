@@ -21,9 +21,12 @@ public class UpdateIngredientService implements UpdateIngredientUseCase {
     private final IngredientRepository ingredientRepository;
     private final StorageRepository storageRepository;
     private final IngredientCatalogRepository ingredientCatalogRepository;
+    private final DefaultStorageService defaultStorageService;
 
     @Override
     public void update(Command command) {
+        defaultStorageService.ensureDefaultStorages(command.userId());
+
         Ingredient ingredient = ingredientRepository.findByIdAndUserId(command.ingredientId(), command.userId())
                 .orElseThrow(() -> new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND));
 
