@@ -11,3 +11,6 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET}
+
+
+  # 통합하고 다시 올림

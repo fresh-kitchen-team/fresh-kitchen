@@ -39,6 +39,7 @@ class UserRepositoryTest extends PostgreSqlTestContainerSupport {
     void findByProviderAndProviderUserId_returnsMatchingUser() {
         User user = persistUserWithProfile("provider-user-1", Provider.GOOGLE);
 
+        // 1차 캐시를 비워 실제 repository 조회 결과를 검증하기
         entityManager.flush();
         entityManager.clear();
 
@@ -75,7 +76,7 @@ class UserRepositoryTest extends PostgreSqlTestContainerSupport {
 
         UserProfile profile = foundUser.getProfile();
         assertNotNull(profile);
-        assertTrue(Hibernate.isInitialized(profile.getPreferredIngredients()));
+        assertTrue(Hibernate.isInitialized(profile.getPreferredIngredients())); // 단건 조회에서 필요한 컬렉션이 지연 로딩 예외 없이 바로 사용 가능한지 검증
         assertTrue(Hibernate.isInitialized(profile.getFoodStyles()));
         assertTrue(Hibernate.isInitialized(profile.getAllergies()));
         assertTrue(Hibernate.isInitialized(profile.getCookingTools()));
@@ -99,6 +100,7 @@ class UserRepositoryTest extends PostgreSqlTestContainerSupport {
         entityManager.flush();
         entityManager.clear();
 
+        // 프로필이 없는 유저도, 조회 자체는 정상처리 되어야함
         User foundUser = userRepository.findByIdWithProfile(user.getId())
                 .orElseThrow();
 

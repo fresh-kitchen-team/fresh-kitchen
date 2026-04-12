@@ -22,8 +22,6 @@ configurations {
 
 repositories {
 	mavenCentral()
-	// Spring AI milestone 저장소
-	maven { url 'https://repo.spring.io/milestone' }
 }
 
 dependencies {
@@ -34,41 +32,12 @@ dependencies {
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
-
-	// pgvector
-	implementation 'com.pgvector:pgvector:0.1.6'
-
-	// Swagger (SpringDoc OpenAPI)
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
-
-	// Spring AI BOM
-	implementation platform('org.springframework.ai:spring-ai-bom:1.0.0-M6')
-
-	// Google Gemini (Vertex AI)
-	implementation 'org.springframework.ai:spring-ai-vertex-ai-gemini-spring-boot-starter'
-
-	// (선택) OpenAI도 같이 쓰고 싶다면
-	// implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
-
-	// (선택) Spring AI + pgvector 벡터스토어 연동
-	 implementation 'org.springframework.ai:spring-ai-pgvector-store-spring-boot-starter'
-
-	// Spring Security + OAuth2
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server' // JWT 검증 (Resource Server)
-	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'          // 소셜 로그인 (Google, Kakao 등)
-
-	// Redis
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-flyway-test'
 	testImplementation platform('org.testcontainers:testcontainers-bom:1.20.4')
 	testImplementation 'org.testcontainers:junit-jupiter'
 	testImplementation 'org.testcontainers:postgresql'
-	testImplementation 'org.testcontainers:redis'                                        // Redis 테스트컨테이너
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

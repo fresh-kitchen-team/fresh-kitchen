@@ -102,6 +102,14 @@ public class User extends BaseTimeEntity {
         profile.attachUser(this);
     }
 
+    public void removeProfile() { // orphanRemoval(부모와 연관관계가 끊긴 자식 엔티티를 JPA가 자동 삭제)이 동작하도록 profile 연결만 제거
+        if (this.profile == null) {
+            return;
+        }
+
+        this.profile = null;
+    }
+
     private void changeStatus(UserStatus nextStatus, OffsetDateTime inactiveAt) {
         this.status = requireNonNull(nextStatus, "status");
         if (nextStatus == UserStatus.INACTIVE) {

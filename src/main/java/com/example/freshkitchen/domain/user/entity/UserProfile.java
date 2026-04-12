@@ -107,7 +107,7 @@ public class UserProfile extends BaseTimeEntity {
         );
 
         User user = requireNonNull(command.user(), "user");
-        user.assignProfile(profile);
+        user.assignProfile(profile); // profile 생성은 user aggregate에 연결되면서 완료
         return profile;
     }
 
