@@ -10,4 +10,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 jwt:
+
   secret: ${JWT_SECRET}
+
+
