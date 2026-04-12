@@ -1,0 +1,102 @@
+name: Deploy To EC2
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Github Repository 파일 불러오기
+        uses: actions/checkout@v4
+
+      - name: JDK 17버전 설치
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: 테스트 및 빌드하기
+        run: ./gradlew clean build -x test
+
+      - name: AWS Resource 접근 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: ECR에 로그인하기
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Docker 이미지 빌드 및 Push + 배포 파일 생성
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: fresh-kitchen
+          IMAGE_TAG: ${{ github.sha }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          # 이미지 빌드 & Push
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+          # scripts 폴더 생성
+          mkdir -p scripts
+
+          # deploy.sh 동적 생성
+          cat > scripts/deploy.sh << 'EOF'
+          #!/bin/bash
+          set -e
+
+          echo "▶ ECR 로그인"
+          aws ecr get-login-password --region us-east-1 \
+            | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+          DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+          echo "▶ 기존 컨테이너 종료"
+          docker-compose -f "$DIR/docker-compose.yml" down || true
+          docker container prune -f
+
+          echo "▶ 새 컨테이너 실행"
+          docker-compose -f "$DIR/docker-compose.yml" up -d
+          echo "✅ 배포 완료"
+          EOF
+
+          # .env 동적 생성 ⭐
+          cat > scripts/.env << EOF
+          ECR_REGISTRY=$ECR_REGISTRY
+          ECR_REPOSITORY=$ECR_REPOSITORY
+          IMAGE_TAG=$IMAGE_TAG
+          DB_URL=$DB_URL
+          DB_USERNAME=$DB_USERNAME
+          DB_PASSWORD=$DB_PASSWORD
+          JWT_SECRET=$JWT_SECRET
+          EOF
+
+          chmod +x scripts/deploy.sh
+          mv docker-compose.yml scripts/
+
+      - name: 압축 및 S3 업로드
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          zip -r deploy-$IMAGE_TAG.zip ./scripts appspec.yml
+          aws s3 cp --region us-east-1 --acl private \
+            ./deploy-$IMAGE_TAG.zip s3://fresh-kitchen-server
+
+      - name: CodeDeploy 배포 실행
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          aws deploy create-deployment \
+          --application-name fresh-app-server \
+          --deployment-config-name CodeDeployDefault.OneAtATime \
+          --deployment-group-name Dev \
+          --s3-location bucket=fresh-kitchen-server,bundleType=zip,key=deploy-$IMAGE_TAG.zip
