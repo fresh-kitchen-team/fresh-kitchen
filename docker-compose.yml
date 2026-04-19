@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  fresh-kitchen-server:
+    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+    container_name: fresh-kitchen-server
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    env_file:
+      - .env
