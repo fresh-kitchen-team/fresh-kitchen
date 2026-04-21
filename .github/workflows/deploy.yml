@@ -26,9 +26,13 @@ jobs:
           DB_URL: ${{ secrets.DB_URL }}
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+<<<<<<< HEAD
 
         run: ./gradlew clean build -x test
 
+=======
+        run: ./gradlew clean build
+>>>>>>> 3870469 (Fix(Deploy) : Finalize deployment workflow and runtime setup)
 
       - name: AWS Resource 접근 설정
         uses: aws-actions/configure-aws-credentials@v4
