@@ -1,4 +1,6 @@
+
 name: Deploy To Sanhak four/3
+
 
 on:
   push:
@@ -8,7 +10,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Github Repository 파일 불러오기
         uses: actions/checkout@v4
@@ -25,7 +26,9 @@ jobs:
           DB_URL: ${{ secrets.DB_URL }}
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
         run: ./gradlew clean build -x test
+
 
       - name: AWS Resource 접근 설정
         uses: aws-actions/configure-aws-credentials@v4
