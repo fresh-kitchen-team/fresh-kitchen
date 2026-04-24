@@ -9,7 +9,6 @@ spring:
       ddl-auto: validate
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   flyway:
-    enabled: false
-
+    enabled: true
 jwt:
   secret: ${JWT_SECRET}
