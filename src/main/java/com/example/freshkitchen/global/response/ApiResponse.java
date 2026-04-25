@@ -1,6 +1,7 @@
 package com.example.freshkitchen.global.response;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.Objects;
 
@@ -26,6 +27,16 @@ public record ApiResponse<T>(
                 SUCCESS_MESSAGE,
                 data
         );
+    }
+
+    public static <T> ResponseEntity<ApiResponse<T>> success(T data) {
+        return success(HttpStatus.OK, data);
+    }
+
+    public static <T> ResponseEntity<ApiResponse<T>> success(HttpStatus status, T data) {
+        return ResponseEntity
+                .status(status)
+                .body(onSuccess(status, data));
     }
 
     private static void validateSuccessStatus(HttpStatus status) {

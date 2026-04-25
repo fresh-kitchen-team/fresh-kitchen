@@ -2,6 +2,7 @@ package com.example.freshkitchen.global.response;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -26,6 +27,18 @@ class ApiResponseTest {
         assertThat(response.code()).isEqualTo("COMMON-201");
         assertThat(response.message()).isEqualTo("Success");
         assertThat(response.data()).isEqualTo("data");
+    }
+
+    @Test
+    void success_returnsResponseEntityWithMatchingStatus() {
+        ResponseEntity<ApiResponse<String>> response = ApiResponse.success(HttpStatus.CREATED, "data");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().status()).isEqualTo(201);
+        assertThat(response.getBody().code()).isEqualTo("COMMON-201");
+        assertThat(response.getBody().message()).isEqualTo("Success");
+        assertThat(response.getBody().data()).isEqualTo("data");
     }
 
     @Test

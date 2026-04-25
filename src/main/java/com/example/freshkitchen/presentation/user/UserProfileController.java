@@ -23,6 +23,6 @@ public class UserProfileController {
                 getUserProfileUseCase.get(new GetUserProfileUseCase.Query(userId))
         );
 
-        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+        return ApiResponse.success(response);
     }
 }
