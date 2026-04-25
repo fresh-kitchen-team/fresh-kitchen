@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -94,6 +95,19 @@ class UserProfileControllerTest {
                 .andExpect(jsonPath("$.data.cookingTools.length()").value(0));
 
         then(getUserProfileUseCase).should().get(query);
+    }
+
+    @Test
+    void getProfile_returnsBadRequestWhenUserIdIsNotNumeric() throws Exception {
+        mockMvc.perform(get("/api/v1/users/{userId}/profile", "abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.message").value("Invalid input"))
+                .andExpect(jsonPath("$.path").value("/api/v1/users/abc/profile"))
+                .andExpect(jsonPath("$.timestamp").exists());
+
+        verifyNoInteractions(getUserProfileUseCase);
     }
 
     @Test
