@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
@@ -48,14 +49,17 @@ class UserProfileControllerTest {
 
         mockMvc.perform(get("/api/v1/users/{userId}/profile", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(1))
-                .andExpect(jsonPath("$.nickname").value("fresh-chef"))
-                .andExpect(jsonPath("$.profileImageUrl").value("https://example.com/profile.png"))
-                .andExpect(jsonPath("$.bio").value("fridge clean-up mode"))
-                .andExpect(jsonPath("$.preferredIngredients", containsInAnyOrder("Tomato")))
-                .andExpect(jsonPath("$.foodStyles", containsInAnyOrder("KOREAN")))
-                .andExpect(jsonPath("$.allergies", containsInAnyOrder("EGG")))
-                .andExpect(jsonPath("$.cookingTools", containsInAnyOrder("AIR_FRYER")));
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.code").value("COMMON-200"))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.data.userId").value(1))
+                .andExpect(jsonPath("$.data.nickname").value("fresh-chef"))
+                .andExpect(jsonPath("$.data.profileImageUrl").value("https://example.com/profile.png"))
+                .andExpect(jsonPath("$.data.bio").value("fridge clean-up mode"))
+                .andExpect(jsonPath("$.data.preferredIngredients", containsInAnyOrder("Tomato")))
+                .andExpect(jsonPath("$.data.foodStyles", containsInAnyOrder("KOREAN")))
+                .andExpect(jsonPath("$.data.allergies", containsInAnyOrder("EGG")))
+                .andExpect(jsonPath("$.data.cookingTools", containsInAnyOrder("AIR_FRYER")));
 
         then(getUserProfileUseCase).should().get(query);
     }
@@ -77,14 +81,17 @@ class UserProfileControllerTest {
 
         mockMvc.perform(get("/api/v1/users/{userId}/profile", 2L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(2))
-                .andExpect(jsonPath("$.nickname").doesNotExist())
-                .andExpect(jsonPath("$.profileImageUrl").doesNotExist())
-                .andExpect(jsonPath("$.bio").doesNotExist())
-                .andExpect(jsonPath("$.preferredIngredients.length()").value(0))
-                .andExpect(jsonPath("$.foodStyles.length()").value(0))
-                .andExpect(jsonPath("$.allergies.length()").value(0))
-                .andExpect(jsonPath("$.cookingTools.length()").value(0));
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.code").value("COMMON-200"))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.data.userId").value(2))
+                .andExpect(jsonPath("$.data.nickname").value(nullValue()))
+                .andExpect(jsonPath("$.data.profileImageUrl").value(nullValue()))
+                .andExpect(jsonPath("$.data.bio").value(nullValue()))
+                .andExpect(jsonPath("$.data.preferredIngredients.length()").value(0))
+                .andExpect(jsonPath("$.data.foodStyles.length()").value(0))
+                .andExpect(jsonPath("$.data.allergies.length()").value(0))
+                .andExpect(jsonPath("$.data.cookingTools.length()").value(0));
 
         then(getUserProfileUseCase).should().get(query);
     }
