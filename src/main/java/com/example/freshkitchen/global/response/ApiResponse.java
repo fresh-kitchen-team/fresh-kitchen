@@ -31,7 +31,7 @@ public record ApiResponse<T>(
     private static void validateSuccessStatus(HttpStatus status) {
         Objects.requireNonNull(status, "status must not be null");
         if (!status.is2xxSuccessful()) {
-            throw new IllegalArgumentException("success status must be 2xx");
+            throw new IllegalStateException("success status must be 2xx");
         }
     }
 }

@@ -24,10 +24,10 @@ public record UserProfileResponse(
                 result.nickname(),
                 result.profileImageUrl(),
                 result.bio(),
-                Set.copyOf(result.preferredIngredients()),
-                Set.copyOf(result.foodStyles()),
-                Set.copyOf(result.allergies()),
-                Set.copyOf(result.cookingTools())
+                result.preferredIngredients(),
+                result.foodStyles(),
+                result.allergies(),
+                result.cookingTools()
         );
     }
 }

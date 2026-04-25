@@ -31,7 +31,7 @@ class ApiResponseTest {
     @Test
     void onSuccess_rejectsNonSuccessStatus() {
         assertThatThrownBy(() -> ApiResponse.onSuccess(HttpStatus.BAD_REQUEST, "data"))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(IllegalStateException.class)
                 .hasMessage("success status must be 2xx");
     }
 }
