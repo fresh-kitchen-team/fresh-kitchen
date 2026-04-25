@@ -2,6 +2,8 @@ package com.example.freshkitchen.global.response;
 
 import org.springframework.http.HttpStatus;
 
+import java.util.Objects;
+
 public record ApiResponse<T>(
         int status,
         String code,
@@ -9,15 +11,27 @@ public record ApiResponse<T>(
         T data
 ) {
 
-    private static final String SUCCESS_CODE = "COMMON-200";
+    private static final String SUCCESS_CODE_PREFIX = "COMMON-";
     private static final String SUCCESS_MESSAGE = "Success";
 
     public static <T> ApiResponse<T> onSuccess(T data) {
+        return onSuccess(HttpStatus.OK, data);
+    }
+
+    public static <T> ApiResponse<T> onSuccess(HttpStatus status, T data) {
+        validateSuccessStatus(status);
         return new ApiResponse<>(
-                HttpStatus.OK.value(),
-                SUCCESS_CODE,
+                status.value(),
+                SUCCESS_CODE_PREFIX + status.value(),
                 SUCCESS_MESSAGE,
                 data
         );
+    }
+
+    private static void validateSuccessStatus(HttpStatus status) {
+        Objects.requireNonNull(status, "status must not be null");
+        if (!status.is2xxSuccessful()) {
+            throw new IllegalArgumentException("success status must be 2xx");
+        }
     }
 }
