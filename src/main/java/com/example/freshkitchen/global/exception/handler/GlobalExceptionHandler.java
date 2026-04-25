@@ -31,18 +31,19 @@ public class GlobalExceptionHandler {
             IllegalArgumentException exception,
             HttpServletRequest request
     ) {
-        logHandledException(
-                CommonErrorCode.INVALID_INPUT.status(),
-                CommonErrorCode.INVALID_INPUT.code(),
-                request,
-                exception
-        );
-        return buildResponse(CommonErrorCode.INVALID_INPUT, request);
+        return handleInvalidInput(exception, request);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
             MethodArgumentTypeMismatchException exception,
+            HttpServletRequest request
+    ) {
+        return handleInvalidInput(exception, request);
+    }
+
+    private ResponseEntity<ErrorResponse> handleInvalidInput(
+            Exception exception,
             HttpServletRequest request
     ) {
         logHandledException(
