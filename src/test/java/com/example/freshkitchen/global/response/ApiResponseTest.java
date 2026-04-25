@@ -47,4 +47,11 @@ class ApiResponseTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("success status must be 2xx");
     }
+
+    @Test
+    void success_rejectsNullStatusBeforeCreatingResponseEntity() {
+        assertThatThrownBy(() -> ApiResponse.success(null, "data"))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("status must not be null");
+    }
 }

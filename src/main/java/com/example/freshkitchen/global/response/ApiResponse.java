@@ -34,9 +34,10 @@ public record ApiResponse<T>(
     }
 
     public static <T> ResponseEntity<ApiResponse<T>> success(HttpStatus status, T data) {
+        ApiResponse<T> response = onSuccess(status, data);
         return ResponseEntity
-                .status(status)
-                .body(onSuccess(status, data));
+                .status(response.status())
+                .body(response);
     }
 
     private static void validateSuccessStatus(HttpStatus status) {
