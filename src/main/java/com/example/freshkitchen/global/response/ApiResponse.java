@@ -43,7 +43,17 @@ public record ApiResponse<T>(
     private static void validateSuccessStatus(HttpStatus status) {
         Objects.requireNonNull(status, "status must not be null");
         if (!status.is2xxSuccessful()) {
-            throw new IllegalStateException("success status must be 2xx");
+            throw new InvalidApiResponseStatusException("success status must be 2xx");
+        }
+        if (status == HttpStatus.NO_CONTENT || status == HttpStatus.RESET_CONTENT) {
+            throw new InvalidApiResponseStatusException("success status must allow response body");
+        }
+    }
+
+    private static class InvalidApiResponseStatusException extends RuntimeException {
+
+        private InvalidApiResponseStatusException(String message) {
+            super(message);
         }
     }
 }

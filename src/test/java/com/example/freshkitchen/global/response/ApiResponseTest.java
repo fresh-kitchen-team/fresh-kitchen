@@ -44,8 +44,22 @@ class ApiResponseTest {
     @Test
     void onSuccess_rejectsNonSuccessStatus() {
         assertThatThrownBy(() -> ApiResponse.onSuccess(HttpStatus.BAD_REQUEST, "data"))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(RuntimeException.class)
+                .isNotInstanceOf(IllegalStateException.class)
                 .hasMessage("success status must be 2xx");
+    }
+
+    @Test
+    void onSuccess_rejectsBodylessSuccessStatus() {
+        assertThatThrownBy(() -> ApiResponse.onSuccess(HttpStatus.NO_CONTENT, "data"))
+                .isInstanceOf(RuntimeException.class)
+                .isNotInstanceOf(IllegalStateException.class)
+                .hasMessage("success status must allow response body");
+
+        assertThatThrownBy(() -> ApiResponse.onSuccess(HttpStatus.RESET_CONTENT, "data"))
+                .isInstanceOf(RuntimeException.class)
+                .isNotInstanceOf(IllegalStateException.class)
+                .hasMessage("success status must allow response body");
     }
 
     @Test
