@@ -1,6 +1,7 @@
 package com.example.freshkitchen.domain.ingredient.repository;
 
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
+import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +57,18 @@ class StorageRepositoryImpl implements StorageRepositoryCustom {
                 where storage.user.id = :userId
                 order by storage.id asc
                 """, Storage.class)
+                .setParameter("userId", userId)
+                .getResultList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<StorageType> findStorageTypesByUserId(Long userId) {
+        return entityManager.createQuery("""
+                select storage.storageType
+                from Storage storage
+                where storage.user.id = :userId
+                """, StorageType.class)
                 .setParameter("userId", userId)
                 .getResultList();
     }

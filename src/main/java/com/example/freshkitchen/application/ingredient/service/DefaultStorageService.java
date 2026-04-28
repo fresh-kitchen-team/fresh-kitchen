@@ -26,19 +26,23 @@ public class DefaultStorageService {
     private final EntityManager entityManager;
 
     public List<Storage> ensureDefaultStorages(Long userId) {
+        Set<StorageType> missingTypes = resolveMissingDefaultTypes(storageRepository.findStorageTypesByUserId(userId));
+        if (missingTypes.isEmpty()) {
+            return findSortedStorages(userId);
+        }
+
         User user = entityManager.find(User.class, userId, LockModeType.PESSIMISTIC_WRITE);
         if (user == null) {
             throw new IngredientException(IngredientErrorCode.USER_NOT_FOUND);
         }
 
         List<Storage> storages = new ArrayList<>(storageRepository.findAllByUserId(userId));
-        Set<StorageType> existingTypes = EnumSet.noneOf(StorageType.class);
-        storages.stream()
+        missingTypes = resolveMissingDefaultTypes(storages.stream()
                 .map(Storage::getStorageType)
-                .forEach(existingTypes::add);
+                .toList());
 
         for (StorageType storageType : DefaultStoragePolicy.orderedTypes()) {
-            if (existingTypes.contains(storageType)) {
+            if (!missingTypes.contains(storageType)) {
                 continue;
             }
             Storage createdStorage = storageRepository.save(Storage.create(new Storage.CreateCommand(
@@ -51,5 +55,17 @@ public class DefaultStorageService {
 
         storages.sort(DefaultStoragePolicy.comparator());
         return storages;
+    }
+
+    private List<Storage> findSortedStorages(Long userId) {
+        List<Storage> storages = new ArrayList<>(storageRepository.findAllByUserId(userId));
+        storages.sort(DefaultStoragePolicy.comparator());
+        return storages;
+    }
+
+    private Set<StorageType> resolveMissingDefaultTypes(List<StorageType> existingTypes) {
+        Set<StorageType> missingTypes = EnumSet.copyOf(DefaultStoragePolicy.orderedTypes());
+        missingTypes.removeAll(existingTypes);
+        return missingTypes;
     }
 }
