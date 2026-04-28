@@ -15,7 +15,8 @@ public enum IngredientErrorCode implements ErrorCode {
     INGREDIENT_PRIMARY_IMAGE_INVARIANT_BROKEN(HttpStatus.CONFLICT, "INGREDIENT-409-1", "ingredient must have exactly one primary image"),
     STORAGE_NOT_OWNED_BY_USER(HttpStatus.BAD_REQUEST, "INGREDIENT-400-7", "storage must belong to user"),
     STORAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "INGREDIENT-404-2", "storage not found"),
-    CATALOG_NOT_FOUND(HttpStatus.NOT_FOUND, "INGREDIENT-404-3", "ingredient catalog not found");
+    CATALOG_NOT_FOUND(HttpStatus.NOT_FOUND, "INGREDIENT-404-3", "ingredient catalog not found"),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "INGREDIENT-404-4", "user not found");
 
     private final HttpStatus status;
     private final String code;

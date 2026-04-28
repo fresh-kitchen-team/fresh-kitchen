@@ -91,6 +91,12 @@ class ErrorCodeContractTest {
                 "INGREDIENT-404-3",
                 "ingredient catalog not found"
         );
+        assertContract(
+                IngredientErrorCode.USER_NOT_FOUND,
+                HttpStatus.NOT_FOUND,
+                "INGREDIENT-404-4",
+                "user not found"
+        );
     }
 
     @Test

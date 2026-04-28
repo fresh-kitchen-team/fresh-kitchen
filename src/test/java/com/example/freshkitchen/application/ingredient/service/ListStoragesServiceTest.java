@@ -4,6 +4,8 @@ import com.example.freshkitchen.application.ingredient.dto.StorageSummaryResult;
 import com.example.freshkitchen.application.ingredient.usecase.ListStoragesUseCase;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
+import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
+import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.repository.StorageRepository;
 import com.example.freshkitchen.domain.user.entity.User;
 import com.example.freshkitchen.domain.user.enums.Provider;
@@ -18,6 +20,7 @@ import org.springframework.test.context.TestConstructor;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
 @Import({DefaultStorageService.class, ListStoragesService.class})
@@ -69,6 +72,16 @@ class ListStoragesServiceTest extends PostgreSqlTestContainerSupport {
         assertEquals(List.of("Fridge", "Freezer", "Custom pantry"),
                 storages.stream().map(StorageSummaryResult::name).toList());
         assertEquals(3, storageRepository.findAllByUserId(user.getId()).size());
+    }
+
+    @Test
+    void list_throwsDomainExceptionWhenUserDoesNotExist() {
+        IngredientException exception = assertThrows(
+                IngredientException.class,
+                () -> listStoragesUseCase.list(new ListStoragesUseCase.Query(Long.MAX_VALUE))
+        );
+
+        assertEquals(IngredientErrorCode.USER_NOT_FOUND, exception.getErrorCode());
     }
 
     private User persistUser(String providerUserId, Provider provider) {
