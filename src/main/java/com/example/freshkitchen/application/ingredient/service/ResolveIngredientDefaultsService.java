@@ -2,6 +2,7 @@ package com.example.freshkitchen.application.ingredient.service;
 
 import com.example.freshkitchen.application.ingredient.dto.IngredientDefaultsResult;
 import com.example.freshkitchen.application.ingredient.usecase.ResolveIngredientDefaultsUseCase;
+import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.catalog.entity.CatalogExpiryRule;
 import com.example.freshkitchen.domain.catalog.entity.CategoryExpiryRule;
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
@@ -40,10 +41,7 @@ public class ResolveIngredientDefaultsService implements ResolveIngredientDefaul
                         catalogRule.getReferenceNote()
                 );
             }
-            if (query.category() != null) {
-                return resolveCategoryRule(catalog.getId(), catalog.getDefaultStorageType(), query.category(), resolvedStorageType);
-            }
-            return new IngredientDefaultsResult(catalog.getId(), catalog.getDefaultStorageType(), null, null);
+            return resolveCategoryRule(catalog.getId(), catalog.getDefaultStorageType(), catalog.getCategory(), resolvedStorageType);
         }
 
         if (query.category() == null || query.storageType() == null) {
@@ -55,7 +53,7 @@ public class ResolveIngredientDefaultsService implements ResolveIngredientDefaul
     private IngredientDefaultsResult resolveCategoryRule(
             Long catalogId,
             StorageType defaultStorageType,
-            com.example.freshkitchen.domain.catalog.enums.CatalogCategory category,
+            CatalogCategory category,
             StorageType storageType
     ) {
         CategoryExpiryRule categoryRule = categoryExpiryRuleRepository.findByCategoryAndStorageType(category, storageType)
