@@ -19,6 +19,7 @@ class StorageRepositoryImpl implements StorageRepositoryCustom {
         return entityManager.createQuery("""
                 select storage
                 from Storage storage
+                join fetch storage.user
                 where storage.id = :storageId
                   and storage.user.id = :userId
                 """, Storage.class)

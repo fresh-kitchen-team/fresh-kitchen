@@ -36,6 +36,8 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
         return entityManager.createQuery("""
                 select ingredient
                 from Ingredient ingredient
+                join fetch ingredient.storage
+                left join fetch ingredient.catalog
                 where ingredient.user.id = :userId
                 order by ingredient.id asc
                 """, Ingredient.class)
