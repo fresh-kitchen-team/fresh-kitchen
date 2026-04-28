@@ -1,6 +1,6 @@
 package com.example.freshkitchen.application.ingredient.service;
 
-import com.example.freshkitchen.application.ingredient.dto.response.StorageSummaryResponse;
+import com.example.freshkitchen.application.ingredient.dto.IngredientDto;
 import com.example.freshkitchen.application.ingredient.usecase.ListStoragesUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,9 +16,9 @@ public class ListStoragesService implements ListStoragesUseCase {
     private final DefaultStorageService defaultStorageService;
 
     @Override
-    public List<StorageSummaryResponse> list(Query query) {
+    public List<IngredientDto.StorageSummaryResponse> list(Query query) {
         return defaultStorageService.ensureDefaultStorages(query.userId()).stream()
-                .map(StorageSummaryResponse::from)
+                .map(IngredientDto.StorageSummaryResponse::from)
                 .toList();
     }
 }

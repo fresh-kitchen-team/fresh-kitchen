@@ -1,6 +1,6 @@
 package com.example.freshkitchen.application.ingredient.service;
 
-import com.example.freshkitchen.application.ingredient.dto.response.IngredientDetailResponse;
+import com.example.freshkitchen.application.ingredient.dto.IngredientDto;
 import com.example.freshkitchen.application.ingredient.usecase.GetIngredientUseCase;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
@@ -44,7 +44,7 @@ class GetIngredientServiceTest extends PostgreSqlTestContainerSupport {
         entityManager.flush();
         entityManager.clear();
 
-        IngredientDetailResponse result = getIngredientUseCase.get(new GetIngredientUseCase.Query(
+        IngredientDto.DetailResponse result = getIngredientUseCase.get(new GetIngredientUseCase.Query(
                 ingredient.getId(),
                 user.getId()
         ));

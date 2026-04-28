@@ -1,6 +1,6 @@
 package com.example.freshkitchen.application.ingredient.service;
 
-import com.example.freshkitchen.application.ingredient.dto.response.IngredientSummaryResponse;
+import com.example.freshkitchen.application.ingredient.dto.IngredientDto;
 import com.example.freshkitchen.application.ingredient.usecase.ListIngredientsUseCase;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
@@ -49,7 +49,7 @@ class ListIngredientsServiceTest extends PostgreSqlTestContainerSupport {
         entityManager.clear();
 
         List<Long> ingredientIds = listIngredientsUseCase.list(new ListIngredientsUseCase.Query(owner.getId())).stream()
-                .map(IngredientSummaryResponse::ingredientId)
+                .map(IngredientDto.SummaryResponse::ingredientId)
                 .toList();
 
         assertEquals(List.of(firstIngredient.getId(), secondIngredient.getId()), ingredientIds);

@@ -1,12 +1,12 @@
 package com.example.freshkitchen.application.ingredient.usecase;
 
-import com.example.freshkitchen.application.ingredient.dto.response.IngredientSummaryResponse;
+import com.example.freshkitchen.application.ingredient.dto.IngredientDto;
 
 import java.util.List;
 
 public interface ListIngredientsUseCase {
 
-    List<IngredientSummaryResponse> list(Query query);
+    List<IngredientDto.SummaryResponse> list(Query query);
 
     record Query(
             Long userId
