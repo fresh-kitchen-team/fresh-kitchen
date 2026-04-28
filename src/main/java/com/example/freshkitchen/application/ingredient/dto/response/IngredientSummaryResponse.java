@@ -1,4 +1,4 @@
-package com.example.freshkitchen.application.ingredient.dto;
+package com.example.freshkitchen.application.ingredient.dto.response;
 
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
@@ -6,7 +6,7 @@ import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 
 import java.time.LocalDate;
 
-public record IngredientSummaryResult(
+public record IngredientSummaryResponse(
         Long ingredientId,
         String name,
         IngredientStatus status,
@@ -17,8 +17,8 @@ public record IngredientSummaryResult(
         LocalDate expiresAt
 ) {
 
-    public static IngredientSummaryResult from(Ingredient ingredient) {
-        return new IngredientSummaryResult(
+    public static IngredientSummaryResponse from(Ingredient ingredient) {
+        return new IngredientSummaryResponse(
                 ingredient.getId(),
                 ingredient.getName(),
                 ingredient.getStatus(),

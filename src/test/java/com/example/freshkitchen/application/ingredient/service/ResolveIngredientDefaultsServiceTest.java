@@ -1,6 +1,6 @@
 package com.example.freshkitchen.application.ingredient.service;
 
-import com.example.freshkitchen.application.ingredient.dto.IngredientDefaultsResult;
+import com.example.freshkitchen.application.ingredient.dto.response.IngredientDefaultsResponse;
 import com.example.freshkitchen.application.ingredient.usecase.ResolveIngredientDefaultsUseCase;
 import com.example.freshkitchen.domain.catalog.entity.CatalogExpiryRule;
 import com.example.freshkitchen.domain.catalog.entity.CategoryExpiryRule;
@@ -38,7 +38,7 @@ class ResolveIngredientDefaultsServiceTest extends PostgreSqlTestContainerSuppor
         persistCatalogExpiryRule(catalog, StorageType.FRIDGE, 7, "catalog-rule");
         persistCategoryExpiryRule(CatalogCategory.DAIRY, StorageType.FRIDGE, 3, "category-rule");
 
-        IngredientDefaultsResult result = resolveIngredientDefaultsUseCase.resolve(
+        IngredientDefaultsResponse result = resolveIngredientDefaultsUseCase.resolve(
                 new ResolveIngredientDefaultsUseCase.Query(catalog.getId(), CatalogCategory.DAIRY, StorageType.FRIDGE)
         );
 
@@ -53,7 +53,7 @@ class ResolveIngredientDefaultsServiceTest extends PostgreSqlTestContainerSuppor
         IngredientCatalog catalog = persistCatalog("Apple", CatalogCategory.FRUIT, StorageType.PANTRY);
         persistCategoryExpiryRule(CatalogCategory.FRUIT, StorageType.PANTRY, 5, "category-rule");
 
-        IngredientDefaultsResult result = resolveIngredientDefaultsUseCase.resolve(
+        IngredientDefaultsResponse result = resolveIngredientDefaultsUseCase.resolve(
                 new ResolveIngredientDefaultsUseCase.Query(catalog.getId(), CatalogCategory.FRUIT, StorageType.PANTRY)
         );
 
@@ -69,7 +69,7 @@ class ResolveIngredientDefaultsServiceTest extends PostgreSqlTestContainerSuppor
         persistCategoryExpiryRule(CatalogCategory.FRUIT, StorageType.PANTRY, 5, "catalog-category-rule");
         persistCategoryExpiryRule(CatalogCategory.VEGETABLE, StorageType.PANTRY, 2, "query-category-rule");
 
-        IngredientDefaultsResult result = resolveIngredientDefaultsUseCase.resolve(
+        IngredientDefaultsResponse result = resolveIngredientDefaultsUseCase.resolve(
                 new ResolveIngredientDefaultsUseCase.Query(catalog.getId(), CatalogCategory.VEGETABLE, StorageType.PANTRY)
         );
 
@@ -81,7 +81,7 @@ class ResolveIngredientDefaultsServiceTest extends PostgreSqlTestContainerSuppor
 
     @Test
     void resolve_returnsEmptyDefaultsWhenNoRuleExists() {
-        IngredientDefaultsResult result = resolveIngredientDefaultsUseCase.resolve(
+        IngredientDefaultsResponse result = resolveIngredientDefaultsUseCase.resolve(
                 new ResolveIngredientDefaultsUseCase.Query(null, CatalogCategory.ETC, StorageType.PANTRY)
         );
 

@@ -1,6 +1,6 @@
 package com.example.freshkitchen.application.ingredient.service;
 
-import com.example.freshkitchen.application.ingredient.dto.IngredientDetailResult;
+import com.example.freshkitchen.application.ingredient.dto.response.IngredientDetailResponse;
 import com.example.freshkitchen.application.ingredient.usecase.GetIngredientUseCase;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
@@ -18,9 +18,9 @@ public class GetIngredientService implements GetIngredientUseCase {
     private final IngredientRepository ingredientRepository;
 
     @Override
-    public IngredientDetailResult get(Query query) {
+    public IngredientDetailResponse get(Query query) {
         Ingredient ingredient = ingredientRepository.findByIdAndUserId(query.ingredientId(), query.userId())
                 .orElseThrow(() -> new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND));
-        return IngredientDetailResult.from(ingredient);
+        return IngredientDetailResponse.from(ingredient);
     }
 }

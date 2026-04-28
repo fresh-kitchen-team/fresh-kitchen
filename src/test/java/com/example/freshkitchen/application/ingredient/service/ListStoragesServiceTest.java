@@ -1,6 +1,6 @@
 package com.example.freshkitchen.application.ingredient.service;
 
-import com.example.freshkitchen.application.ingredient.dto.StorageSummaryResult;
+import com.example.freshkitchen.application.ingredient.dto.response.StorageSummaryResponse;
 import com.example.freshkitchen.application.ingredient.usecase.ListStoragesUseCase;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
@@ -48,12 +48,12 @@ class ListStoragesServiceTest extends PostgreSqlTestContainerSupport {
         entityManager.flush();
         entityManager.clear();
 
-        List<StorageSummaryResult> storages = listStoragesUseCase.list(new ListStoragesUseCase.Query(user.getId()));
+        List<StorageSummaryResponse> storages = listStoragesUseCase.list(new ListStoragesUseCase.Query(user.getId()));
 
         assertEquals(List.of(StorageType.FRIDGE, StorageType.FREEZER, StorageType.PANTRY),
-                storages.stream().map(StorageSummaryResult::storageType).toList());
+                storages.stream().map(StorageSummaryResponse::storageType).toList());
         assertEquals(List.of("Fridge", "Freezer", "Pantry"),
-                storages.stream().map(StorageSummaryResult::name).toList());
+                storages.stream().map(StorageSummaryResponse::name).toList());
         assertEquals(3, storageRepository.findAllByUserId(user.getId()).size());
     }
 
@@ -65,12 +65,12 @@ class ListStoragesServiceTest extends PostgreSqlTestContainerSupport {
         entityManager.flush();
         entityManager.clear();
 
-        List<StorageSummaryResult> storages = listStoragesUseCase.list(new ListStoragesUseCase.Query(user.getId()));
+        List<StorageSummaryResponse> storages = listStoragesUseCase.list(new ListStoragesUseCase.Query(user.getId()));
 
         assertEquals(List.of(StorageType.FRIDGE, StorageType.FREEZER, StorageType.PANTRY),
-                storages.stream().map(StorageSummaryResult::storageType).toList());
+                storages.stream().map(StorageSummaryResponse::storageType).toList());
         assertEquals(List.of("Fridge", "Freezer", "Custom pantry"),
-                storages.stream().map(StorageSummaryResult::name).toList());
+                storages.stream().map(StorageSummaryResponse::name).toList());
         assertEquals(3, storageRepository.findAllByUserId(user.getId()).size());
     }
 

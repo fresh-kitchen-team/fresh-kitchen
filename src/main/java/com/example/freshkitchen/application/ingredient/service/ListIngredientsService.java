@@ -1,6 +1,6 @@
 package com.example.freshkitchen.application.ingredient.service;
 
-import com.example.freshkitchen.application.ingredient.dto.IngredientSummaryResult;
+import com.example.freshkitchen.application.ingredient.dto.response.IngredientSummaryResponse;
 import com.example.freshkitchen.application.ingredient.usecase.ListIngredientsUseCase;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +17,9 @@ public class ListIngredientsService implements ListIngredientsUseCase {
     private final IngredientRepository ingredientRepository;
 
     @Override
-    public List<IngredientSummaryResult> list(Query query) {
+    public List<IngredientSummaryResponse> list(Query query) {
         return ingredientRepository.findAllByUserId(query.userId()).stream()
-                .map(IngredientSummaryResult::from)
+                .map(IngredientSummaryResponse::from)
                 .toList();
     }
 }

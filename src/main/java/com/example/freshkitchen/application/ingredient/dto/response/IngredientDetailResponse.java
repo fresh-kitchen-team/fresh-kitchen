@@ -1,4 +1,4 @@
-package com.example.freshkitchen.application.ingredient.dto;
+package com.example.freshkitchen.application.ingredient.dto.response;
 
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
@@ -9,7 +9,7 @@ import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 
 import java.time.LocalDate;
 
-public record IngredientDetailResult(
+public record IngredientDetailResponse(
         Long ingredientId,
         Long userId,
         Long storageId,
@@ -29,8 +29,8 @@ public record IngredientDetailResult(
         IngredientSourceType sourceType
 ) {
 
-    public static IngredientDetailResult from(Ingredient ingredient) {
-        return new IngredientDetailResult(
+    public static IngredientDetailResponse from(Ingredient ingredient) {
+        return new IngredientDetailResponse(
                 ingredient.getId(),
                 ingredient.getUser().getId(),
                 ingredient.getStorage().getId(),

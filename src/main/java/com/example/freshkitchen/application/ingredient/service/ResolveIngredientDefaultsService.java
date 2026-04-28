@@ -1,6 +1,6 @@
 package com.example.freshkitchen.application.ingredient.service;
 
-import com.example.freshkitchen.application.ingredient.dto.IngredientDefaultsResult;
+import com.example.freshkitchen.application.ingredient.dto.response.IngredientDefaultsResponse;
 import com.example.freshkitchen.application.ingredient.usecase.ResolveIngredientDefaultsUseCase;
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.catalog.entity.CatalogExpiryRule;
@@ -26,7 +26,7 @@ public class ResolveIngredientDefaultsService implements ResolveIngredientDefaul
     private final CategoryExpiryRuleRepository categoryExpiryRuleRepository;
 
     @Override
-    public IngredientDefaultsResult resolve(Query query) {
+    public IngredientDefaultsResponse resolve(Query query) {
         if (query.catalogId() != null) {
             IngredientCatalog catalog = ingredientCatalogRepository.findById(query.catalogId())
                     .orElseThrow(() -> new IngredientException(IngredientErrorCode.CATALOG_NOT_FOUND));
@@ -34,7 +34,7 @@ public class ResolveIngredientDefaultsService implements ResolveIngredientDefaul
             CatalogExpiryRule catalogRule = catalogExpiryRuleRepository.findByCatalogIdAndStorageType(catalog.getId(), resolvedStorageType)
                     .orElse(null);
             if (catalogRule != null) {
-                return new IngredientDefaultsResult(
+                return new IngredientDefaultsResponse(
                         catalog.getId(),
                         catalog.getDefaultStorageType(),
                         catalogRule.getShelfLifeDays(),
@@ -45,12 +45,12 @@ public class ResolveIngredientDefaultsService implements ResolveIngredientDefaul
         }
 
         if (query.category() == null || query.storageType() == null) {
-            return new IngredientDefaultsResult(null, query.storageType(), null, null);
+            return new IngredientDefaultsResponse(null, query.storageType(), null, null);
         }
         return resolveCategoryRule(null, query.storageType(), query.category(), query.storageType());
     }
 
-    private IngredientDefaultsResult resolveCategoryRule(
+    private IngredientDefaultsResponse resolveCategoryRule(
             Long catalogId,
             StorageType defaultStorageType,
             CatalogCategory category,
@@ -59,9 +59,9 @@ public class ResolveIngredientDefaultsService implements ResolveIngredientDefaul
         CategoryExpiryRule categoryRule = categoryExpiryRuleRepository.findByCategoryAndStorageType(category, storageType)
                 .orElse(null);
         if (categoryRule == null) {
-            return new IngredientDefaultsResult(catalogId, defaultStorageType, null, null);
+            return new IngredientDefaultsResponse(catalogId, defaultStorageType, null, null);
         }
-        return new IngredientDefaultsResult(
+        return new IngredientDefaultsResponse(
                 catalogId,
                 defaultStorageType,
                 categoryRule.getShelfLifeDays(),
