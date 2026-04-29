@@ -25,14 +25,11 @@ public class UpdateIngredientService implements UpdateIngredientUseCase {
 
     @Override
     public void update(Command command) {
-        defaultStorageService.ensureDefaultStorages(command.userId());
-
         Ingredient ingredient = ingredientRepository.findByIdAndUserId(command.ingredientId(), command.userId())
                 .orElseThrow(() -> new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND));
 
         Storage storage = command.storageId() != null
-                ? storageRepository.findByIdAndUserId(command.storageId(), command.userId())
-                        .orElseThrow(() -> new IngredientException(IngredientErrorCode.STORAGE_NOT_FOUND))
+                ? findStorageForUpdate(command)
                 : null;
 
         IngredientCatalog catalog = null;
@@ -55,5 +52,11 @@ public class UpdateIngredientService implements UpdateIngredientUseCase {
                 command.noteSet(),
                 command.sourceType()
         ));
+    }
+
+    private Storage findStorageForUpdate(Command command) {
+        defaultStorageService.ensureDefaultStorages(command.userId());
+        return storageRepository.findByIdAndUserId(command.storageId(), command.userId())
+                .orElseThrow(() -> new IngredientException(IngredientErrorCode.STORAGE_NOT_FOUND));
     }
 }

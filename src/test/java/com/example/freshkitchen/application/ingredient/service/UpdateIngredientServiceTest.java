@@ -10,6 +10,7 @@ import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
+import com.example.freshkitchen.domain.ingredient.repository.StorageRepository;
 import com.example.freshkitchen.domain.user.entity.User;
 import com.example.freshkitchen.domain.user.enums.Provider;
 import com.example.freshkitchen.support.PostgreSqlTestContainerSupport;
@@ -33,16 +34,19 @@ class UpdateIngredientServiceTest extends PostgreSqlTestContainerSupport {
 
     private final UpdateIngredientUseCase updateIngredientUseCase;
     private final IngredientRepository ingredientRepository;
+    private final StorageRepository storageRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
 
     UpdateIngredientServiceTest(
             UpdateIngredientUseCase updateIngredientUseCase,
-            IngredientRepository ingredientRepository
+            IngredientRepository ingredientRepository,
+            StorageRepository storageRepository
     ) {
         this.updateIngredientUseCase = updateIngredientUseCase;
         this.ingredientRepository = ingredientRepository;
+        this.storageRepository = storageRepository;
     }
 
     @Test
@@ -137,6 +141,74 @@ class UpdateIngredientServiceTest extends PostgreSqlTestContainerSupport {
         );
 
         assertEquals("storage not found", exception.getMessage());
+    }
+
+    @Test
+    void update_doesNotCreateDefaultStoragesWhenIngredientDoesNotExist() {
+        User user = persistUser("missing-ingredient-user", Provider.GOOGLE);
+
+        IngredientException exception = assertThrows(
+                IngredientException.class,
+                () -> updateIngredientUseCase.update(new UpdateIngredientUseCase.Command(
+                        Long.MAX_VALUE,
+                        user.getId(),
+                        null,
+                        null,
+                        false,
+                        "Name",
+                        null,
+                        false,
+                        null,
+                        false,
+                        null,
+                        null,
+                        false,
+                        null
+                ))
+        );
+
+        assertEquals("ingredient not found", exception.getMessage());
+        assertEquals(0, storageRepository.findAllByUserId(user.getId()).size());
+    }
+
+    @Test
+    void update_doesNotCreateDefaultStoragesWhenStorageIsNotChanged() {
+        User user = persistUser("no-storage-change-user", Provider.GOOGLE);
+        Storage storage = persistStorage(user, StorageType.FRIDGE, "Fridge");
+        Ingredient ingredient = Ingredient.create(new Ingredient.CreateCommand(
+                user,
+                storage,
+                null,
+                "Apple",
+                null,
+                null,
+                ExpirySourceType.UNKNOWN,
+                null,
+                IngredientSourceType.MANUAL
+        ));
+        entityManager.persist(ingredient);
+
+        updateIngredientUseCase.update(new UpdateIngredientUseCase.Command(
+                ingredient.getId(),
+                user.getId(),
+                null,
+                null,
+                false,
+                "Green apple",
+                null,
+                false,
+                null,
+                false,
+                null,
+                null,
+                false,
+                null
+        ));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        assertEquals(1, storageRepository.findAllByUserId(user.getId()).size());
     }
 
     private User persistUser(String providerUserId, Provider provider) {
