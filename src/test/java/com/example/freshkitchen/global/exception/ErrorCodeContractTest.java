@@ -81,6 +81,24 @@ class ErrorCodeContractTest {
                 "INGREDIENT-400-7",
                 "storage must belong to user"
         );
+        assertContract(
+                IngredientErrorCode.STORAGE_NOT_FOUND,
+                HttpStatus.NOT_FOUND,
+                "INGREDIENT-404-2",
+                "storage not found"
+        );
+        assertContract(
+                IngredientErrorCode.CATALOG_NOT_FOUND,
+                HttpStatus.NOT_FOUND,
+                "INGREDIENT-404-3",
+                "ingredient catalog not found"
+        );
+        assertContract(
+                IngredientErrorCode.USER_NOT_FOUND,
+                HttpStatus.NOT_FOUND,
+                "INGREDIENT-404-4",
+                "user not found"
+        );
     }
 
     @Test
