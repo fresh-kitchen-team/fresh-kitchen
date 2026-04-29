@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @RestControllerAdvice
@@ -28,6 +29,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
             IllegalArgumentException exception,
+            HttpServletRequest request
+    ) {
+        return handleInvalidInput(exception, request);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
+            MethodArgumentTypeMismatchException exception,
+            HttpServletRequest request
+    ) {
+        return handleInvalidInput(exception, request);
+    }
+
+    private ResponseEntity<ErrorResponse> handleInvalidInput(
+            Exception exception,
             HttpServletRequest request
     ) {
         logHandledException(
