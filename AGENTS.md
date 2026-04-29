@@ -7,6 +7,14 @@
 - Always perform selective staging based on intention.
 - Always split commits into meaningful units.
 
+## Pull Request Workflow
+
+- Always use the "pr-writer" skill for PR title/body creation or updates.
+- Before creating or editing a PR, read `.github/PULL_REQUEST_TEMPLATE.md`.
+- PR titles must follow `Type: Description`.
+- PR titles must not include scope.
+- PR bodies must be written in Korean and follow the repository PR template.
+
 ## Commit Convention
 
 Follow strictly:
