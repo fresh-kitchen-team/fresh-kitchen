@@ -19,7 +19,7 @@ public class GetIngredientService implements GetIngredientUseCase {
 
     @Override
     public IngredientDto.DetailResponse get(Query query) {
-        Ingredient ingredient = ingredientRepository.findByIdAndUserId(query.ingredientId(), query.userId())
+        Ingredient ingredient = ingredientRepository.findDetailByIdAndUserId(query.ingredientId(), query.userId())
                 .orElseThrow(() -> new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND));
         return IngredientDto.DetailResponse.from(ingredient);
     }

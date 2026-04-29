@@ -9,6 +9,8 @@ public interface IngredientRepositoryCustom {
 
     Optional<Ingredient> findByIdAndUserId(Long ingredientId, Long userId);
 
+    Optional<Ingredient> findDetailByIdAndUserId(Long ingredientId, Long userId);
+
     List<Ingredient> findAllByUserId(Long userId);
 
     Optional<Ingredient> findByIdWithImagesForUpdate(Long ingredientId);

@@ -6,6 +6,8 @@ import com.example.freshkitchen.domain.image.enums.AssetType;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.IngredientImageSourceType;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
+import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
+import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
@@ -56,6 +58,28 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
 
         assertTrue(foundIngredient.isPresent());
         assertEquals(ingredient.getId(), foundIngredient.orElseThrow().getId());
+        assertTrue(notFoundIngredient.isEmpty());
+    }
+
+    @Test
+    void findDetailByIdAndUserId_fetchesDetailAssociations() {
+        User owner = persistUser("detail-owner", Provider.GOOGLE);
+        User otherUser = persistUser("detail-other", Provider.KAKAO);
+        Storage storage = persistStorage(owner, StorageType.FRIDGE, "Main fridge");
+        IngredientCatalog catalog = persistCatalog("Milk", CatalogCategory.DAIRY, StorageType.FRIDGE);
+        Ingredient ingredient = persistIngredient(owner, storage, catalog, "Milk");
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Optional<Ingredient> foundIngredient = ingredientRepository.findDetailByIdAndUserId(ingredient.getId(), owner.getId());
+        Optional<Ingredient> notFoundIngredient = ingredientRepository.findDetailByIdAndUserId(ingredient.getId(), otherUser.getId());
+
+        Ingredient detail = foundIngredient.orElseThrow();
+        assertEquals(ingredient.getId(), detail.getId());
+        assertTrue(Hibernate.isInitialized(detail.getUser()));
+        assertTrue(Hibernate.isInitialized(detail.getStorage()));
+        assertTrue(Hibernate.isInitialized(detail.getCatalog()));
         assertTrue(notFoundIngredient.isEmpty());
     }
 
@@ -123,10 +147,14 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
     }
 
     private Ingredient persistIngredient(User user, Storage storage, String name) {
+        return persistIngredient(user, storage, null, name);
+    }
+
+    private Ingredient persistIngredient(User user, Storage storage, IngredientCatalog catalog, String name) {
         Ingredient ingredient = Ingredient.create(new Ingredient.CreateCommand(
                 user,
                 storage,
-                null,
+                catalog,
                 name,
                 null,
                 null,
@@ -150,5 +178,17 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
         ));
         entityManager.persist(imageAsset);
         return imageAsset;
+    }
+
+    private IngredientCatalog persistCatalog(String name, CatalogCategory category, StorageType defaultStorageType) {
+        IngredientCatalog catalog = IngredientCatalog.create(new IngredientCatalog.CreateCommand(
+                null,
+                name,
+                category,
+                defaultStorageType,
+                null
+        ));
+        entityManager.persist(catalog);
+        return catalog;
     }
 }

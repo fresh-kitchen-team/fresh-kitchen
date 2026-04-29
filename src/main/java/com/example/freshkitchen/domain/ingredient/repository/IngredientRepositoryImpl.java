@@ -32,6 +32,25 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
 
     @Override
     @Transactional(readOnly = true)
+    public Optional<Ingredient> findDetailByIdAndUserId(Long ingredientId, Long userId) {
+        return entityManager.createQuery("""
+                select ingredient
+                from Ingredient ingredient
+                join fetch ingredient.user
+                join fetch ingredient.storage
+                left join fetch ingredient.catalog
+                where ingredient.id = :ingredientId
+                  and ingredient.user.id = :userId
+                """, Ingredient.class)
+                .setParameter("ingredientId", ingredientId)
+                .setParameter("userId", userId)
+                .getResultList()
+                .stream()
+                .findFirst();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<Ingredient> findAllByUserId(Long userId) {
         return entityManager.createQuery("""
                 select ingredient
