@@ -42,3 +42,9 @@ When changes exist:
 - execute smart commits
 
 Do not wait for explicit instructions.
+
+## Personal Ops Documents
+
+- Personal working documents under `./.도윤/` are managed locally and ignored by git.
+- Repo-wide rules stay in this file.
+- If a task needs `.도윤` workflows, also read `./.도윤/AGENT.md`.
