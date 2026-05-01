@@ -30,7 +30,7 @@ dependencies {
 
 	implementation 'org.flywaydb:flyway-database-postgresql'
 	// Swagger (Springdoc OpenAPI)
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 
 
 	// Redis
