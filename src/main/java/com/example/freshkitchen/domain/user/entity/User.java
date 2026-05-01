@@ -28,6 +28,9 @@ import java.time.OffsetDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import static com.example.freshkitchen.domain.common.entity.BaseEntity.requireNonBlank;
+import static java.util.Objects.requireNonNull;
+
 @Getter
 @Entity
 @Table(

@@ -24,6 +24,10 @@ import lombok.NoArgsConstructor;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import static com.example.freshkitchen.domain.common.entity.BaseEntity.requireNonBlank;
+import static com.example.freshkitchen.domain.common.entity.BaseEntity.toLinkedHashSet;
+import static java.util.Objects.requireNonNull;
+
 @Getter
 @Entity
 @Table(name = "user_profile")

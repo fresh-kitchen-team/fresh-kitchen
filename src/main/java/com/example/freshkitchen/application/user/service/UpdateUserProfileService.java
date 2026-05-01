@@ -3,10 +3,9 @@ package com.example.freshkitchen.application.user.service;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
 import com.example.freshkitchen.domain.user.entity.User;
 import com.example.freshkitchen.domain.user.entity.UserProfile;
-import com.example.freshkitchen.domain.user.exception.UserErrorCode;
-import com.example.freshkitchen.domain.user.exception.UserException;
 import com.example.freshkitchen.domain.user.repository.UserRepository;
-import com.example.freshkitchen.global.exception.BusinessValidationException;
+import com.example.freshkitchen.global.exception.BusinessException;
+import com.example.freshkitchen.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +23,7 @@ public class UpdateUserProfileService implements UpdateUserProfileUseCase { // u
     public void update(Command command) {
         Long userId = requireUserId(command);
         User user = userRepository.findById(userId) // update는 profile 존재 여부만 먼저 확인하고, 필요한 연관만 지연 로딩
-                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND)); // 유저 없으면 exception 던지기
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND)); // 유저 없으면 exception 던지기
 
         UserProfile profile = user.getProfile();
         if (profile == null) {    // 유저 있는데 profile == null이면 새 UserProfile 붙이기
@@ -61,14 +60,15 @@ public class UpdateUserProfileService implements UpdateUserProfileUseCase { // u
 
     private static String requireNicknameForProfileCreation(String nickname) {
         if (nickname == null || nickname.isBlank()) {
-            throw new BusinessValidationException("nickname must not be blank");
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+
         }
         return nickname;
     }
 
     private static Long requireUserId(Command command) {
         if (command == null || command.userId() == null) {
-            throw new BusinessValidationException("userId must not be null");
+            throw  new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
         return command.userId();
     }

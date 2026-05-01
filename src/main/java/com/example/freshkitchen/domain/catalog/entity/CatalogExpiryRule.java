@@ -17,6 +17,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import static com.example.freshkitchen.domain.common.entity.BaseEntity.requireNonNegative;
+import static java.util.Objects.requireNonNull;
+
 @Getter
 @Entity
 @Table(name = "catalog_expiry_rule")

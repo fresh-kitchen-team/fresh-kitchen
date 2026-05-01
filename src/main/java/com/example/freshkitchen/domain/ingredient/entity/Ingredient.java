@@ -3,12 +3,12 @@ package com.example.freshkitchen.domain.ingredient.entity;
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
 import com.example.freshkitchen.domain.common.entity.BaseTimeEntity;
 import com.example.freshkitchen.domain.image.entity.IngredientImage;
-import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
-import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.user.entity.User;
+import com.example.freshkitchen.global.exception.BusinessException;
+import com.example.freshkitchen.global.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -29,6 +29,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.Set;
+
+import static com.example.freshkitchen.domain.common.entity.BaseEntity.requireNonBlank;
+import static com.example.freshkitchen.domain.common.entity.BaseEntity.sameEntity;
+import static java.util.Objects.requireNonNull;
 
 @Getter
 @Entity
@@ -171,7 +175,7 @@ public class Ingredient extends BaseTimeEntity {
     public void addImage(IngredientImage ingredientImage) {
         requireNonNull(ingredientImage, "ingredientImage");
         if (ingredientImages.isEmpty() && !ingredientImage.isPrimary()) {
-            throw new IngredientException(IngredientErrorCode.FIRST_IMAGE_MUST_BE_PRIMARY);
+            throw new BusinessException(ErrorCode.FIRST_IMAGE_MUST_BE_PRIMARY);
         }
         ingredientImage.attachIngredient(this);
         this.ingredientImages.add(ingredientImage);
@@ -184,7 +188,7 @@ public class Ingredient extends BaseTimeEntity {
     public void enforcePrimaryImage(IngredientImage primaryImage) {
         requireNonNull(primaryImage, "primaryImage");
         if (!containsImage(primaryImage)) {
-            throw new IngredientException(IngredientErrorCode.PRIMARY_IMAGE_MUST_BELONG_TO_INGREDIENT);
+            throw new BusinessException(ErrorCode.PRIMARY_IMAGE_MUST_BELONG_TO_INGREDIENT);
         }
         for (IngredientImage ingredientImage : ingredientImages) {
             ingredientImage.forcePrimary(sameEntity(ingredientImage, primaryImage, IngredientImage::getId));
@@ -194,7 +198,7 @@ public class Ingredient extends BaseTimeEntity {
     public void changeImagePrimary(IngredientImage ingredientImage, boolean primary) {
         requireNonNull(ingredientImage, "ingredientImage");
         if (!containsImage(ingredientImage)) {
-            throw new IngredientException(IngredientErrorCode.INGREDIENT_IMAGE_NOT_BELONG_TO_INGREDIENT);
+            throw new BusinessException(ErrorCode.INGREDIENT_IMAGE_NOT_BELONG_TO_INGREDIENT);
         }
 
         if (primary) {
@@ -203,7 +207,7 @@ public class Ingredient extends BaseTimeEntity {
         }
 
         if (ingredientImage.isPrimary()) {
-            throw new IngredientException(IngredientErrorCode.INGREDIENT_PRIMARY_IMAGE_REQUIRED);
+            throw new BusinessException(ErrorCode.INGREDIENT_PRIMARY_IMAGE_REQUIRED);
         }
 
         ingredientImage.forcePrimary(false);
@@ -219,7 +223,7 @@ public class Ingredient extends BaseTimeEntity {
                 .filter(IngredientImage::isPrimary)
                 .count();
         if (primaryCount != 1) {
-            throw new IngredientException(IngredientErrorCode.INGREDIENT_PRIMARY_IMAGE_INVARIANT_BROKEN);
+            throw new BusinessException(ErrorCode.INGREDIENT_PRIMARY_IMAGE_INVARIANT_BROKEN);
         }
     }
 
@@ -227,7 +231,7 @@ public class Ingredient extends BaseTimeEntity {
         requireNonNull(user, "user");
         Storage validatedStorage = requireNonNull(storage, "storage");
         if (!sameEntity(validatedStorage.getUser(), user, User::getId)) {
-            throw new IngredientException(IngredientErrorCode.STORAGE_NOT_OWNED_BY_USER);
+            throw new BusinessException(ErrorCode.STORAGE_NOT_OWNED_BY_USER);
         }
         return validatedStorage;
     }

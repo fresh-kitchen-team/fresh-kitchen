@@ -1,10 +1,10 @@
 package com.example.freshkitchen.domain.image.entity;
 
 import com.example.freshkitchen.domain.common.entity.CreatedAtEntity;
-import com.example.freshkitchen.domain.image.exception.ImageErrorCode;
-import com.example.freshkitchen.domain.image.exception.ImageException;
 import com.example.freshkitchen.domain.image.enums.IngredientImageSourceType;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
+import com.example.freshkitchen.global.exception.BusinessException;
+import com.example.freshkitchen.global.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -94,7 +94,7 @@ public class IngredientImage extends CreatedAtEntity {
             return;
         }
         if (!sameEntity(this.ingredient, nextIngredient, Ingredient::getId)) {
-            throw new ImageException(ImageErrorCode.INGREDIENT_IMAGE_ALREADY_ATTACHED);
+            throw new BusinessException(ErrorCode.INGREDIENT_IMAGE_ALREADY_ATTACHED);
         }
     }
 

@@ -1,12 +1,12 @@
 package com.example.freshkitchen.domain.image.entity;
 
 import com.example.freshkitchen.domain.common.entity.CreatedAtEntity;
-import com.example.freshkitchen.domain.image.exception.ImageErrorCode;
-import com.example.freshkitchen.domain.image.exception.ImageException;
 import com.example.freshkitchen.domain.image.enums.AssetType;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.domain.user.entity.User;
+import com.example.freshkitchen.global.exception.BusinessException;
+import com.example.freshkitchen.global.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -131,10 +131,10 @@ public class ImageAsset extends CreatedAtEntity {
 
     private static User validateOwnerConsistency(User user, AssetType assetType) {
         if (assetType == AssetType.SYSTEM_DEFAULT && user != null) {
-            throw new ImageException(ImageErrorCode.SYSTEM_DEFAULT_OWNER_MUST_BE_NULL);
+            throw new BusinessException(ErrorCode.SYSTEM_DEFAULT_OWNER_MUST_BE_NULL);
         }
         if (assetType == AssetType.USER_UPLOAD && user == null) {
-            throw new ImageException(ImageErrorCode.USER_UPLOAD_OWNER_REQUIRED);
+            throw new BusinessException(ErrorCode.USER_UPLOAD_OWNER_REQUIRED);
         }
         return user;
     }

@@ -1,20 +1,28 @@
 package com.example.freshkitchen.global.exception;
 
-public abstract class BusinessException extends RuntimeException {
+import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
+@Getter
+public class BusinessException extends RuntimeException {
+    private final HttpStatus status;
     private final ErrorCode errorCode;
 
-    protected BusinessException(ErrorCode errorCode) {
-        super(errorCode.message());
+    public BusinessException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.status = errorCode.getHttpStatus();
         this.errorCode = errorCode;
     }
 
-    protected BusinessException(ErrorCode errorCode, String detailMessage) {
-        super(detailMessage);
+    public BusinessException(HttpStatus status, ErrorCode errorCode, String message, Throwable cause) {
+        super(message, cause);
+        this.status = status;
         this.errorCode = errorCode;
     }
 
-    public ErrorCode getErrorCode() {
-        return errorCode;
+    public BusinessException(HttpStatus status, String message) {
+        super(message);
+        this.status = status;
+        this.errorCode = null;
     }
 }
