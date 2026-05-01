@@ -74,7 +74,7 @@ class IngredientImagePrimaryServiceTest extends PostgreSqlTestContainerSupport {
                 AssetType.USER_UPLOAD,
                 ImageKind.INGREDIENT,
                 StorageProvider.LOCAL,
-                "https://cdn.example/1.png",
+                "images/1.png",
                 100,
                 100
         ));
@@ -85,7 +85,7 @@ class IngredientImagePrimaryServiceTest extends PostgreSqlTestContainerSupport {
                 AssetType.USER_UPLOAD,
                 ImageKind.INGREDIENT,
                 StorageProvider.LOCAL,
-                "https://cdn.example/2.png",
+                "images/2.png",
                 200,
                 200
         ));

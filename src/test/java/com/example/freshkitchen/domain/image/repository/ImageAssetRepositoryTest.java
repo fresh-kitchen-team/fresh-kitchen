@@ -35,7 +35,7 @@ class ImageAssetRepositoryTest extends PostgreSqlTestContainerSupport {
     void findByIdAndUserId_returnsOnlyOwnerImageAsset() {
         User owner = persistUser("image-owner", Provider.GOOGLE);
         User otherUser = persistUser("image-other", Provider.KAKAO);
-        ImageAsset imageAsset = persistUserUploadImageAsset(owner, "https://cdn.example/owner.png");
+        ImageAsset imageAsset = persistUserUploadImageAsset(owner, "images/owner.png");
 
         entityManager.flush();
         entityManager.clear();
@@ -51,9 +51,9 @@ class ImageAssetRepositoryTest extends PostgreSqlTestContainerSupport {
     void findAttachableByIdAndUserId_allowsOwnerUploadAndSystemDefaultOnly() {
         User owner = persistUser("attach-owner", Provider.GOOGLE);
         User otherUser = persistUser("attach-other", Provider.KAKAO);
-        ImageAsset ownerImageAsset = persistUserUploadImageAsset(owner, "https://cdn.example/owner.png");
-        ImageAsset otherImageAsset = persistUserUploadImageAsset(otherUser, "https://cdn.example/other.png");
-        ImageAsset systemDefaultImageAsset = persistSystemDefaultImageAsset("https://cdn.example/default.png");
+        ImageAsset ownerImageAsset = persistUserUploadImageAsset(owner, "images/owner.png");
+        ImageAsset otherImageAsset = persistUserUploadImageAsset(otherUser, "images/other.png");
+        ImageAsset systemDefaultImageAsset = persistSystemDefaultImageAsset("images/default.png");
 
         entityManager.flush();
         entityManager.clear();
@@ -82,13 +82,13 @@ class ImageAssetRepositoryTest extends PostgreSqlTestContainerSupport {
         return user;
     }
 
-    private ImageAsset persistUserUploadImageAsset(User user, String imageUrl) {
+    private ImageAsset persistUserUploadImageAsset(User user, String objectKey) {
         ImageAsset imageAsset = ImageAsset.create(new ImageAsset.CreateCommand(
                 user,
                 AssetType.USER_UPLOAD,
                 ImageKind.INGREDIENT,
                 StorageProvider.LOCAL,
-                imageUrl,
+                objectKey,
                 300,
                 300
         ));
@@ -96,13 +96,13 @@ class ImageAssetRepositoryTest extends PostgreSqlTestContainerSupport {
         return imageAsset;
     }
 
-    private ImageAsset persistSystemDefaultImageAsset(String imageUrl) {
+    private ImageAsset persistSystemDefaultImageAsset(String objectKey) {
         ImageAsset imageAsset = ImageAsset.create(new ImageAsset.CreateCommand(
                 null,
                 AssetType.SYSTEM_DEFAULT,
                 ImageKind.INGREDIENT,
                 StorageProvider.LOCAL,
-                imageUrl,
+                objectKey,
                 300,
                 300
         ));

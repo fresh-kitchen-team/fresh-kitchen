@@ -22,7 +22,7 @@ class ImageAssetEntityTest {
                         AssetType.USER_UPLOAD,
                         ImageKind.INGREDIENT,
                         StorageProvider.LOCAL,
-                        "https://cdn.example/upload.png",
+                        "images/upload.png",
                         120,
                         80
                 ))
@@ -41,7 +41,7 @@ class ImageAssetEntityTest {
                         AssetType.SYSTEM_DEFAULT,
                         ImageKind.INGREDIENT,
                         StorageProvider.LOCAL,
-                        "https://cdn.example/default.png",
+                        "images/default.png",
                         120,
                         80
                 ))
@@ -60,7 +60,7 @@ class ImageAssetEntityTest {
                         AssetType.USER_UPLOAD,
                         ImageKind.INGREDIENT,
                         StorageProvider.LOCAL,
-                        "https://cdn.example/upload.png",
+                        "images/upload.png",
                         0,
                         -1
                 ))
@@ -77,7 +77,7 @@ class ImageAssetEntityTest {
                 AssetType.USER_UPLOAD,
                 ImageKind.INGREDIENT,
                 StorageProvider.LOCAL,
-                "https://cdn.example/upload.png",
+                "images/upload.png",
                 120,
                 80
         ));

@@ -37,18 +37,18 @@ class ImageVariantRepositoryTest extends PostgreSqlTestContainerSupport {
     @Test
     void findByImageAssetIdAndVariantType_returnsMatchingVariant() {
         User user = persistUser("variant-user", Provider.GOOGLE);
-        ImageAsset imageAsset = persistImageAsset(user, "https://cdn.example/asset.png");
+        ImageAsset imageAsset = persistImageAsset(user, "images/asset.png");
         ImageVariant thumbnail = persistImageVariant(
                 imageAsset,
                 ImageVariantType.THUMBNAIL,
-                "https://cdn.example/thumb.png",
+                "images/thumb.png",
                 120,
                 90
         );
         persistImageVariant(
                 imageAsset,
                 ImageVariantType.DETAIL,
-                "https://cdn.example/detail.png",
+                "images/detail.png",
                 640,
                 480
         );
@@ -68,26 +68,26 @@ class ImageVariantRepositoryTest extends PostgreSqlTestContainerSupport {
     @Test
     void findAllByImageAssetIdOrderByIdAsc_returnsOnlyAssetVariantsInCreationOrder() {
         User user = persistUser("variant-list-user", Provider.KAKAO);
-        ImageAsset targetAsset = persistImageAsset(user, "https://cdn.example/target.png");
-        ImageAsset otherAsset = persistImageAsset(user, "https://cdn.example/other.png");
+        ImageAsset targetAsset = persistImageAsset(user, "images/target.png");
+        ImageAsset otherAsset = persistImageAsset(user, "images/other.png");
         ImageVariant thumbnail = persistImageVariant(
                 targetAsset,
                 ImageVariantType.THUMBNAIL,
-                "https://cdn.example/target-thumb.png",
+                "images/target-thumb.png",
                 120,
                 90
         );
         ImageVariant detail = persistImageVariant(
                 targetAsset,
                 ImageVariantType.DETAIL,
-                "https://cdn.example/target-detail.png",
+                "images/target-detail.png",
                 640,
                 480
         );
         persistImageVariant(
                 otherAsset,
                 ImageVariantType.THUMBNAIL,
-                "https://cdn.example/other-thumb.png",
+                "images/other-thumb.png",
                 120,
                 90
         );
@@ -106,11 +106,11 @@ class ImageVariantRepositoryTest extends PostgreSqlTestContainerSupport {
     @Test
     void existsByImageAssetIdAndVariantType_returnsTrueOnlyForExistingVariant() {
         User user = persistUser("variant-exists-user", Provider.GOOGLE);
-        ImageAsset imageAsset = persistImageAsset(user, "https://cdn.example/asset.png");
+        ImageAsset imageAsset = persistImageAsset(user, "images/asset.png");
         persistImageVariant(
                 imageAsset,
                 ImageVariantType.THUMBNAIL,
-                "https://cdn.example/thumb.png",
+                "images/thumb.png",
                 120,
                 90
         );
@@ -134,13 +134,13 @@ class ImageVariantRepositoryTest extends PostgreSqlTestContainerSupport {
         return user;
     }
 
-    private ImageAsset persistImageAsset(User user, String imageUrl) {
+    private ImageAsset persistImageAsset(User user, String objectKey) {
         ImageAsset imageAsset = ImageAsset.create(new ImageAsset.CreateCommand(
                 user,
                 AssetType.USER_UPLOAD,
                 ImageKind.INGREDIENT,
                 StorageProvider.LOCAL,
-                imageUrl,
+                objectKey,
                 300,
                 300
         ));
@@ -151,14 +151,14 @@ class ImageVariantRepositoryTest extends PostgreSqlTestContainerSupport {
     private ImageVariant persistImageVariant(
             ImageAsset imageAsset,
             ImageVariantType variantType,
-            String imageUrl,
+            String objectKey,
             int width,
             int height
     ) {
         ImageVariant imageVariant = ImageVariant.create(new ImageVariant.CreateCommand(
                 imageAsset,
                 variantType,
-                imageUrl,
+                objectKey,
                 width,
                 height
         ));

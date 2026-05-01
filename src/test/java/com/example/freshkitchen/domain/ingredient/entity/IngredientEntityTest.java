@@ -77,7 +77,7 @@ class IngredientEntityTest {
                 AssetType.USER_UPLOAD,
                 ImageKind.INGREDIENT,
                 StorageProvider.LOCAL,
-                "https://cdn.example/1.png",
+                "images/1.png",
                 100,
                 100
         ));
@@ -86,7 +86,7 @@ class IngredientEntityTest {
                 AssetType.USER_UPLOAD,
                 ImageKind.INGREDIENT,
                 StorageProvider.LOCAL,
-                "https://cdn.example/2.png",
+                "images/2.png",
                 200,
                 200
         ));
@@ -134,7 +134,7 @@ class IngredientEntityTest {
                 AssetType.USER_UPLOAD,
                 ImageKind.INGREDIENT,
                 StorageProvider.LOCAL,
-                "https://cdn.example/onion.png",
+                "images/onion.png",
                 120,
                 120
         ));
@@ -171,7 +171,7 @@ class IngredientEntityTest {
                 AssetType.USER_UPLOAD,
                 ImageKind.INGREDIENT,
                 StorageProvider.LOCAL,
-                "https://cdn.example/milk.png",
+                "images/milk.png",
                 300,
                 300
         ));
@@ -222,7 +222,7 @@ class IngredientEntityTest {
                 AssetType.USER_UPLOAD,
                 ImageKind.INGREDIENT,
                 StorageProvider.LOCAL,
-                "https://cdn.example/milk.png",
+                "images/milk.png",
                 300,
                 300
         ));

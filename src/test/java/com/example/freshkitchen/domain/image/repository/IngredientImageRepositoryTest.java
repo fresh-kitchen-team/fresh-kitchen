@@ -45,9 +45,9 @@ class IngredientImageRepositoryTest extends PostgreSqlTestContainerSupport {
         Storage storage = persistStorage(user, StorageType.FRIDGE, "Main fridge");
         Ingredient targetIngredient = persistIngredient(user, storage, "Milk");
         Ingredient otherIngredient = persistIngredient(user, storage, "Tomato");
-        ImageAsset primaryAsset = persistImageAsset(user, "https://cdn.example/milk-primary.png");
-        ImageAsset subAsset = persistImageAsset(user, "https://cdn.example/milk-sub.png");
-        ImageAsset otherAsset = persistImageAsset(user, "https://cdn.example/tomato.png");
+        ImageAsset primaryAsset = persistImageAsset(user, "images/milk-primary.png");
+        ImageAsset subAsset = persistImageAsset(user, "images/milk-sub.png");
+        ImageAsset otherAsset = persistImageAsset(user, "images/tomato.png");
         IngredientImage primaryImage = persistIngredientImage(targetIngredient, primaryAsset, true);
         IngredientImage subImage = persistIngredientImage(targetIngredient, subAsset, false);
         persistIngredientImage(otherIngredient, otherAsset, true);
@@ -68,8 +68,8 @@ class IngredientImageRepositoryTest extends PostgreSqlTestContainerSupport {
         User user = persistUser("primary-image-user", Provider.KAKAO);
         Storage storage = persistStorage(user, StorageType.FRIDGE, "Main fridge");
         Ingredient ingredient = persistIngredient(user, storage, "Milk");
-        ImageAsset primaryAsset = persistImageAsset(user, "https://cdn.example/primary.png");
-        ImageAsset subAsset = persistImageAsset(user, "https://cdn.example/sub.png");
+        ImageAsset primaryAsset = persistImageAsset(user, "images/primary.png");
+        ImageAsset subAsset = persistImageAsset(user, "images/sub.png");
         IngredientImage primaryImage = persistIngredientImage(ingredient, primaryAsset, true);
         persistIngredientImage(ingredient, subAsset, false);
 
@@ -88,8 +88,8 @@ class IngredientImageRepositoryTest extends PostgreSqlTestContainerSupport {
         User user = persistUser("connection-user", Provider.GOOGLE);
         Storage storage = persistStorage(user, StorageType.FRIDGE, "Main fridge");
         Ingredient ingredient = persistIngredient(user, storage, "Milk");
-        ImageAsset primaryAsset = persistImageAsset(user, "https://cdn.example/primary.png");
-        ImageAsset subAsset = persistImageAsset(user, "https://cdn.example/sub.png");
+        ImageAsset primaryAsset = persistImageAsset(user, "images/primary.png");
+        ImageAsset subAsset = persistImageAsset(user, "images/sub.png");
         persistIngredientImage(ingredient, primaryAsset, true);
         IngredientImage subImage = persistIngredientImage(ingredient, subAsset, false);
 
@@ -140,13 +140,13 @@ class IngredientImageRepositoryTest extends PostgreSqlTestContainerSupport {
         return ingredient;
     }
 
-    private ImageAsset persistImageAsset(User user, String imageUrl) {
+    private ImageAsset persistImageAsset(User user, String objectKey) {
         ImageAsset imageAsset = ImageAsset.create(new ImageAsset.CreateCommand(
                 user,
                 AssetType.USER_UPLOAD,
                 ImageKind.INGREDIENT,
                 StorageProvider.LOCAL,
-                imageUrl,
+                objectKey,
                 300,
                 300
         ));
