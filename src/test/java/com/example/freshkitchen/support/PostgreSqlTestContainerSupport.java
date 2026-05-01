@@ -23,7 +23,11 @@ public abstract class PostgreSqlTestContainerSupport {
         registry.add("spring.datasource.username", POSTGRESQL_CONTAINER::getUsername);
         registry.add("spring.datasource.password", POSTGRESQL_CONTAINER::getPassword);
         registry.add("spring.datasource.driver-class-name", POSTGRESQL_CONTAINER::getDriverClassName);
+        registry.add("spring.datasource.hikari.maximum-pool-size", () -> 2);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
         registry.add("spring.flyway.enabled", () -> true);
+        registry.add("jwt.secret", () -> "test-secret-key-must-be-at-least-32-bytes-long-for-hmac-sha256");
+        registry.add("jwt.access-expiration-minutes", () -> 30L);
+        registry.add("jwt.refresh-expiration-days", () -> 14L);
     }
 }

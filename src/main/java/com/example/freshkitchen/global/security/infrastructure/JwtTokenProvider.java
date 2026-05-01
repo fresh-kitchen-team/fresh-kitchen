@@ -1,0 +1,112 @@
+package com.example.freshkitchen.global.security.infrastructure;
+
+import com.example.freshkitchen.global.security.exception.CustomJwtException;
+import com.example.freshkitchen.global.security.exception.JwtErrorCode;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Date;
+
+@Slf4j
+@Component
+public class JwtTokenProvider {
+
+    private static final String CLAIM_USER_ID = "userId";
+    private static final String CLAIM_ROLE = "role";
+    private static final String CLAIM_TOKEN_TYPE = "tokenType";
+    private static final String TOKEN_TYPE_ACCESS = "access";
+    private static final String TOKEN_TYPE_REFRESH = "refresh";
+
+    private final SecretKey secretKey;
+    private final long accessExpirationMillis;
+    private final long refreshExpirationMillis;
+
+    public JwtTokenProvider(
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.access-expiration-minutes}") long accessExpirationMinutes,
+            @Value("${jwt.refresh-expiration-days}") long refreshExpirationDays
+    ) {
+        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.accessExpirationMillis = Duration.ofMinutes(accessExpirationMinutes).toMillis();
+        this.refreshExpirationMillis = Duration.ofDays(refreshExpirationDays).toMillis();
+    }
+
+    public String generateAccessToken(Long userId, String role) {
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + accessExpirationMillis);
+
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim(CLAIM_USER_ID, userId)
+                .claim(CLAIM_ROLE, role)
+                .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_ACCESS)
+                .issuedAt(now)
+                .expiration(expiration)
+                .signWith(secretKey)
+                .compact();
+    }
+
+    public String generateRefreshToken(Long userId) {
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + refreshExpirationMillis);
+
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim(CLAIM_USER_ID, userId)
+                .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_REFRESH)
+                .issuedAt(now)
+                .expiration(expiration)
+                .signWith(secretKey)
+                .compact();
+    }
+
+    public boolean validateToken(String token) {
+        parseClaims(token);
+        return true;
+    }
+
+    public Long getUserIdFromToken(String token) {
+        Claims claims = parseClaims(token);
+        Object userIdClaim = claims.get(CLAIM_USER_ID);
+        if (userIdClaim instanceof Number number) {
+            return number.longValue();
+        }
+        throw new CustomJwtException(JwtErrorCode.EMPTY_CLAIMS);
+    }
+
+    private Claims parseClaims(String token) {
+        try {
+            return Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (ExpiredJwtException e) {
+            log.debug("Expired JWT: {}", e.getMessage());
+            throw new CustomJwtException(JwtErrorCode.EXPIRED_TOKEN);
+        } catch (SignatureException e) {
+            log.debug("Invalid JWT signature: {}", e.getMessage());
+            throw new CustomJwtException(JwtErrorCode.INVALID_SIGNATURE);
+        } catch (MalformedJwtException e) {
+            log.debug("Malformed JWT: {}", e.getMessage());
+            throw new CustomJwtException(JwtErrorCode.MALFORMED_TOKEN);
+        } catch (UnsupportedJwtException e) {
+            log.debug("Unsupported JWT: {}", e.getMessage());
+            throw new CustomJwtException(JwtErrorCode.UNSUPPORTED_TOKEN);
+        } catch (IllegalArgumentException e) {
+            log.debug("Empty JWT claims: {}", e.getMessage());
+            throw new CustomJwtException(JwtErrorCode.EMPTY_CLAIMS);
+        }
+    }
+}
