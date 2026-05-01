@@ -2,10 +2,10 @@ package com.example.freshkitchen.application.ingredient.service;
 
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
-import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
-import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.repository.StorageRepository;
 import com.example.freshkitchen.domain.user.entity.User;
+import com.example.freshkitchen.global.exception.BusinessException;
+import com.example.freshkitchen.global.exception.ErrorCode;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ public class DefaultStorageService {
 
         User user = entityManager.find(User.class, userId, LockModeType.PESSIMISTIC_WRITE);
         if (user == null) {
-            throw new IngredientException(IngredientErrorCode.USER_NOT_FOUND);
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
 
         List<Storage> storages = new ArrayList<>(storageRepository.findAllByUserId(userId));

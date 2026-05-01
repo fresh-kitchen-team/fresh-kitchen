@@ -5,11 +5,12 @@ import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
 import com.example.freshkitchen.domain.catalog.repository.IngredientCatalogRepository;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
-import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
-import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
+
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
 import com.example.freshkitchen.domain.ingredient.repository.StorageRepository;
 import com.example.freshkitchen.domain.user.entity.User;
+import com.example.freshkitchen.global.exception.BusinessException;
+import com.example.freshkitchen.global.exception.ErrorCode;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,7 @@ public class CreateIngredientService implements CreateIngredientUseCase {
         defaultStorageService.ensureDefaultStorages(command.userId());
 
         Storage storage = storageRepository.findByIdAndUserId(command.storageId(), command.userId())
-                .orElseThrow(() -> new IngredientException(IngredientErrorCode.STORAGE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORAGE_NOT_FOUND));
         IngredientCatalog catalog = resolveCatalog(command.catalogId());
         User user = entityManager.getReference(User.class, command.userId());
 
@@ -55,6 +56,6 @@ public class CreateIngredientService implements CreateIngredientUseCase {
             return null;
         }
         return ingredientCatalogRepository.findById(catalogId)
-                .orElseThrow(() -> new IngredientException(IngredientErrorCode.CATALOG_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORAGE_NOT_FOUND));
     }
 }

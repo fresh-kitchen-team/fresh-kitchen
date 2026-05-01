@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 @AllArgsConstructor
 public enum ErrorCode {
-
+    CATALOG_NOT_FOUND(HttpStatus.NOT_FOUND, "카탈로그 못핬겠음"),
     // 1. Enum 상수는 필드보다 먼저 선언되어야 합니다.
     USER_ID_REQUIRED(HttpStatus.NOT_FOUND, "아이디가 필요합니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다."),
@@ -16,6 +16,7 @@ public enum ErrorCode {
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다."),
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "잘못된 입력값입니다."),
     AI_SETTING(HttpStatus.BAD_REQUEST,"AI 세팅에 값이 없습니다."),
+    STORAGE_NOT_FOUND(HttpStatus.BAD_REQUEST,"저장공간을 못 찾겟습니다."),
     //
    INGREDIENT_IMAGE_ALREADY_ATTACHED(HttpStatus.BAD_REQUEST,  "ingredient image is already attached to another ingredient"),
     SYSTEM_DEFAULT_OWNER_MUST_BE_NULL(HttpStatus.BAD_REQUEST,  "user must be null when assetType is SYSTEM_DEFAULT"),

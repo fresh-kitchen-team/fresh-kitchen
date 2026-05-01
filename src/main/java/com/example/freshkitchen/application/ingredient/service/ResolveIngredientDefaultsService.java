@@ -9,9 +9,9 @@ import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
 import com.example.freshkitchen.domain.catalog.repository.CatalogExpiryRuleRepository;
 import com.example.freshkitchen.domain.catalog.repository.CategoryExpiryRuleRepository;
 import com.example.freshkitchen.domain.catalog.repository.IngredientCatalogRepository;
-import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
-import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
+import com.example.freshkitchen.global.exception.BusinessException;
+import com.example.freshkitchen.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,7 @@ public class ResolveIngredientDefaultsService implements ResolveIngredientDefaul
     public IngredientDto.DefaultsResponse resolve(Query query) {
         if (query.catalogId() != null) {
             IngredientCatalog catalog = ingredientCatalogRepository.findById(query.catalogId())
-                    .orElseThrow(() -> new IngredientException(IngredientErrorCode.CATALOG_NOT_FOUND));
+                    .orElseThrow(() -> new BusinessException(ErrorCode.CATALOG_NOT_FOUND));
             StorageType resolvedStorageType = query.storageType() != null ? query.storageType() : catalog.getDefaultStorageType();
             CatalogExpiryRule catalogRule = catalogExpiryRuleRepository.findByCatalogIdAndStorageType(catalog.getId(), resolvedStorageType)
                     .orElse(null);

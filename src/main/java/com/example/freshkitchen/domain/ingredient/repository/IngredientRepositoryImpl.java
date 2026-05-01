@@ -4,13 +4,15 @@ import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
-class IngredientRepositoryImpl implements IngredientRepositoryCustom {
+@Repository
+public class IngredientRepositoryImpl implements IngredientRepositoryCustom {
 
     private final EntityManager entityManager;
 
