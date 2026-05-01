@@ -5,7 +5,7 @@ import com.example.freshkitchen.domain.user.enums.AllergyType;
 import com.example.freshkitchen.domain.user.enums.CookingTool;
 import com.example.freshkitchen.domain.user.enums.FoodStyle;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -48,10 +48,10 @@ public final class UserProfileRequest {
         if (value == null || value.isNull()) {
             return null;
         }
-        if (!value.isString()) {
+        if (!value.isTextual()) {
             throw new BusinessValidationException(fieldName + " must be text");
         }
-        return value.stringValue();
+        return value.textValue();
     }
 
     private static Set<String> stringSet(JsonNode object, String fieldName) {
@@ -65,10 +65,10 @@ public final class UserProfileRequest {
 
         Set<String> values = new LinkedHashSet<>();
         value.forEach(item -> {
-            if (!item.isString()) {
+            if (!item.isTextual()) {
                 throw new BusinessValidationException(fieldName + " must contain text");
             }
-            values.add(item.stringValue());
+            values.add(item.textValue());
         });
         return values;
     }
@@ -96,11 +96,11 @@ public final class UserProfileRequest {
             Class<E> enumType,
             JsonNode item
     ) {
-        if (!item.isString()) {
+        if (!item.isTextual()) {
             throw new BusinessValidationException(fieldName + " must contain text");
         }
         try {
-            return Enum.valueOf(enumType, item.stringValue());
+            return Enum.valueOf(enumType, item.textValue());
         } catch (IllegalArgumentException exception) {
             throw new BusinessValidationException(fieldName + " contains invalid value");
         }
