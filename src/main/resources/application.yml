@@ -1,0 +1,53 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+
+  ai:
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: never
+    google:
+      genai:
+        api-key: ${GEMINI_API_KEY}
+        chat:
+          options:
+            model: gemini-2.0-flash
+        embedding:
+          api-key: ${GEMINI_API_KEY}
+          options:
+            model: text-embedding-004
+    vectorstore:
+      pgvector:
+        initialize-schema: false
+        dimensions: 768
+
+jwt:
+  secret: ${JWT_SECRET}
+
+logging:
+  level:
+    root: INFO
+    org:
+      springframework:
+        ai:
+          chat:
+            client:
+              advisor: DEBUG

@@ -1,0 +1,84 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.4.5'  // ← 4.0 → 3.4.5
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+description = 'Demo project for Spring Boot'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.ai:spring-ai-bom:1.1.4"  // ← 1.1.4로 변경
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' }  // ← 추가
+}
+
+dependencies {
+	// Spring Boot 기본
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	// JWT
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+// Spring Security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	// Flyway
+	implementation 'org.flywaydb:flyway-database-postgresql'
+
+	// Swagger
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
+	// Spring AI - Gemini (Chat + Embedding 둘 다 포함)
+	implementation 'org.springframework.ai:spring-ai-starter-model-google-genai'
+
+	// Spring AI - PgVector
+	implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
+// Spring AI - Gemini Embedding (← 이거 추가!)
+	implementation 'org.springframework.ai:spring-ai-starter-model-google-genai-embedding'
+
+	// Spring AI - RAG
+	implementation 'org.springframework.ai:spring-ai-rag'
+
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// DevTools
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// PostgreSQL
+	runtimeOnly 'org.postgresql:postgresql'
+
+	// Test
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation platform('org.testcontainers:testcontainers-bom:1.20.4')
+	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation 'org.testcontainers:postgresql'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  fresh-kitchen-server:
+    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+    container_name: fresh-kitchen-server
+    environment:
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
