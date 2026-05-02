@@ -33,6 +33,10 @@ public record ApiResponse<T>(
         return success(HttpStatus.OK, data);
     }
 
+    public static ResponseEntity<ApiResponse<Void>> success() {
+        return success((Void) null);
+    }
+
     public static <T> ResponseEntity<ApiResponse<T>> success(HttpStatus status, T data) {
         ApiResponse<T> response = onSuccess(status, data);
         return ResponseEntity
