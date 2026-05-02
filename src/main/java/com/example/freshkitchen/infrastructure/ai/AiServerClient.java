@@ -7,6 +7,7 @@ import com.example.freshkitchen.infrastructure.ai.dto.ReceiptOcrResponse;
 import com.example.freshkitchen.infrastructure.ai.exception.AiServerErrorCode;
 import com.example.freshkitchen.infrastructure.ai.exception.AiServerException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -33,6 +34,7 @@ public class AiServerClient {
     private final RestClient restClient;
     private final String token;
 
+    @Autowired
     public AiServerClient(AiServerProperties properties) {
         this(createRestClient(properties), properties.getToken());
     }
