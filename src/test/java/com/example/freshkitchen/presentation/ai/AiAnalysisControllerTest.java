@@ -42,7 +42,7 @@ class AiAnalysisControllerTest {
                         false
                 ));
 
-        mockMvc.perform(multipart("/api/ai/food-classification").file(imageFile()))
+        mockMvc.perform(multipart("/api/v1/ai/food-classification").file(imageFile()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.code").value("COMMON-200"))
@@ -62,7 +62,7 @@ class AiAnalysisControllerTest {
         given(aiServerClient.extractReceiptIngredients(any()))
                 .willReturn(new ReceiptOcrResponse(List.of("Egg", "Milk")));
 
-        mockMvc.perform(multipart("/api/ai/receipt-ocr").file(imageFile()))
+        mockMvc.perform(multipart("/api/v1/ai/receipt-ocr").file(imageFile()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.ingredients[0]").value("Egg"))
                 .andExpect(jsonPath("$.data.ingredients[1]").value("Milk"));
@@ -81,7 +81,7 @@ class AiAnalysisControllerTest {
                         )
                 )));
 
-        mockMvc.perform(multipart("/api/ai/fridge-detection").file(imageFile()))
+        mockMvc.perform(multipart("/api/v1/ai/fridge-detection").file(imageFile()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.objects[0].name").value("Apple"))
                 .andExpect(jsonPath("$.data.objects[0].confidence").value(0.82))
@@ -93,12 +93,12 @@ class AiAnalysisControllerTest {
 
     @Test
     void classifyFood_returnsBadRequestWhenFileIsMissing() throws Exception {
-        mockMvc.perform(multipart("/api/ai/food-classification"))
+        mockMvc.perform(multipart("/api/v1/ai/food-classification"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
                 .andExpect(jsonPath("$.message").value("Invalid input"))
-                .andExpect(jsonPath("$.path").value("/api/ai/food-classification"))
+                .andExpect(jsonPath("$.path").value("/api/v1/ai/food-classification"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
         verifyNoInteractions(aiServerClient);
@@ -106,12 +106,12 @@ class AiAnalysisControllerTest {
 
     @Test
     void extractReceiptIngredients_returnsBadRequestWhenFileIsMissing() throws Exception {
-        mockMvc.perform(multipart("/api/ai/receipt-ocr"))
+        mockMvc.perform(multipart("/api/v1/ai/receipt-ocr"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
                 .andExpect(jsonPath("$.message").value("Invalid input"))
-                .andExpect(jsonPath("$.path").value("/api/ai/receipt-ocr"))
+                .andExpect(jsonPath("$.path").value("/api/v1/ai/receipt-ocr"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
         verifyNoInteractions(aiServerClient);
@@ -119,12 +119,12 @@ class AiAnalysisControllerTest {
 
     @Test
     void detectFridgeObjects_returnsBadRequestWhenFileIsMissing() throws Exception {
-        mockMvc.perform(multipart("/api/ai/fridge-detection"))
+        mockMvc.perform(multipart("/api/v1/ai/fridge-detection"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
                 .andExpect(jsonPath("$.message").value("Invalid input"))
-                .andExpect(jsonPath("$.path").value("/api/ai/fridge-detection"))
+                .andExpect(jsonPath("$.path").value("/api/v1/ai/fridge-detection"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
         verifyNoInteractions(aiServerClient);

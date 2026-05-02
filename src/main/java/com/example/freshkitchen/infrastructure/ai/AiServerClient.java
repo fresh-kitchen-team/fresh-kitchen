@@ -96,7 +96,7 @@ public class AiServerClient {
             body.add("file", file.getResource());
             return body;
         } catch (IllegalStateException exception) {
-            throw new BusinessValidationException("file resource must be available");
+            throw new BusinessValidationException("file resource must be available", exception);
         }
     }
 

@@ -21,6 +21,7 @@ import java.net.SocketTimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -332,7 +333,8 @@ class AiServerClientTest {
                 .build();
         AiServerClient client = new AiServerClient(restClient, "service-token");
         MockMultipartFile file = mock(MockMultipartFile.class);
-        given(file.getResource()).willThrow(new IllegalStateException("file resource unavailable"));
+        IllegalStateException cause = new IllegalStateException("file resource unavailable");
+        given(file.getResource()).willThrow(cause);
 
         BusinessValidationException exception = assertThrows(
                 BusinessValidationException.class,
@@ -340,6 +342,7 @@ class AiServerClientTest {
         );
 
         assertEquals(CommonErrorCode.INVALID_INPUT, exception.getErrorCode());
+        assertSame(cause, exception.getCause());
     }
 
     private static MockMultipartFile imageFile() {

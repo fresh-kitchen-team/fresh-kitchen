@@ -1,6 +1,7 @@
 package com.example.freshkitchen.infrastructure.ai;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -16,7 +17,10 @@ public class AiServerProperties {
     @NotBlank
     private String token;
 
+    @Positive
     private int connectTimeoutMs = 3000;
+
+    @Positive
     private int readTimeoutMs = 30000;
 
     public String getBaseUrl() {
