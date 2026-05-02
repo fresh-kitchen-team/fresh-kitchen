@@ -53,6 +53,8 @@ public class JwtTokenProvider {
     }
 
     public String generateAccessToken(Long userId, String role) {
+        Assert.notNull(userId, "userId must not be null");
+        Assert.hasText(role, "role must not be blank");
         Date now = new Date();
         Date expiration = new Date(now.getTime() + accessExpirationMillis);
 
@@ -68,6 +70,7 @@ public class JwtTokenProvider {
     }
 
     public String generateRefreshToken(Long userId) {
+        Assert.notNull(userId, "userId must not be null");
         Date now = new Date();
         Date expiration = new Date(now.getTime() + refreshExpirationMillis);
 

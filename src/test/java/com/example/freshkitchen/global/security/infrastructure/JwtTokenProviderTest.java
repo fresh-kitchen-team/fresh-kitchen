@@ -2,11 +2,17 @@ package com.example.freshkitchen.global.security.infrastructure;
 
 import com.example.freshkitchen.global.security.exception.CustomJwtException;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 class JwtTokenProviderTest {
@@ -37,6 +43,48 @@ class JwtTokenProviderTest {
 
         assertThat(token).isNotBlank();
         assertThatCode(() -> provider.validateToken(token)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void generateAccessToken_containsRoleAndTokenTypeClaims() {
+        String token = provider.generateAccessToken(1L, "USER");
+
+        Claims claims = Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8)))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        assertThat(claims.get("role")).isEqualTo("USER");
+        assertThat(claims.get("tokenType")).isEqualTo("access");
+        assertThat(claims.get("userId", Long.class)).isEqualTo(1L);
+    }
+
+    @Test
+    void generateRefreshToken_containsTokenTypeClaimWithoutRole() {
+        String token = provider.generateRefreshToken(1L);
+
+        Claims claims = Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8)))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        assertThat(claims.get("tokenType")).isEqualTo("refresh");
+        assertThat(claims.get("role")).isNull();
+        assertThat(claims.get("userId", Long.class)).isEqualTo(1L);
+    }
+
+    @Test
+    void generateAccessToken_throwsException_whenUserIdIsNull() {
+        assertThatThrownBy(() -> provider.generateAccessToken(null, "USER"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void generateRefreshToken_throwsException_whenUserIdIsNull() {
+        assertThatThrownBy(() -> provider.generateRefreshToken(null))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -98,6 +146,21 @@ class JwtTokenProviderTest {
 
         assertThat(exception).isNotNull();
         assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
+    }
+
+    @Test
+    void validateToken_throwsUnsupported_whenTokenIsUnsigned() {
+        String unsigned = Jwts.builder()
+                .subject("1")
+                .compact();
+
+        CustomJwtException exception = catchThrowableOfType(
+                CustomJwtException.class,
+                () -> provider.validateToken(unsigned)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.UNSUPPORTED_TOKEN);
     }
 
     @Test
