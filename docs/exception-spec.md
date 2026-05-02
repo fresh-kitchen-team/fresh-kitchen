@@ -41,6 +41,7 @@
 - `IngredientException`
 - `ImageException`
 - `UserException`
+- `JwtTokenException`
 
 도메인별 예외는 각 도메인의 `ErrorCode` enum 과 1:1로 연결한다.
 
@@ -174,6 +175,18 @@
 |------|-------------|------|---------|------|
 | `USER_NOT_FOUND` | `404` | `USER-404-1` | `user not found` | 대상 사용자 조회 실패 |
 
+### 6.4 JwtErrorCode
+
+인증 토큰 처리 실패 시 `JwtTokenException` 으로 래핑되어 클라이언트에 반환된다.
+
+| Enum | HTTP Status | Code | Message | 의미 |
+|------|-------------|------|---------|------|
+| `EXPIRED_TOKEN` | `401` | `AUTH-401-1` | `expired token` | 토큰 만료 |
+| `INVALID_SIGNATURE` | `401` | `AUTH-401-2` | `invalid token signature` | 서명 검증 실패 |
+| `MALFORMED_TOKEN` | `401` | `AUTH-401-3` | `malformed token` | 토큰 형식 오류 또는 필수 claim 누락 |
+| `UNSUPPORTED_TOKEN` | `401` | `AUTH-401-4` | `unsupported token` | 서명되지 않은 토큰 등 지원하지 않는 형식 |
+| `EMPTY_CLAIMS` | `401` | `AUTH-401-5` | `token claims are empty` | 토큰 문자열이 비어있음 |
+
 ---
 
 ## 7. 예외 사용 규칙
@@ -209,6 +222,9 @@
   - 입력값 오류
   - 소유권/연결 관계 불일치
   - 요청 자체가 도메인 규칙을 만족하지 못하는 경우
+
+- `401 Unauthorized`
+  - 인증 토큰이 없거나 유효하지 않은 경우
 
 - `404 Not Found`
   - 조회 대상이 존재하지 않는 경우
