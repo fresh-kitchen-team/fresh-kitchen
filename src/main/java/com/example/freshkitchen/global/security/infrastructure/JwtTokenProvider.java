@@ -4,6 +4,7 @@ import com.example.freshkitchen.global.security.exception.CustomJwtException;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -12,6 +13,7 @@ import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -27,8 +29,10 @@ public class JwtTokenProvider {
     private static final String CLAIM_TOKEN_TYPE = "tokenType";
     private static final String TOKEN_TYPE_ACCESS = "access";
     private static final String TOKEN_TYPE_REFRESH = "refresh";
+    private static final int MINIMUM_SECRET_BYTES = 32;
 
     private final SecretKey secretKey;
+    private final JwtParser jwtParser;
     private final long accessExpirationMillis;
     private final long refreshExpirationMillis;
 
@@ -37,7 +41,13 @@ public class JwtTokenProvider {
             @Value("${jwt.access-expiration-minutes}") long accessExpirationMinutes,
             @Value("${jwt.refresh-expiration-days}") long refreshExpirationDays
     ) {
+        Assert.hasText(secret, "jwt.secret must not be blank");
+        Assert.isTrue(
+                secret.getBytes(StandardCharsets.UTF_8).length >= MINIMUM_SECRET_BYTES,
+                "jwt.secret must be at least 32 bytes for HMAC-SHA256"
+        );
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.jwtParser = Jwts.parser().verifyWith(this.secretKey).build();
         this.accessExpirationMillis = Duration.ofMinutes(accessExpirationMinutes).toMillis();
         this.refreshExpirationMillis = Duration.ofDays(refreshExpirationDays).toMillis();
     }
@@ -71,9 +81,8 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public boolean validateToken(String token) {
+    public void validateToken(String token) {
         parseClaims(token);
-        return true;
     }
 
     public Long getUserIdFromToken(String token) {
@@ -82,14 +91,12 @@ public class JwtTokenProvider {
         if (userIdClaim instanceof Number number) {
             return number.longValue();
         }
-        throw new CustomJwtException(JwtErrorCode.EMPTY_CLAIMS);
+        throw new CustomJwtException(JwtErrorCode.MALFORMED_TOKEN);
     }
 
     private Claims parseClaims(String token) {
         try {
-            return Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
+            return jwtParser
                     .parseSignedClaims(token)
                     .getPayload();
         } catch (ExpiredJwtException e) {

@@ -42,6 +42,18 @@ class ApiResponseTest {
     }
 
     @Test
+    void success_usesOkWithNullDataByDefault() {
+        ResponseEntity<ApiResponse<Void>> response = ApiResponse.success();
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().status()).isEqualTo(200);
+        assertThat(response.getBody().code()).isEqualTo("COMMON-200");
+        assertThat(response.getBody().message()).isEqualTo("Success");
+        assertThat(response.getBody().data()).isNull();
+    }
+
+    @Test
     void onSuccess_rejectsNonSuccessStatus() {
         assertThatThrownBy(() -> ApiResponse.onSuccess(HttpStatus.BAD_REQUEST, "data"))
                 .isInstanceOf(RuntimeException.class)

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 class JwtTokenProviderTest {
@@ -27,7 +28,7 @@ class JwtTokenProviderTest {
         String token = provider.generateAccessToken(1L, "USER");
 
         assertThat(token).isNotBlank();
-        assertThat(provider.validateToken(token)).isTrue();
+        assertThatCode(() -> provider.validateToken(token)).doesNotThrowAnyException();
     }
 
     @Test
@@ -35,7 +36,7 @@ class JwtTokenProviderTest {
         String token = provider.generateRefreshToken(1L);
 
         assertThat(token).isNotBlank();
-        assertThat(provider.validateToken(token)).isTrue();
+        assertThatCode(() -> provider.validateToken(token)).doesNotThrowAnyException();
     }
 
     @Test
@@ -59,14 +60,13 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void validateToken_throwsExpired_whenTokenAlreadyExpired() throws InterruptedException {
-        JwtTokenProvider zeroExpProvider = new JwtTokenProvider(SECRET, 0L, 0L);
-        String token = zeroExpProvider.generateAccessToken(1L, "USER");
-        Thread.sleep(10);
+    void validateToken_throwsExpired_whenTokenAlreadyExpired() {
+        JwtTokenProvider expiredProvider = new JwtTokenProvider(SECRET, -1L, 0L);
+        String token = expiredProvider.generateAccessToken(1L, "USER");
 
         CustomJwtException exception = catchThrowableOfType(
                 CustomJwtException.class,
-                () -> zeroExpProvider.validateToken(token)
+                () -> expiredProvider.validateToken(token)
         );
 
         assertThat(exception).isNotNull();
@@ -112,14 +112,13 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void getUserIdFromToken_throwsExpired_whenAccessingExpiredToken() throws InterruptedException {
-        JwtTokenProvider zeroExpProvider = new JwtTokenProvider(SECRET, 0L, 0L);
-        String token = zeroExpProvider.generateAccessToken(1L, "USER");
-        Thread.sleep(10);
+    void getUserIdFromToken_throwsExpired_whenAccessingExpiredToken() {
+        JwtTokenProvider expiredProvider = new JwtTokenProvider(SECRET, -1L, 0L);
+        String token = expiredProvider.generateAccessToken(1L, "USER");
 
         CustomJwtException exception = catchThrowableOfType(
                 CustomJwtException.class,
-                () -> zeroExpProvider.getUserIdFromToken(token)
+                () -> expiredProvider.getUserIdFromToken(token)
         );
 
         assertThat(exception).isNotNull();
