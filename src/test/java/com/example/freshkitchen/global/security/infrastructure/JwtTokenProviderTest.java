@@ -331,6 +331,39 @@ class JwtTokenProviderTest {
         assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
     }
 
+    @Test
+    void validateToken_throwsMalformed_whenAccessTokenHasNoRoleClaim() {
+        String token = buildAccessTokenWithoutRole(1L);
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateToken(token)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
+    }
+
+    @Test
+    void validateToken_throwsMalformed_whenAccessTokenHasBlankRole() {
+        String token = buildAccessTokenWithRole(1L, "  ");
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateToken(token)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
+    }
+
+    @Test
+    void validateToken_doesNotRequireRoleClaim_forRefreshToken() {
+        String token = provider.generateRefreshToken(1L);
+
+        assertThatCode(() -> provider.validateToken(token)).doesNotThrowAnyException();
+    }
+
     private String buildExpiredToken(Long userId) {
         SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         Date issuedAt = new Date(System.currentTimeMillis() - 120_000);
@@ -412,6 +445,35 @@ class JwtTokenProviderTest {
                 .claim("userId", userId)
                 .claim("role", "USER")
                 .claim("tokenType", tokenType)
+                .issuedAt(issuedAt)
+                .expiration(expiration)
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    private String buildAccessTokenWithoutRole(Long userId) {
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        Date issuedAt = new Date();
+        Date expiration = new Date(System.currentTimeMillis() + 60_000);
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim("userId", userId)
+                .claim("tokenType", "access")
+                .issuedAt(issuedAt)
+                .expiration(expiration)
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    private String buildAccessTokenWithRole(Long userId, String role) {
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        Date issuedAt = new Date();
+        Date expiration = new Date(System.currentTimeMillis() + 60_000);
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim("userId", userId)
+                .claim("role", role)
+                .claim("tokenType", "access")
                 .issuedAt(issuedAt)
                 .expiration(expiration)
                 .signWith(key, Jwts.SIG.HS256)

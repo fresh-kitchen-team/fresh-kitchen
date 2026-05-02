@@ -124,6 +124,12 @@ public class JwtTokenProvider {
             if (!(tokenTypeClaim instanceof String tokenType) || !ALLOWED_TOKEN_TYPES.contains(tokenType)) {
                 throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
             }
+            if (TOKEN_TYPE_ACCESS.equals(tokenType)) {
+                Object roleClaim = claims.get(CLAIM_ROLE);
+                if (!(roleClaim instanceof String role) || role.isBlank()) {
+                    throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
+                }
+            }
             return claims;
         } catch (ExpiredJwtException e) {
             throw new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
