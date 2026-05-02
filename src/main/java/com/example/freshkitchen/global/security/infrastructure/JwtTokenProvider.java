@@ -21,6 +21,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Date;
+import java.util.Set;
 
 @Slf4j
 @Component
@@ -31,6 +32,7 @@ public class JwtTokenProvider {
     private static final String CLAIM_TOKEN_TYPE = "tokenType";
     private static final String TOKEN_TYPE_ACCESS = "access";
     private static final String TOKEN_TYPE_REFRESH = "refresh";
+    private static final Set<String> ALLOWED_TOKEN_TYPES = Set.of(TOKEN_TYPE_ACCESS, TOKEN_TYPE_REFRESH);
     private static final int MINIMUM_SECRET_BYTES = 32;
     private static final MacAlgorithm SIGNATURE_ALGORITHM = Jwts.SIG.HS256;
 
@@ -121,8 +123,9 @@ public class JwtTokenProvider {
                 log.debug("JWT missing expiration claim");
                 throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
             }
-            if (claims.get(CLAIM_TOKEN_TYPE) == null) {
-                log.debug("JWT missing tokenType claim");
+            Object tokenTypeClaim = claims.get(CLAIM_TOKEN_TYPE);
+            if (!(tokenTypeClaim instanceof String tokenType) || !ALLOWED_TOKEN_TYPES.contains(tokenType)) {
+                log.debug("JWT has missing or invalid tokenType claim: {}", tokenTypeClaim);
                 throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
             }
             return claims;
@@ -131,7 +134,7 @@ public class JwtTokenProvider {
             throw new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
         } catch (PrematureJwtException e) {
             log.debug("Premature JWT (nbf in the future): {}", e.getMessage());
-            throw new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
+            throw new JwtTokenException(JwtErrorCode.NOT_YET_VALID_TOKEN);
         } catch (SignatureException e) {
             log.debug("Invalid JWT signature: {}", e.getMessage());
             throw new JwtTokenException(JwtErrorCode.INVALID_SIGNATURE);

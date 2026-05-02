@@ -280,7 +280,7 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void validateToken_throwsExpired_whenTokenIsPremature() {
+    void validateToken_throwsNotYetValid_whenTokenIsPremature() {
         String token = buildPrematureToken(1L);
 
         JwtTokenException exception = catchThrowableOfType(
@@ -289,12 +289,38 @@ class JwtTokenProviderTest {
         );
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.EXPIRED_TOKEN);
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.NOT_YET_VALID_TOKEN);
     }
 
     @Test
     void validateToken_throwsMalformed_whenTokenTypeClaimIsMissing() {
         String token = buildTokenWithoutTokenType(1L);
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateToken(token)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
+    }
+
+    @Test
+    void validateToken_throwsMalformed_whenTokenTypeIsUnknownValue() {
+        String token = buildTokenWithTokenType(1L, "guest");
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateToken(token)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
+    }
+
+    @Test
+    void validateToken_throwsMalformed_whenTokenTypeIsNotString() {
+        String token = buildTokenWithNonStringTokenType(1L);
 
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
@@ -371,6 +397,36 @@ class JwtTokenProviderTest {
                 .subject(String.valueOf(userId))
                 .claim("userId", userId)
                 .claim("role", "USER")
+                .issuedAt(issuedAt)
+                .expiration(expiration)
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    private String buildTokenWithTokenType(Long userId, String tokenType) {
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        Date issuedAt = new Date();
+        Date expiration = new Date(System.currentTimeMillis() + 60_000);
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim("userId", userId)
+                .claim("role", "USER")
+                .claim("tokenType", tokenType)
+                .issuedAt(issuedAt)
+                .expiration(expiration)
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    private String buildTokenWithNonStringTokenType(Long userId) {
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        Date issuedAt = new Date();
+        Date expiration = new Date(System.currentTimeMillis() + 60_000);
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim("userId", userId)
+                .claim("role", "USER")
+                .claim("tokenType", 1)
                 .issuedAt(issuedAt)
                 .expiration(expiration)
                 .signWith(key, Jwts.SIG.HS256)

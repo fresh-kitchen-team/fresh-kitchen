@@ -193,11 +193,12 @@
 
 | Enum | HTTP Status | Code | Message | 의미 |
 |------|-------------|------|---------|------|
-| `EXPIRED_TOKEN` | `401` | `AUTH-401-1` | `expired token` | 토큰 만료 또는 아직 활성화되지 않음 (`nbf` 미래) |
+| `EXPIRED_TOKEN` | `401` | `AUTH-401-1` | `expired token` | 토큰 만료 (`exp` 경과) |
 | `INVALID_SIGNATURE` | `401` | `AUTH-401-2` | `invalid token signature` | 서명 검증 실패 |
-| `MALFORMED_TOKEN` | `401` | `AUTH-401-3` | `malformed token` | 토큰 형식 오류 또는 필수 claim(`exp`, `tokenType`, `userId`) 누락 |
+| `MALFORMED_TOKEN` | `401` | `AUTH-401-3` | `malformed token` | 토큰 형식 오류, 필수 claim(`exp`, `tokenType`, `userId`) 누락, `tokenType` 값이 `access`/`refresh` 외 또는 비문자열 |
 | `UNSUPPORTED_TOKEN` | `401` | `AUTH-401-4` | `unsupported token` | 서명되지 않은 토큰 등 지원하지 않는 형식 |
 | `EMPTY_CLAIMS` | `401` | `AUTH-401-5` | `token claims are empty` | 토큰 문자열이 비어있음 |
+| `NOT_YET_VALID_TOKEN` | `401` | `AUTH-401-6` | `token is not yet valid` | 토큰이 아직 활성화되지 않음 (`nbf` 미래) |
 
 ---
 

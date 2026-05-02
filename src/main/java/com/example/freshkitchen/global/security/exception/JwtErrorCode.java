@@ -9,7 +9,8 @@ public enum JwtErrorCode implements ErrorCode {
     INVALID_SIGNATURE(HttpStatus.UNAUTHORIZED, "AUTH-401-2", "invalid token signature"),
     MALFORMED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-401-3", "malformed token"),
     UNSUPPORTED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-401-4", "unsupported token"),
-    EMPTY_CLAIMS(HttpStatus.UNAUTHORIZED, "AUTH-401-5", "token claims are empty");
+    EMPTY_CLAIMS(HttpStatus.UNAUTHORIZED, "AUTH-401-5", "token claims are empty"),
+    NOT_YET_VALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-401-6", "token is not yet valid");
 
     private final HttpStatus status;
     private final String code;
