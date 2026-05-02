@@ -12,7 +12,6 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.MacAlgorithm;
 import io.jsonwebtoken.security.SignatureException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -23,7 +22,6 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.Set;
 
-@Slf4j
 @Component
 public class JwtTokenProvider {
 
@@ -120,32 +118,24 @@ public class JwtTokenProvider {
                     .parseSignedClaims(token)
                     .getPayload();
             if (claims.getExpiration() == null) {
-                log.debug("JWT missing expiration claim");
                 throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
             }
             Object tokenTypeClaim = claims.get(CLAIM_TOKEN_TYPE);
             if (!(tokenTypeClaim instanceof String tokenType) || !ALLOWED_TOKEN_TYPES.contains(tokenType)) {
-                log.debug("JWT has missing or invalid tokenType claim: {}", tokenTypeClaim);
                 throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
             }
             return claims;
         } catch (ExpiredJwtException e) {
-            log.debug("Expired JWT: {}", e.getMessage());
             throw new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
         } catch (PrematureJwtException e) {
-            log.debug("Premature JWT (nbf in the future): {}", e.getMessage());
             throw new JwtTokenException(JwtErrorCode.NOT_YET_VALID_TOKEN);
         } catch (SignatureException e) {
-            log.debug("Invalid JWT signature: {}", e.getMessage());
             throw new JwtTokenException(JwtErrorCode.INVALID_SIGNATURE);
         } catch (MalformedJwtException e) {
-            log.debug("Malformed JWT: {}", e.getMessage());
             throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
         } catch (UnsupportedJwtException e) {
-            log.debug("Unsupported JWT: {}", e.getMessage());
             throw new JwtTokenException(JwtErrorCode.UNSUPPORTED_TOKEN);
         } catch (IllegalArgumentException e) {
-            log.debug("Empty JWT claims: {}", e.getMessage());
             throw new JwtTokenException(JwtErrorCode.EMPTY_CLAIMS);
         }
     }
