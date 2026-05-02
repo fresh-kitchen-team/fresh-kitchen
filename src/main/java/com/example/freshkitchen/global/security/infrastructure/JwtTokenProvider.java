@@ -46,6 +46,8 @@ public class JwtTokenProvider {
                 secret.getBytes(StandardCharsets.UTF_8).length >= MINIMUM_SECRET_BYTES,
                 "jwt.secret must be at least 32 bytes for HMAC-SHA256"
         );
+        Assert.isTrue(accessExpirationMinutes > 0, "jwt.access-expiration-minutes must be positive");
+        Assert.isTrue(refreshExpirationDays > 0, "jwt.refresh-expiration-days must be positive");
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.jwtParser = Jwts.parser().verifyWith(this.secretKey).build();
         this.accessExpirationMillis = Duration.ofMinutes(accessExpirationMinutes).toMillis();

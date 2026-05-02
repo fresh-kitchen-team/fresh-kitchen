@@ -8,7 +8,9 @@ import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -109,12 +111,11 @@ class JwtTokenProviderTest {
 
     @Test
     void validateToken_throwsExpired_whenTokenAlreadyExpired() {
-        JwtTokenProvider expiredProvider = new JwtTokenProvider(SECRET, -1L, 0L);
-        String token = expiredProvider.generateAccessToken(1L, "USER");
+        String expiredToken = buildExpiredToken(1L);
 
         CustomJwtException exception = catchThrowableOfType(
                 CustomJwtException.class,
-                () -> expiredProvider.validateToken(token)
+                () -> provider.validateToken(expiredToken)
         );
 
         assertThat(exception).isNotNull();
@@ -176,15 +177,29 @@ class JwtTokenProviderTest {
 
     @Test
     void getUserIdFromToken_throwsExpired_whenAccessingExpiredToken() {
-        JwtTokenProvider expiredProvider = new JwtTokenProvider(SECRET, -1L, 0L);
-        String token = expiredProvider.generateAccessToken(1L, "USER");
+        String expiredToken = buildExpiredToken(1L);
 
         CustomJwtException exception = catchThrowableOfType(
                 CustomJwtException.class,
-                () -> expiredProvider.getUserIdFromToken(token)
+                () -> provider.getUserIdFromToken(expiredToken)
         );
 
         assertThat(exception).isNotNull();
         assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.EXPIRED_TOKEN);
+    }
+
+    private String buildExpiredToken(Long userId) {
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        Date issuedAt = new Date(System.currentTimeMillis() - 120_000);
+        Date expiration = new Date(System.currentTimeMillis() - 60_000);
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim("userId", userId)
+                .claim("role", "USER")
+                .claim("tokenType", "access")
+                .issuedAt(issuedAt)
+                .expiration(expiration)
+                .signWith(key)
+                .compact();
     }
 }
