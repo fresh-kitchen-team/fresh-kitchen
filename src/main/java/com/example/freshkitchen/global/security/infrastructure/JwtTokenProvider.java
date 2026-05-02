@@ -1,7 +1,7 @@
 package com.example.freshkitchen.global.security.infrastructure;
 
-import com.example.freshkitchen.global.security.exception.JwtException;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
+import com.example.freshkitchen.global.security.exception.JwtTokenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtParser;
@@ -89,11 +89,18 @@ public class JwtTokenProvider {
     }
 
     public void validateToken(String token) {
-        parseClaims(token);
+        parseAndExtractUserId(token);
     }
 
-    public Long getUserIdFromToken(String token) {
-        Claims claims = parseClaims(token);
+    public Long validateAndGetUserId(String token) {
+        return parseAndExtractUserId(token);
+    }
+
+    private Long parseAndExtractUserId(String token) {
+        return extractUserId(parseClaims(token));
+    }
+
+    private Long extractUserId(Claims claims) {
         Object userIdClaim = claims.get(CLAIM_USER_ID);
         if (userIdClaim instanceof Long id) {
             return id;
@@ -101,7 +108,7 @@ public class JwtTokenProvider {
         if (userIdClaim instanceof Integer id) {
             return id.longValue();
         }
-        throw new JwtException(JwtErrorCode.MALFORMED_TOKEN);
+        throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
     }
 
     private Claims parseClaims(String token) {
@@ -111,19 +118,19 @@ public class JwtTokenProvider {
                     .getPayload();
         } catch (ExpiredJwtException e) {
             log.debug("Expired JWT: {}", e.getMessage());
-            throw new JwtException(JwtErrorCode.EXPIRED_TOKEN);
+            throw new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
         } catch (SignatureException e) {
             log.debug("Invalid JWT signature: {}", e.getMessage());
-            throw new JwtException(JwtErrorCode.INVALID_SIGNATURE);
+            throw new JwtTokenException(JwtErrorCode.INVALID_SIGNATURE);
         } catch (MalformedJwtException e) {
             log.debug("Malformed JWT: {}", e.getMessage());
-            throw new JwtException(JwtErrorCode.MALFORMED_TOKEN);
+            throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
         } catch (UnsupportedJwtException e) {
             log.debug("Unsupported JWT: {}", e.getMessage());
-            throw new JwtException(JwtErrorCode.UNSUPPORTED_TOKEN);
+            throw new JwtTokenException(JwtErrorCode.UNSUPPORTED_TOKEN);
         } catch (IllegalArgumentException e) {
             log.debug("Empty JWT claims: {}", e.getMessage());
-            throw new JwtException(JwtErrorCode.EMPTY_CLAIMS);
+            throw new JwtTokenException(JwtErrorCode.EMPTY_CLAIMS);
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.example.freshkitchen.global.security.infrastructure;
 
-import com.example.freshkitchen.global.security.exception.JwtException;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
+import com.example.freshkitchen.global.security.exception.JwtTokenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -108,27 +108,39 @@ class JwtTokenProviderTest {
     }
 
     @Test
+    void generateAccessToken_throwsException_whenRoleIsNull() {
+        assertThatThrownBy(() -> provider.generateAccessToken(1L, null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void generateAccessToken_throwsException_whenRoleIsBlank() {
+        assertThatThrownBy(() -> provider.generateAccessToken(1L, " "))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void generateRefreshToken_throwsException_whenUserIdIsNull() {
         assertThatThrownBy(() -> provider.generateRefreshToken(null))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void getUserIdFromToken_returnsSameUserIdAsIssued() {
+    void validateAndGetUserId_returnsSameUserIdAsIssued() {
         Long userId = 42L;
         String token = provider.generateAccessToken(userId, "USER");
 
-        Long extracted = provider.getUserIdFromToken(token);
+        Long extracted = provider.validateAndGetUserId(token);
 
         assertThat(extracted).isEqualTo(userId);
     }
 
     @Test
-    void getUserIdFromToken_worksForRefreshToken() {
+    void validateAndGetUserId_worksForRefreshToken() {
         Long userId = 99L;
         String token = provider.generateRefreshToken(userId);
 
-        Long extracted = provider.getUserIdFromToken(token);
+        Long extracted = provider.validateAndGetUserId(token);
 
         assertThat(extracted).isEqualTo(userId);
     }
@@ -137,8 +149,8 @@ class JwtTokenProviderTest {
     void validateToken_throwsExpired_whenTokenAlreadyExpired() {
         String expiredToken = buildExpiredToken(1L);
 
-        JwtException exception = catchThrowableOfType(
-                JwtException.class,
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
                 () -> provider.validateToken(expiredToken)
         );
 
@@ -151,8 +163,8 @@ class JwtTokenProviderTest {
         JwtTokenProvider otherProvider = new JwtTokenProvider(OTHER_SECRET, ACCESS_EXP_MIN, REFRESH_EXP_DAYS);
         String tampered = otherProvider.generateAccessToken(1L, "USER");
 
-        JwtException exception = catchThrowableOfType(
-                JwtException.class,
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
                 () -> provider.validateToken(tampered)
         );
 
@@ -164,8 +176,8 @@ class JwtTokenProviderTest {
     void validateToken_throwsMalformed_whenTokenIsArbitraryString() {
         String malformed = "this-is-not-a-valid-jwt";
 
-        JwtException exception = catchThrowableOfType(
-                JwtException.class,
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
                 () -> provider.validateToken(malformed)
         );
 
@@ -179,8 +191,8 @@ class JwtTokenProviderTest {
                 .subject("1")
                 .compact();
 
-        JwtException exception = catchThrowableOfType(
-                JwtException.class,
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
                 () -> provider.validateToken(unsigned)
         );
 
@@ -190,8 +202,8 @@ class JwtTokenProviderTest {
 
     @Test
     void validateToken_throwsEmptyClaims_whenTokenIsBlank() {
-        JwtException exception = catchThrowableOfType(
-                JwtException.class,
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
                 () -> provider.validateToken("")
         );
 
@@ -200,16 +212,29 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void getUserIdFromToken_throwsExpired_whenAccessingExpiredToken() {
+    void validateAndGetUserId_throwsExpired_whenAccessingExpiredToken() {
         String expiredToken = buildExpiredToken(1L);
 
-        JwtException exception = catchThrowableOfType(
-                JwtException.class,
-                () -> provider.getUserIdFromToken(expiredToken)
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateAndGetUserId(expiredToken)
         );
 
         assertThat(exception).isNotNull();
         assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.EXPIRED_TOKEN);
+    }
+
+    @Test
+    void validateToken_throwsMalformed_whenUserIdClaimIsMissing() {
+        String token = buildTokenWithoutUserId();
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateToken(token)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
     }
 
     private String buildExpiredToken(Long userId) {
@@ -223,7 +248,21 @@ class JwtTokenProviderTest {
                 .claim("tokenType", "access")
                 .issuedAt(issuedAt)
                 .expiration(expiration)
-                .signWith(key)
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    private String buildTokenWithoutUserId() {
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        Date issuedAt = new Date();
+        Date expiration = new Date(System.currentTimeMillis() + 60_000);
+        return Jwts.builder()
+                .subject("1")
+                .claim("role", "USER")
+                .claim("tokenType", "access")
+                .issuedAt(issuedAt)
+                .expiration(expiration)
+                .signWith(key, Jwts.SIG.HS256)
                 .compact();
     }
 }

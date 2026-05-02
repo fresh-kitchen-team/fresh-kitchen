@@ -7,7 +7,7 @@ import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.user.exception.UserErrorCode;
 import com.example.freshkitchen.domain.user.exception.UserException;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
-import com.example.freshkitchen.global.security.exception.JwtException;
+import com.example.freshkitchen.global.security.exception.JwtTokenException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -149,7 +149,7 @@ class ErrorCodeContractTest {
         IngredientException ingredientException = new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND);
         ImageException imageException = new ImageException(ImageErrorCode.USER_UPLOAD_OWNER_REQUIRED);
         UserException userException = new UserException(UserErrorCode.USER_NOT_FOUND);
-        JwtException jwtException = new JwtException(JwtErrorCode.EXPIRED_TOKEN);
+        JwtTokenException jwtException = new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
         BusinessValidationException validationException = new BusinessValidationException("name must not be blank");
 
         assertEquals(IngredientErrorCode.INGREDIENT_NOT_FOUND, ingredientException.getErrorCode());
