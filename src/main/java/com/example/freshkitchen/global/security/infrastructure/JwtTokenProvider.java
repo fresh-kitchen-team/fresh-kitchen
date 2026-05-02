@@ -1,5 +1,6 @@
 package com.example.freshkitchen.global.security.infrastructure;
 
+import com.example.freshkitchen.global.security.Role;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
 import com.example.freshkitchen.global.security.exception.JwtTokenException;
 import io.jsonwebtoken.Claims;
@@ -57,16 +58,16 @@ public class JwtTokenProvider {
         this.refreshExpirationMillis = Duration.ofDays(refreshExpirationDays).toMillis();
     }
 
-    public String generateAccessToken(Long userId, String role) {
+    public String generateAccessToken(Long userId, Role role) {
         Assert.notNull(userId, "userId must not be null");
-        Assert.hasText(role, "role must not be blank");
+        Assert.notNull(role, "role must not be null");
         Date now = new Date();
         Date expiration = new Date(now.getTime() + accessExpirationMillis);
 
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim(CLAIM_USER_ID, userId)
-                .claim(CLAIM_ROLE, role)
+                .claim(CLAIM_ROLE, role.name())
                 .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_ACCESS)
                 .issuedAt(now)
                 .expiration(expiration)
@@ -127,6 +128,11 @@ public class JwtTokenProvider {
             if (TOKEN_TYPE_ACCESS.equals(tokenType)) {
                 Object roleClaim = claims.get(CLAIM_ROLE);
                 if (!(roleClaim instanceof String role) || role.isBlank()) {
+                    throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
+                }
+                try {
+                    Role.valueOf(role);
+                } catch (IllegalArgumentException e) {
                     throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
                 }
             }

@@ -1,5 +1,6 @@
 package com.example.freshkitchen.global.security.infrastructure;
 
+import com.example.freshkitchen.global.security.Role;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
 import com.example.freshkitchen.global.security.exception.JwtTokenException;
 import io.jsonwebtoken.Claims;
@@ -58,7 +59,7 @@ class JwtTokenProviderTest {
 
     @Test
     void generateAccessToken_returnsValidJwt() {
-        String token = provider.generateAccessToken(1L, "USER");
+        String token = provider.generateAccessToken(1L, Role.USER);
 
         assertThat(token).isNotBlank();
         assertThatCode(() -> provider.validateToken(token)).doesNotThrowAnyException();
@@ -74,7 +75,7 @@ class JwtTokenProviderTest {
 
     @Test
     void generateAccessToken_containsRoleAndTokenTypeClaims() {
-        String token = provider.generateAccessToken(1L, "USER");
+        String token = provider.generateAccessToken(1L, Role.USER);
 
         Claims claims = Jwts.parser()
                 .verifyWith(Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8)))
@@ -104,7 +105,7 @@ class JwtTokenProviderTest {
 
     @Test
     void generateAccessToken_setsExpirationFromAccessExpirationMinutes() {
-        String token = provider.generateAccessToken(1L, "USER");
+        String token = provider.generateAccessToken(1L, Role.USER);
 
         Claims claims = Jwts.parser()
                 .verifyWith(Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8)))
@@ -132,19 +133,13 @@ class JwtTokenProviderTest {
 
     @Test
     void generateAccessToken_throwsException_whenUserIdIsNull() {
-        assertThatThrownBy(() -> provider.generateAccessToken(null, "USER"))
+        assertThatThrownBy(() -> provider.generateAccessToken(null, Role.USER))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void generateAccessToken_throwsException_whenRoleIsNull() {
         assertThatThrownBy(() -> provider.generateAccessToken(1L, null))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void generateAccessToken_throwsException_whenRoleIsBlank() {
-        assertThatThrownBy(() -> provider.generateAccessToken(1L, " "))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -157,7 +152,7 @@ class JwtTokenProviderTest {
     @Test
     void validateAndGetUserId_returnsSameUserIdAsIssued() {
         Long userId = 42L;
-        String token = provider.generateAccessToken(userId, "USER");
+        String token = provider.generateAccessToken(userId, Role.USER);
 
         Long extracted = provider.validateAndGetUserId(token);
 
@@ -190,7 +185,7 @@ class JwtTokenProviderTest {
     @Test
     void validateToken_throwsInvalidSignature_whenTokenSignedWithDifferentSecret() {
         JwtTokenProvider otherProvider = new JwtTokenProvider(OTHER_SECRET, ACCESS_EXP_MIN, REFRESH_EXP_DAYS);
-        String tampered = otherProvider.generateAccessToken(1L, "USER");
+        String tampered = otherProvider.generateAccessToken(1L, Role.USER);
 
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
@@ -347,6 +342,32 @@ class JwtTokenProviderTest {
     @Test
     void validateToken_throwsMalformed_whenAccessTokenHasBlankRole() {
         String token = buildAccessTokenWithRole(1L, "  ");
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateToken(token)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
+    }
+
+    @Test
+    void validateToken_throwsMalformed_whenAccessTokenRoleIsNotInRoleEnum() {
+        String token = buildAccessTokenWithRole(1L, "ADMIN");
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateToken(token)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
+    }
+
+    @Test
+    void validateToken_throwsMalformed_whenAccessTokenRoleIsLowercaseEnumName() {
+        String token = buildAccessTokenWithRole(1L, "user");
 
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
