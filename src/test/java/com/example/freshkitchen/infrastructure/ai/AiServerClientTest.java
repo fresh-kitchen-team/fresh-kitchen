@@ -8,6 +8,7 @@ import com.example.freshkitchen.infrastructure.ai.exception.AiServerException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -234,7 +235,7 @@ class AiServerClientTest {
         AiServerClient client = new AiServerClient(builder.build(), "service-token");
 
         server.expect(once(), requestTo("https://ai.example.com/internal/v1/food-classification"))
-                .andRespond(withStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+                .andRespond(withStatus(HttpStatusCode.valueOf(422))
                         .contentType(MediaType.APPLICATION_JSON)
                         .body("{\"detail\":[{\"loc\":[\"body\",\"file\"],\"msg\":\"field required\"}]}"));
 
