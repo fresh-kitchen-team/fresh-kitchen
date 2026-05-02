@@ -189,21 +189,23 @@ Gradle
 
 ### Format
 
-type: one-line summary
+Type: Description
 
 ### Rules
 
-- lowercase `type`
+- use one allowed `Type`
+- do not include scope
 - English only
-- concise summary
-- no unnecessary punctuation
+- imperative mood
+- capitalize the first letter of the type and description
+- no period at the end
 
 ### Examples
 
-feat: implement user signup flow
-fix: resolve token validation bug
-refactor: simplify bean validation logic
-docs: update branch strategy
+Feat: Implement user signup flow
+Fix: Resolve token validation bug
+Refactor: Simplify bean validation logic
+Docs: Update branch strategy
 
 ---
 
@@ -219,8 +221,9 @@ Fix(User) : Handle duplicate email
 ### PR
 
 - summarizes entire feature branch
+- uses no scope
 
-feat: implement user signup flow
+Feat: Implement user signup flow
 
 ---
 
@@ -276,7 +279,7 @@ Type(Scope) : Description
 - no mixed intentions
 - PR format must follow:
 
-type: summary
+Type: Description
 
 ### Benefits
 
@@ -295,7 +298,7 @@ Type(Scope) : Description
 
 ### PR
 
-type: summary
+Type: Description
 
 ### Branch
 

@@ -5,6 +5,10 @@ description: Analyze git changes, split them into meaningful commit units, perfo
 
 # Smart Commit Skill
 
+Root entrypoint: `AGENTS.md`.
+Use this skill as the source of truth for commit execution after reading the
+repository-level rules.
+
 ## Purpose
 
 This skill automates commit creation with high-quality structure.
@@ -40,6 +44,37 @@ Follow this order strictly:
 9. run `git commit`
 10. repeat for remaining units if clean separation exists
 11. stop before push
+
+---
+
+## Commit Message Convention
+
+Use the repository convention exactly:
+
+```text
+Type(Scope) : Description
+```
+
+Rules:
+
+- English only
+- imperative mood
+- first letter uppercase
+- no period at the end
+- one primary scope
+
+Allowed types:
+
+- `Feat`
+- `Fix`
+- `Add`
+- `Remove`
+- `Refactor`
+- `Docs`
+- `Chore`
+- `Test`
+- `Style`
+- `Implement`
 
 ---
 

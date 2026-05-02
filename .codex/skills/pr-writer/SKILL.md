@@ -7,11 +7,17 @@ description: Use when creating or editing GitHub PR titles or bodies, especially
 
 Use this skill before creating or editing any pull request title or body.
 
+Root entrypoint: `AGENTS.md`.
+Use this skill as the source of truth for PR title/body writing.
+
 ## Required Checks
 
-1. Read `.github/PULL_REQUEST_TEMPLATE.md`.
-2. Inspect the relevant diff, commits, or PR planning document before writing the body.
-3. If `.도윤/pr` is relevant, use it as context only. Do not copy it verbatim.
+1. Check relevant `.도윤/pr` documents when a PR planning document exists for
+   the work.
+2. Read `.github/PULL_REQUEST_TEMPLATE.md`.
+3. Inspect the relevant diff, commits, or PR planning document before writing the
+   body.
+4. Use `.도윤/pr` as context only. Do not copy it verbatim.
 
 ## PR Title
 
