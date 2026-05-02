@@ -3,7 +3,9 @@ package com.example.freshkitchen.support;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
+@Testcontainers(disabledWithoutDocker = true)
 public abstract class PostgreSqlTestContainerSupport {
 
     @SuppressWarnings("resource")
@@ -13,12 +15,9 @@ public abstract class PostgreSqlTestContainerSupport {
                     .withUsername("test")
                     .withPassword("test");
 
-    static {
-        POSTGRESQL_CONTAINER.start();
-    }
-
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
+        startContainerIfNeeded();
         registry.add("spring.datasource.url", POSTGRESQL_CONTAINER::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGRESQL_CONTAINER::getUsername);
         registry.add("spring.datasource.password", POSTGRESQL_CONTAINER::getPassword);
@@ -27,5 +26,11 @@ public abstract class PostgreSqlTestContainerSupport {
         registry.add("spring.datasource.hikari.minimum-idle", () -> 0);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
         registry.add("spring.flyway.enabled", () -> true);
+    }
+
+    private static synchronized void startContainerIfNeeded() {
+        if (!POSTGRESQL_CONTAINER.isRunning()) {
+            POSTGRESQL_CONTAINER.start();
+        }
     }
 }
