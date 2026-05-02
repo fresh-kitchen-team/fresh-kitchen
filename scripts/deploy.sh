@@ -12,6 +12,7 @@ echo "▶ Parameter Store에서 환경변수 로드"
 export DB_URL=$(aws ssm get-parameter --name "/fresh-kitchen/DB_URL" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export DB_USERNAME=$(aws ssm get-parameter --name "/fresh-kitchen/DB_USERNAME" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export DB_PASSWORD=$(aws ssm get-parameter --name "/fresh-kitchen/DB_PASSWORD" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export JWT_SECRET=$(aws ssm get-parameter --name "/fresh-kitchen/JWT_SECRET" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 
 
 
