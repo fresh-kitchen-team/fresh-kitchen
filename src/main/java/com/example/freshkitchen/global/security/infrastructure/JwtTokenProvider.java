@@ -1,6 +1,6 @@
 package com.example.freshkitchen.global.security.infrastructure;
 
-import com.example.freshkitchen.global.security.exception.CustomJwtException;
+import com.example.freshkitchen.global.security.exception.JwtException;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -93,10 +93,13 @@ public class JwtTokenProvider {
     public Long getUserIdFromToken(String token) {
         Claims claims = parseClaims(token);
         Object userIdClaim = claims.get(CLAIM_USER_ID);
-        if (userIdClaim instanceof Number number) {
-            return number.longValue();
+        if (userIdClaim instanceof Long id) {
+            return id;
         }
-        throw new CustomJwtException(JwtErrorCode.MALFORMED_TOKEN);
+        if (userIdClaim instanceof Integer id) {
+            return id.longValue();
+        }
+        throw new JwtException(JwtErrorCode.MALFORMED_TOKEN);
     }
 
     private Claims parseClaims(String token) {
@@ -106,19 +109,19 @@ public class JwtTokenProvider {
                     .getPayload();
         } catch (ExpiredJwtException e) {
             log.debug("Expired JWT: {}", e.getMessage());
-            throw new CustomJwtException(JwtErrorCode.EXPIRED_TOKEN);
+            throw new JwtException(JwtErrorCode.EXPIRED_TOKEN);
         } catch (SignatureException e) {
             log.debug("Invalid JWT signature: {}", e.getMessage());
-            throw new CustomJwtException(JwtErrorCode.INVALID_SIGNATURE);
+            throw new JwtException(JwtErrorCode.INVALID_SIGNATURE);
         } catch (MalformedJwtException e) {
             log.debug("Malformed JWT: {}", e.getMessage());
-            throw new CustomJwtException(JwtErrorCode.MALFORMED_TOKEN);
+            throw new JwtException(JwtErrorCode.MALFORMED_TOKEN);
         } catch (UnsupportedJwtException e) {
             log.debug("Unsupported JWT: {}", e.getMessage());
-            throw new CustomJwtException(JwtErrorCode.UNSUPPORTED_TOKEN);
+            throw new JwtException(JwtErrorCode.UNSUPPORTED_TOKEN);
         } catch (IllegalArgumentException e) {
             log.debug("Empty JWT claims: {}", e.getMessage());
-            throw new CustomJwtException(JwtErrorCode.EMPTY_CLAIMS);
+            throw new JwtException(JwtErrorCode.EMPTY_CLAIMS);
         }
     }
 }

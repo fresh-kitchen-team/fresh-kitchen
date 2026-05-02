@@ -1,6 +1,6 @@
 package com.example.freshkitchen.global.security.infrastructure;
 
-import com.example.freshkitchen.global.security.exception.CustomJwtException;
+import com.example.freshkitchen.global.security.exception.JwtException;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -29,6 +29,30 @@ class JwtTokenProviderTest {
     @BeforeEach
     void setUp() {
         provider = new JwtTokenProvider(SECRET, ACCESS_EXP_MIN, REFRESH_EXP_DAYS);
+    }
+
+    @Test
+    void constructor_throwsException_whenSecretIsBlank() {
+        assertThatThrownBy(() -> new JwtTokenProvider("", ACCESS_EXP_MIN, REFRESH_EXP_DAYS))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void constructor_throwsException_whenSecretIsTooShort() {
+        assertThatThrownBy(() -> new JwtTokenProvider("short", ACCESS_EXP_MIN, REFRESH_EXP_DAYS))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void constructor_throwsException_whenAccessExpirationIsNotPositive() {
+        assertThatThrownBy(() -> new JwtTokenProvider(SECRET, 0L, REFRESH_EXP_DAYS))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void constructor_throwsException_whenRefreshExpirationIsNotPositive() {
+        assertThatThrownBy(() -> new JwtTokenProvider(SECRET, ACCESS_EXP_MIN, 0L))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -113,8 +137,8 @@ class JwtTokenProviderTest {
     void validateToken_throwsExpired_whenTokenAlreadyExpired() {
         String expiredToken = buildExpiredToken(1L);
 
-        CustomJwtException exception = catchThrowableOfType(
-                CustomJwtException.class,
+        JwtException exception = catchThrowableOfType(
+                JwtException.class,
                 () -> provider.validateToken(expiredToken)
         );
 
@@ -127,8 +151,8 @@ class JwtTokenProviderTest {
         JwtTokenProvider otherProvider = new JwtTokenProvider(OTHER_SECRET, ACCESS_EXP_MIN, REFRESH_EXP_DAYS);
         String tampered = otherProvider.generateAccessToken(1L, "USER");
 
-        CustomJwtException exception = catchThrowableOfType(
-                CustomJwtException.class,
+        JwtException exception = catchThrowableOfType(
+                JwtException.class,
                 () -> provider.validateToken(tampered)
         );
 
@@ -140,8 +164,8 @@ class JwtTokenProviderTest {
     void validateToken_throwsMalformed_whenTokenIsArbitraryString() {
         String malformed = "this-is-not-a-valid-jwt";
 
-        CustomJwtException exception = catchThrowableOfType(
-                CustomJwtException.class,
+        JwtException exception = catchThrowableOfType(
+                JwtException.class,
                 () -> provider.validateToken(malformed)
         );
 
@@ -155,8 +179,8 @@ class JwtTokenProviderTest {
                 .subject("1")
                 .compact();
 
-        CustomJwtException exception = catchThrowableOfType(
-                CustomJwtException.class,
+        JwtException exception = catchThrowableOfType(
+                JwtException.class,
                 () -> provider.validateToken(unsigned)
         );
 
@@ -166,8 +190,8 @@ class JwtTokenProviderTest {
 
     @Test
     void validateToken_throwsEmptyClaims_whenTokenIsBlank() {
-        CustomJwtException exception = catchThrowableOfType(
-                CustomJwtException.class,
+        JwtException exception = catchThrowableOfType(
+                JwtException.class,
                 () -> provider.validateToken("")
         );
 
@@ -179,8 +203,8 @@ class JwtTokenProviderTest {
     void getUserIdFromToken_throwsExpired_whenAccessingExpiredToken() {
         String expiredToken = buildExpiredToken(1L);
 
-        CustomJwtException exception = catchThrowableOfType(
-                CustomJwtException.class,
+        JwtException exception = catchThrowableOfType(
+                JwtException.class,
                 () -> provider.getUserIdFromToken(expiredToken)
         );
 
