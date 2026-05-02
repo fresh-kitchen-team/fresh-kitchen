@@ -41,11 +41,17 @@
 - `IngredientException`
 - `ImageException`
 - `UserException`
-- `JwtTokenException`
 
 도메인별 예외는 각 도메인의 `ErrorCode` enum 과 1:1로 연결한다.
 
-### 2.4 글로벌 핸들러
+### 2.4 인증 예외
+
+- `JwtTokenException`
+  - `global/security/exception` 에 위치한다.
+  - 도메인 계층이 아닌 인프라/보안 계층에서 발생하는 인증 토큰 오류를 표현한다.
+  - `JwtErrorCode` 와 1:1로 연결되며, 모두 `401 Unauthorized` 상태로 응답한다.
+
+### 2.5 글로벌 핸들러
 
 - `GlobalExceptionHandler`
   - `BusinessException` 처리

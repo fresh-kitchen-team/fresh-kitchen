@@ -7,6 +7,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.PrematureJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.MacAlgorithm;
@@ -113,12 +114,20 @@ public class JwtTokenProvider {
 
     private Claims parseClaims(String token) {
         try {
-            return jwtParser
+            Claims claims = jwtParser
                     .parseSignedClaims(token)
                     .getPayload();
+            if (claims.getExpiration() == null) {
+                log.debug("JWT missing expiration claim");
+                throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
+            }
+            return claims;
         } catch (ExpiredJwtException e) {
             log.debug("Expired JWT: {}", e.getMessage());
             throw new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
+        } catch (PrematureJwtException e) {
+            log.debug("Premature JWT (nbf in the future): {}", e.getMessage());
+            throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
         } catch (SignatureException e) {
             log.debug("Invalid JWT signature: {}", e.getMessage());
             throw new JwtTokenException(JwtErrorCode.INVALID_SIGNATURE);
