@@ -29,7 +29,8 @@ public enum ErrorCode {
     PRIMARY_IMAGE_MUST_BELONG_TO_INGREDIENT(HttpStatus.BAD_REQUEST, "primary image must belong to ingredient"),
     INGREDIENT_PRIMARY_IMAGE_REQUIRED(HttpStatus.BAD_REQUEST, "ingredient must have one primary image"),
     INGREDIENT_PRIMARY_IMAGE_INVARIANT_BROKEN(HttpStatus.CONFLICT, "ingredient must have exactly one primary image"),
-    STORAGE_NOT_OWNED_BY_USER(HttpStatus.BAD_REQUEST, "storage must belong to user");
+    STORAGE_NOT_OWNED_BY_USER(HttpStatus.BAD_REQUEST, "storage must belong to user"),
+    GEMINI_QUOTA_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "AI 서비스 일일 할당량이 초과되었습니다. 잠시 후 다시 시도해주세요.");
     private final HttpStatus httpStatus;
     private final String message;
 }

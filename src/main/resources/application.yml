@@ -5,9 +5,9 @@ spring:
       max-request-size: 100MB
 
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/mydb
+    username: user01
+    password: 1111
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -26,12 +26,12 @@ spring:
             initialize-schema: never
     google:
       genai:
-        api-key: ${GEMINI_API_KEY}
+        api-key: AIzaSyD-7YXzCzcAIP-ZLW1K3kvezJGwQKAZvQk
         chat:
           options:
-            model: gemini-2.0-flash
+            model: gemini-2.5-flash
         embedding:
-          api-key: ${GEMINI_API_KEY}
+          api-key: AIzaSyD-7YXzCzcAIP-ZLW1K3kvezJGwQKAZvQk
           options:
             model: text-embedding-004
     vectorstore:
@@ -40,7 +40,7 @@ spring:
         dimensions: 768
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: mysecret
 
 logging:
   level:

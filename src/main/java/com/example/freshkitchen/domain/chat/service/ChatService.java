@@ -36,8 +36,7 @@ import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -89,9 +88,9 @@ public class ChatService {
                 Ordered.HIGHEST_PRECEDENCE);
 
         retrievalAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
-//                .queryTransformers(RewriteQueryTransformer.builder()
-//                        .chatClientBuilder(chatClientBuilder)
-//                        .build())
+                .queryTransformers(RewriteQueryTransformer.builder()
+                        .chatClientBuilder(chatClientBuilder)
+                        .build())
                 .documentRetriever(VectorStoreDocumentRetriever.builder()
                         .topK(2)
                         .similarityThreshold(0.6)
@@ -126,13 +125,20 @@ public class ChatService {
     /*
     AI 채팅 옵션
      */
-    private String buildSystemPrompt(AiSetting setting) {
+    private String buildSystemPrompt(AiSetting setting, String userIngredients) {
         StringBuilder sb = new StringBuilder();
         sb.append("친절하게 한국어로 답변해줘.\n");
 
+        // 사용자 보유 재료 주입
+        if (userIngredients != null && !userIngredients.isBlank()) {
+            sb.append("사용자가 현재 보유한 재료: ").append(userIngredients).append("\n");
+            sb.append("보유 재료를 최대한 활용한 레시피를 추천해줘.\n");
+            sb.append("레시피에 필요하지만 보유하지 않은 재료는 missingIngredients에 넣어줘.\n");
+        } else {
+            sb.append("보유 재료 정보가 없으니 일반적인 레시피를 추천해줘.\n");
+            sb.append("missingIngredients는 빈 배열로 반환해줘.\n");
+        }
 
-
-        // 응답 스타일
         if (setting != null && setting.getResponseStyle() != null) {
             if (setting.getResponseStyle().equals("간단")) {
                 sb.append("답변은 간결하고 핵심만 전달해줘.\n");
@@ -155,48 +161,83 @@ public class ChatService {
         }
 
         sb.append("""
-            반드시 아래 JSON 형식으로만 응답해:
+        반드시 아래 JSON 형식으로만 응답해. 마크다운 코드블록 없이 순수 JSON만 반환해:
+        {
+          "recipes": [
             {
-              "recipes": [
-                {
-                  "name": "레시피명",
-                  "ingredients": ["재료1", "재료2"],
-                  "steps": ["단계1", "단계2"],
-                  "time": "30분"
-                }
-              ],
-              "tips": ["팁1", "팁2"]
+              "name": "레시피명",
+              "ingredients": ["재료1", "재료2"],
+              "steps": ["단계1", "단계2"],
+              "time": "30분"
             }
-            """);
+          ],
+          "tips": ["팁1", "팁2"],
+          "missingIngredients": ["부족한재료1", "부족한재료2"]
+        }
+        """);
 
         return sb.toString();
     }
 
-
     @Transactional
     public ChatMessageResponse sendAiMessage(Long userId, Long roomId, ChatMessageRequest request) {
 
-
+        // 사용자 보유 재료 조회
+        List<Ingredient> userIngredients = ingredientRepository.findByUserIdAndStatus(userId, IngredientStatus.ACTIVE);
+        String ingredientList = userIngredients.stream()
+                .map(Ingredient::getName)
+                .collect(Collectors.joining(", "));
+        // 보유 재료 이름 Set (비교용, 소문자 정규화)
+        Set<String> ownedIngredientNames = userIngredients.stream()
+                .map(i -> i.getName().trim().toLowerCase())
+                .collect(Collectors.toSet());
         // AiSetting 조회
         AiSetting setting = aiSettingRepository.findByUserId(userId).orElse(null);
-        String systemPrompt = buildSystemPrompt(setting);
+        String systemPrompt = buildSystemPrompt(setting, ingredientList);
 
-        String aiResponseJson = this.chatClient.prompt()
-                .system(systemPrompt)
-                .user(request.getMessage())
-                .advisors(retrievalAugmentationAdvisor)
-                .advisors(a -> a.param(VectorStoreDocumentRetriever.FILTER_EXPRESSION,
-                        "type == '%s'".formatted(request.getType())))
-                .call()
-                .content();
+        String aiResponseJson;
+        try {
+            aiResponseJson = this.chatClient.prompt()
+                    .system(systemPrompt)
+                    .user(request.getMessage())
+                    .advisors(retrievalAugmentationAdvisor)
+                    .advisors(a -> a.param(VectorStoreDocumentRetriever.FILTER_EXPRESSION,
+                            "type == '%s'".formatted(request.getType())))
+                    .call()
+                    .content();
+        } catch (com.google.genai.errors.ClientException e) {
+            log.warn("Gemini API error: {}", e.getMessage());
+            throw new BusinessException(ErrorCode.GEMINI_QUOTA_EXCEEDED);
+        }
+
+        // 마크다운 코드블록 제거
+        String cleanJson = aiResponseJson
+                .replaceAll("(?s)```json\\s*", "")
+                .replaceAll("```", "")
+                .trim();
 
         // JSON 파싱
         ObjectMapper objectMapper = new ObjectMapper();
         ChatMessageResponse.AiPayloadResponse aiPayload;
         try {
-            aiPayload = objectMapper.readValue(aiResponseJson, ChatMessageResponse.AiPayloadResponse.class);
+            ChatMessageResponse.AiPayloadResponse parsed = objectMapper.readValue(cleanJson, ChatMessageResponse.AiPayloadResponse.class);
+
+            // recipes[].ingredients에서 보유하지 않은 재료 추출
+            Set<String> missingIngredients = parsed.getRecipes().stream()
+                    .flatMap(recipe -> recipe.getIngredients().stream())
+                    .map(ingredient -> ingredient.replaceAll("\\s*[\\d/.]+\\s*(g|kg|ml|l|개|컵|큰술|작은술|줌|마리|장|포기|모|대|쪽|알|봉|캔|팩)?.*$", "").trim())
+                    .filter(ingredient -> !ingredient.isBlank())
+                    .filter(ingredient -> !ownedIngredientNames.contains(ingredient.toLowerCase()))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+
+            aiPayload = ChatMessageResponse.AiPayloadResponse.builder()
+                    .recipes(parsed.getRecipes())
+                    .tips(parsed.getTips())
+                    .missingIngredients(new ArrayList<>(missingIngredients))
+                    .build();
+
         } catch (Exception e) {
-            log.error("AI 응답 파싱 실패: {}", aiResponseJson);
+            log.error("AI 응답 파싱 실패: {}", cleanJson);
             aiPayload = ChatMessageResponse.AiPayloadResponse.builder()
                     .recipes(List.of())
                     .tips(List.of())
@@ -204,16 +245,25 @@ public class ChatService {
                     .build();
         }
 
-        // ChatMessage 저장
+// aiPayload를 JSON으로 직렬화 (missingIngredients 포함된 최종 JSON)
+        String finalJson;
+        try {
+            finalJson = objectMapper.writeValueAsString(aiPayload);
+        } catch (Exception e) {
+            log.error("aiPayload 직렬화 실패");
+            finalJson = cleanJson;
+        }
+
+// ChatMessage 저장
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
 
         ChatMessage chatMessage = ChatMessage.builder()
                 .chatRoom(chatRoom)
                 .user(chatRoom.getUser())
-                .content(aiResponseJson)
+                .content(finalJson)      // ← finalJson으로
                 .sender(Sender.AI)
-                .aiPayload(aiResponseJson)
+                .aiPayload(finalJson)    // ← finalJson으로
                 .build();
 
         ChatMessage saved = messageRepository.save(chatMessage);
@@ -223,13 +273,12 @@ public class ChatService {
                 .aiMessage(ChatMessageResponse.AiMessageResponse.builder()
                         .messageId(saved.getId())
                         .sender("AI")
-                        .text(aiResponseJson)
+                        .text(finalJson)         // ← finalJson으로
                         .aiPayload(aiPayload)
                         .createdAt(saved.getCreatedAt().toString())
                         .build())
                 .build();
     }
-
 
     /*
      채팅 옆에 사이드바 내용물 조회
