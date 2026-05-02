@@ -17,6 +17,7 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.client.ExpectedCount.once;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 class AiServerClientTest {
 
     @Test
-    void classifyFood_mapsSuccessfulResponse() {
+    void classifyFood_mapsActualFastApiSuccessfulResponse() {
         RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         AiServerClient client = new AiServerClient(builder.build(), "service-token");
@@ -39,15 +40,13 @@ class AiServerClientTest {
                 .andExpect(header("X-Request-Id", org.hamcrest.Matchers.notNullValue()))
                 .andRespond(withSuccess("""
                         {
-                          "best_match": "Bibimbap",
+                          "bestMatch": "Bibimbap",
                           "confidence": 0.95,
-                          "top_3": [
+                          "top3": [
                             {"name": "Bibimbap", "confidence": 0.95},
                             {"name": "Fried rice", "confidence": 0.03}
                           ],
-                          "source": "gemini",
-                          "gemini_reason": "mixed rice bowl",
-                          "auto_saved": false
+                          "source": "gemini"
                         }
                         """, MediaType.APPLICATION_JSON));
 
@@ -57,8 +56,8 @@ class AiServerClientTest {
         assertEquals(0.95, response.confidence());
         assertEquals("Bibimbap", response.top3().get(0).name());
         assertEquals("gemini", response.source());
-        assertEquals("mixed rice bowl", response.geminiReason());
-        assertEquals(false, response.autoSaved());
+        assertNull(response.geminiReason());
+        assertNull(response.autoSaved());
         server.verify();
     }
 
@@ -94,7 +93,7 @@ class AiServerClientTest {
                           "objects": [
                             {
                               "name": "Apple",
-                              "confidence": 0.8,
+                              "confidence": 80.0,
                               "box": {"x1": 1, "y1": 2, "x2": 30, "y2": 40}
                             }
                           ]
@@ -104,6 +103,7 @@ class AiServerClientTest {
         FridgeDetectionResponse response = client.detectFridgeObjects(imageFile());
 
         assertEquals("Apple", response.objects().get(0).name());
+        assertEquals(80.0, response.objects().get(0).confidence());
         assertEquals(30.0, response.objects().get(0).box().x2());
         server.verify();
     }
