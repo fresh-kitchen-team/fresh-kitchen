@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -99,6 +100,34 @@ class JwtTokenProviderTest {
         assertThat(claims.get("tokenType")).isEqualTo("refresh");
         assertThat(claims.get("role")).isNull();
         assertThat(claims.get("userId", Long.class)).isEqualTo(1L);
+    }
+
+    @Test
+    void generateAccessToken_setsExpirationFromAccessExpirationMinutes() {
+        String token = provider.generateAccessToken(1L, "USER");
+
+        Claims claims = Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8)))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        long ttlMillis = claims.getExpiration().getTime() - claims.getIssuedAt().getTime();
+        assertThat(ttlMillis).isEqualTo(Duration.ofMinutes(ACCESS_EXP_MIN).toMillis());
+    }
+
+    @Test
+    void generateRefreshToken_setsExpirationFromRefreshExpirationDays() {
+        String token = provider.generateRefreshToken(1L);
+
+        Claims claims = Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8)))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        long ttlMillis = claims.getExpiration().getTime() - claims.getIssuedAt().getTime();
+        assertThat(ttlMillis).isEqualTo(Duration.ofDays(REFRESH_EXP_DAYS).toMillis());
     }
 
     @Test
@@ -251,8 +280,21 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void validateToken_throwsMalformed_whenTokenIsPremature() {
+    void validateToken_throwsExpired_whenTokenIsPremature() {
         String token = buildPrematureToken(1L);
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateToken(token)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.EXPIRED_TOKEN);
+    }
+
+    @Test
+    void validateToken_throwsMalformed_whenTokenTypeClaimIsMissing() {
+        String token = buildTokenWithoutTokenType(1L);
 
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
@@ -316,6 +358,20 @@ class JwtTokenProviderTest {
                 .claim("tokenType", "access")
                 .issuedAt(now)
                 .notBefore(notBefore)
+                .expiration(expiration)
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    private String buildTokenWithoutTokenType(Long userId) {
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        Date issuedAt = new Date();
+        Date expiration = new Date(System.currentTimeMillis() + 60_000);
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim("userId", userId)
+                .claim("role", "USER")
+                .issuedAt(issuedAt)
                 .expiration(expiration)
                 .signWith(key, Jwts.SIG.HS256)
                 .compact();

@@ -121,13 +121,17 @@ public class JwtTokenProvider {
                 log.debug("JWT missing expiration claim");
                 throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
             }
+            if (claims.get(CLAIM_TOKEN_TYPE) == null) {
+                log.debug("JWT missing tokenType claim");
+                throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
+            }
             return claims;
         } catch (ExpiredJwtException e) {
             log.debug("Expired JWT: {}", e.getMessage());
             throw new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
         } catch (PrematureJwtException e) {
             log.debug("Premature JWT (nbf in the future): {}", e.getMessage());
-            throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
+            throw new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
         } catch (SignatureException e) {
             log.debug("Invalid JWT signature: {}", e.getMessage());
             throw new JwtTokenException(JwtErrorCode.INVALID_SIGNATURE);

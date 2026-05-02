@@ -149,14 +149,19 @@ class ErrorCodeContractTest {
         IngredientException ingredientException = new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND);
         ImageException imageException = new ImageException(ImageErrorCode.USER_UPLOAD_OWNER_REQUIRED);
         UserException userException = new UserException(UserErrorCode.USER_NOT_FOUND);
-        JwtTokenException jwtException = new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
         BusinessValidationException validationException = new BusinessValidationException("name must not be blank");
 
         assertEquals(IngredientErrorCode.INGREDIENT_NOT_FOUND, ingredientException.getErrorCode());
         assertEquals(ImageErrorCode.USER_UPLOAD_OWNER_REQUIRED, imageException.getErrorCode());
         assertEquals(UserErrorCode.USER_NOT_FOUND, userException.getErrorCode());
-        assertEquals(JwtErrorCode.EXPIRED_TOKEN, jwtException.getErrorCode());
         assertEquals(CommonErrorCode.INVALID_INPUT, validationException.getErrorCode());
+    }
+
+    @Test
+    void jwtTokenException_exposesItsErrorCode() {
+        JwtTokenException jwtException = new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
+
+        assertEquals(JwtErrorCode.EXPIRED_TOKEN, jwtException.getErrorCode());
     }
 
     private static void assertContract(ErrorCode errorCode, HttpStatus status, String code, String message) {

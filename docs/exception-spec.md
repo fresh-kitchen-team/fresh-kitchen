@@ -181,23 +181,29 @@
 |------|-------------|------|---------|------|
 | `USER_NOT_FOUND` | `404` | `USER-404-1` | `user not found` | 대상 사용자 조회 실패 |
 
-### 6.4 JwtErrorCode
+---
+
+## 7. 보안/인증 에러 코드
+
+2.4절에서 정의한 인프라/보안 계층 예외 분류에 따라 도메인 에러 코드와 분리해 관리한다.
+
+### 7.1 JwtErrorCode
 
 인증 토큰 처리 실패 시 `JwtTokenException` 으로 래핑되어 클라이언트에 반환된다.
 
 | Enum | HTTP Status | Code | Message | 의미 |
 |------|-------------|------|---------|------|
-| `EXPIRED_TOKEN` | `401` | `AUTH-401-1` | `expired token` | 토큰 만료 |
+| `EXPIRED_TOKEN` | `401` | `AUTH-401-1` | `expired token` | 토큰 만료 또는 아직 활성화되지 않음 (`nbf` 미래) |
 | `INVALID_SIGNATURE` | `401` | `AUTH-401-2` | `invalid token signature` | 서명 검증 실패 |
-| `MALFORMED_TOKEN` | `401` | `AUTH-401-3` | `malformed token` | 토큰 형식 오류 또는 필수 claim 누락 |
+| `MALFORMED_TOKEN` | `401` | `AUTH-401-3` | `malformed token` | 토큰 형식 오류 또는 필수 claim(`exp`, `tokenType`, `userId`) 누락 |
 | `UNSUPPORTED_TOKEN` | `401` | `AUTH-401-4` | `unsupported token` | 서명되지 않은 토큰 등 지원하지 않는 형식 |
 | `EMPTY_CLAIMS` | `401` | `AUTH-401-5` | `token claims are empty` | 토큰 문자열이 비어있음 |
 
 ---
 
-## 7. 예외 사용 규칙
+## 8. 예외 사용 규칙
 
-### 7.1 어떤 예외를 써야 하는가
+### 8.1 어떤 예외를 써야 하는가
 
 - 공통 필드 검증
   - `BusinessValidationException`
@@ -214,7 +220,7 @@
   - 직접 잡아서 숨기지 말고 상위로 전파
   - `GlobalExceptionHandler` 가 `COMMON-500` 으로 처리
 
-### 7.2 메시지 작성 기준
+### 8.2 메시지 작성 기준
 
 - message 는 현재 영어로 통일한다.
 - 클라이언트/프론트가 그대로 읽어도 의미가 통해야 한다.
@@ -222,7 +228,7 @@
 - 도메인 `ErrorCode` 는 하나의 대표 메시지를 가진다.
 - 공통 코드 fallback 응답은 예외별 상세 메시지를 외부로 노출하지 않는다.
 
-### 7.3 status 선택 기준
+### 8.3 status 선택 기준
 
 - `400 Bad Request`
   - 입력값 오류
@@ -230,7 +236,7 @@
   - 요청 자체가 도메인 규칙을 만족하지 못하는 경우
 
 - `401 Unauthorized`
-  - 인증 토큰이 없거나 유효하지 않은 경우
+  - 유효하지 않은 인증 토큰인 경우
 
 - `404 Not Found`
   - 조회 대상이 존재하지 않는 경우
@@ -243,7 +249,7 @@
   - 처리되지 않은 예외
   - 서버 내부 예상 밖 오류
 
-### 7.4 로깅 기준
+### 8.4 로깅 기준
 
 - `BusinessException` 은 `errorCode.status()` 기준으로 로그 레벨을 정한다.
 - `4xx` `BusinessException` 과 `IllegalArgumentException`, `IllegalStateException` 은 `debug` 레벨로 기록한다.
@@ -253,7 +259,7 @@
 
 ---
 
-## 8. 신규 에러 코드 추가 규칙
+## 9. 신규 에러 코드 추가 규칙
 
 신규 기능에서 예외를 추가할 때는 아래 순서를 따른다.
 
@@ -266,7 +272,7 @@
 
 ---
 
-## 9. 팀 합의 권장 사항
+## 10. 팀 합의 권장 사항
 
 - 문자열만 다른 비슷한 예외를 여러 개 만들지 않는다.
 - `IllegalArgumentException` 를 서비스/도메인에서 직접 던지는 방식은 지양한다.
@@ -276,7 +282,7 @@
 
 ---
 
-## 10. 현재 코드 기준 구현 위치
+## 11. 현재 코드 기준 구현 위치
 
 - 공통 계약
   - `src/main/java/com/example/freshkitchen/global/exception`
@@ -295,7 +301,7 @@
 
 ---
 
-## 11. 후속 확장 포인트
+## 12. 후속 확장 포인트
 
 - `UserErrorCode`, `CatalogErrorCode` 추가
 - Bean Validation 연동 시 필드 에러 목록 확장
