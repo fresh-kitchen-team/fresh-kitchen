@@ -9,6 +9,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.MacAlgorithm;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,7 @@ public class JwtTokenProvider {
     private static final String TOKEN_TYPE_ACCESS = "access";
     private static final String TOKEN_TYPE_REFRESH = "refresh";
     private static final int MINIMUM_SECRET_BYTES = 32;
+    private static final MacAlgorithm SIGNATURE_ALGORITHM = Jwts.SIG.HS256;
 
     private final SecretKey secretKey;
     private final JwtParser jwtParser;
@@ -67,7 +69,7 @@ public class JwtTokenProvider {
                 .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_ACCESS)
                 .issuedAt(now)
                 .expiration(expiration)
-                .signWith(secretKey)
+                .signWith(secretKey, SIGNATURE_ALGORITHM)
                 .compact();
     }
 
@@ -82,7 +84,7 @@ public class JwtTokenProvider {
                 .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_REFRESH)
                 .issuedAt(now)
                 .expiration(expiration)
-                .signWith(secretKey)
+                .signWith(secretKey, SIGNATURE_ALGORITHM)
                 .compact();
     }
 

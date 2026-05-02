@@ -6,6 +6,8 @@ import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.user.exception.UserErrorCode;
 import com.example.freshkitchen.domain.user.exception.UserException;
+import com.example.freshkitchen.global.security.exception.JwtErrorCode;
+import com.example.freshkitchen.global.security.exception.JwtException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -134,15 +136,26 @@ class ErrorCodeContractTest {
     }
 
     @Test
+    void jwtErrorCode_contractMatchesSpecification() {
+        assertContract(JwtErrorCode.EXPIRED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-1", "expired token");
+        assertContract(JwtErrorCode.INVALID_SIGNATURE, HttpStatus.UNAUTHORIZED, "AUTH-401-2", "invalid token signature");
+        assertContract(JwtErrorCode.MALFORMED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-3", "malformed token");
+        assertContract(JwtErrorCode.UNSUPPORTED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-4", "unsupported token");
+        assertContract(JwtErrorCode.EMPTY_CLAIMS, HttpStatus.UNAUTHORIZED, "AUTH-401-5", "token claims are empty");
+    }
+
+    @Test
     void domainExceptions_exposeTheirErrorCodes() {
         IngredientException ingredientException = new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND);
         ImageException imageException = new ImageException(ImageErrorCode.USER_UPLOAD_OWNER_REQUIRED);
         UserException userException = new UserException(UserErrorCode.USER_NOT_FOUND);
+        JwtException jwtException = new JwtException(JwtErrorCode.EXPIRED_TOKEN);
         BusinessValidationException validationException = new BusinessValidationException("name must not be blank");
 
         assertEquals(IngredientErrorCode.INGREDIENT_NOT_FOUND, ingredientException.getErrorCode());
         assertEquals(ImageErrorCode.USER_UPLOAD_OWNER_REQUIRED, imageException.getErrorCode());
         assertEquals(UserErrorCode.USER_NOT_FOUND, userException.getErrorCode());
+        assertEquals(JwtErrorCode.EXPIRED_TOKEN, jwtException.getErrorCode());
         assertEquals(CommonErrorCode.INVALID_INPUT, validationException.getErrorCode());
     }
 
