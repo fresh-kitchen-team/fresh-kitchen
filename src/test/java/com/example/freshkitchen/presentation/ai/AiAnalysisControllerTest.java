@@ -104,6 +104,32 @@ class AiAnalysisControllerTest {
         verifyNoInteractions(aiServerClient);
     }
 
+    @Test
+    void extractReceiptIngredients_returnsBadRequestWhenFileIsMissing() throws Exception {
+        mockMvc.perform(multipart("/api/ai/receipt-ocr"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.message").value("Invalid input"))
+                .andExpect(jsonPath("$.path").value("/api/ai/receipt-ocr"))
+                .andExpect(jsonPath("$.timestamp").exists());
+
+        verifyNoInteractions(aiServerClient);
+    }
+
+    @Test
+    void detectFridgeObjects_returnsBadRequestWhenFileIsMissing() throws Exception {
+        mockMvc.perform(multipart("/api/ai/fridge-detection"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.message").value("Invalid input"))
+                .andExpect(jsonPath("$.path").value("/api/ai/fridge-detection"))
+                .andExpect(jsonPath("$.timestamp").exists());
+
+        verifyNoInteractions(aiServerClient);
+    }
+
     private static MockMultipartFile imageFile() {
         return new MockMultipartFile("file", "food.jpg", "image/jpeg", "image".getBytes());
     }

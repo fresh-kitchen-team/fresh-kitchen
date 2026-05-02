@@ -1,12 +1,12 @@
 package com.example.freshkitchen.infrastructure.ai;
 
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.infrastructure.ai.dto.FoodClassificationResponse;
 import com.example.freshkitchen.infrastructure.ai.dto.FridgeDetectionResponse;
 import com.example.freshkitchen.infrastructure.ai.dto.ReceiptOcrResponse;
 import com.example.freshkitchen.infrastructure.ai.exception.AiServerErrorCode;
 import com.example.freshkitchen.infrastructure.ai.exception.AiServerException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -96,7 +96,7 @@ public class AiServerClient {
             body.add("file", file.getResource());
             return body;
         } catch (IllegalStateException exception) {
-            throw new AiServerException(AiServerErrorCode.AI_RESPONSE_INVALID, exception);
+            throw new BusinessValidationException("file resource must be available");
         }
     }
 
@@ -116,8 +116,7 @@ public class AiServerClient {
     }
 
     private static boolean isInvalidJson(Throwable throwable) {
-        return hasCause(throwable, JsonProcessingException.class)
-                || hasCause(throwable, MismatchedInputException.class);
+        return hasCause(throwable, JsonProcessingException.class);
     }
 
     private static boolean hasCause(Throwable throwable, Class<? extends Throwable> causeType) {

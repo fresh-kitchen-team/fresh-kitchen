@@ -1,5 +1,7 @@
 package com.example.freshkitchen.infrastructure.ai;
 
+import com.example.freshkitchen.global.exception.BusinessValidationException;
+import com.example.freshkitchen.global.exception.CommonErrorCode;
 import com.example.freshkitchen.infrastructure.ai.dto.FoodClassificationResponse;
 import com.example.freshkitchen.infrastructure.ai.dto.FridgeDetectionResponse;
 import com.example.freshkitchen.infrastructure.ai.dto.ReceiptOcrResponse;
@@ -20,6 +22,8 @@ import java.net.SocketTimeoutException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.client.ExpectedCount.once;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
@@ -107,6 +111,82 @@ class AiServerClientTest {
         assertEquals("Apple", response.objects().get(0).name());
         assertEquals(80.0, response.objects().get(0).confidence());
         assertEquals(30.0, response.objects().get(0).box().x2());
+        server.verify();
+    }
+
+    @Test
+    void extractReceiptIngredients_mapsMissingIngredientsToAiResponseInvalid() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiServerClient client = new AiServerClient(builder.build(), "service-token");
+
+        server.expect(once(), requestTo("https://ai.example.com/internal/v1/receipt-ocr"))
+                .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+        AiServerException exception = assertThrows(
+                AiServerException.class,
+                () -> client.extractReceiptIngredients(imageFile())
+        );
+
+        assertEquals(AiServerErrorCode.AI_RESPONSE_INVALID, exception.getErrorCode());
+        server.verify();
+    }
+
+    @Test
+    void extractReceiptIngredients_mapsNullIngredientItemToAiResponseInvalid() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiServerClient client = new AiServerClient(builder.build(), "service-token");
+
+        server.expect(once(), requestTo("https://ai.example.com/internal/v1/receipt-ocr"))
+                .andRespond(withSuccess("""
+                        {"ingredients": [null]}
+                        """, MediaType.APPLICATION_JSON));
+
+        AiServerException exception = assertThrows(
+                AiServerException.class,
+                () -> client.extractReceiptIngredients(imageFile())
+        );
+
+        assertEquals(AiServerErrorCode.AI_RESPONSE_INVALID, exception.getErrorCode());
+        server.verify();
+    }
+
+    @Test
+    void detectFridgeObjects_mapsMissingObjectsToAiResponseInvalid() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiServerClient client = new AiServerClient(builder.build(), "service-token");
+
+        server.expect(once(), requestTo("https://ai.example.com/internal/v1/fridge-detection"))
+                .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+        AiServerException exception = assertThrows(
+                AiServerException.class,
+                () -> client.detectFridgeObjects(imageFile())
+        );
+
+        assertEquals(AiServerErrorCode.AI_RESPONSE_INVALID, exception.getErrorCode());
+        server.verify();
+    }
+
+    @Test
+    void detectFridgeObjects_mapsNullObjectItemToAiResponseInvalid() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiServerClient client = new AiServerClient(builder.build(), "service-token");
+
+        server.expect(once(), requestTo("https://ai.example.com/internal/v1/fridge-detection"))
+                .andRespond(withSuccess("""
+                        {"objects": [null]}
+                        """, MediaType.APPLICATION_JSON));
+
+        AiServerException exception = assertThrows(
+                AiServerException.class,
+                () -> client.detectFridgeObjects(imageFile())
+        );
+
+        assertEquals(AiServerErrorCode.AI_RESPONSE_INVALID, exception.getErrorCode());
         server.verify();
     }
 
@@ -243,6 +323,23 @@ class AiServerClientTest {
 
         assertEquals(AiServerErrorCode.AI_RESPONSE_INVALID, exception.getErrorCode());
         server.verify();
+    }
+
+    @Test
+    void classifyFood_mapsUnavailableFileResourceToInvalidInput() {
+        RestClient restClient = RestClient.builder()
+                .baseUrl("https://ai.example.com")
+                .build();
+        AiServerClient client = new AiServerClient(restClient, "service-token");
+        MockMultipartFile file = mock(MockMultipartFile.class);
+        given(file.getResource()).willThrow(new IllegalStateException("file resource unavailable"));
+
+        BusinessValidationException exception = assertThrows(
+                BusinessValidationException.class,
+                () -> client.classifyFood(file)
+        );
+
+        assertEquals(CommonErrorCode.INVALID_INPUT, exception.getErrorCode());
     }
 
     private static MockMultipartFile imageFile() {
