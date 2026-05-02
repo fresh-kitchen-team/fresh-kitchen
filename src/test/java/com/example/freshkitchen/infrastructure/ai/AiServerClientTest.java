@@ -24,6 +24,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 class AiServerClientTest {
@@ -180,6 +181,62 @@ class AiServerClientTest {
                 .andRespond(withSuccess("""
                         {"confidence": 0.95, "top_3": [], "source": "gemini"}
                         """, MediaType.APPLICATION_JSON));
+
+        AiServerException exception = assertThrows(AiServerException.class, () -> client.classifyFood(imageFile()));
+
+        assertEquals(AiServerErrorCode.AI_RESPONSE_INVALID, exception.getErrorCode());
+        server.verify();
+    }
+
+    @Test
+    void classifyFood_mapsNullTop3ItemToAiResponseInvalid() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiServerClient client = new AiServerClient(builder.build(), "service-token");
+
+        server.expect(once(), requestTo("https://ai.example.com/internal/v1/food-classification"))
+                .andRespond(withSuccess("""
+                        {
+                          "bestMatch": "Bibimbap",
+                          "confidence": 0.95,
+                          "top3": [null],
+                          "source": "gemini"
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        AiServerException exception = assertThrows(AiServerException.class, () -> client.classifyFood(imageFile()));
+
+        assertEquals(AiServerErrorCode.AI_RESPONSE_INVALID, exception.getErrorCode());
+        server.verify();
+    }
+
+    @Test
+    void classifyFood_mapsFastApiUnauthorizedToAiResponseInvalid() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiServerClient client = new AiServerClient(builder.build(), "service-token");
+
+        server.expect(once(), requestTo("https://ai.example.com/internal/v1/food-classification"))
+                .andRespond(withStatus(HttpStatus.UNAUTHORIZED)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"detail\":\"invalid token\"}"));
+
+        AiServerException exception = assertThrows(AiServerException.class, () -> client.classifyFood(imageFile()));
+
+        assertEquals(AiServerErrorCode.AI_RESPONSE_INVALID, exception.getErrorCode());
+        server.verify();
+    }
+
+    @Test
+    void classifyFood_mapsFastApiValidationErrorToAiResponseInvalid() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiServerClient client = new AiServerClient(builder.build(), "service-token");
+
+        server.expect(once(), requestTo("https://ai.example.com/internal/v1/food-classification"))
+                .andRespond(withStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"detail\":[{\"loc\":[\"body\",\"file\"],\"msg\":\"field required\"}]}"));
 
         AiServerException exception = assertThrows(AiServerException.class, () -> client.classifyFood(imageFile()));
 

@@ -9,7 +9,6 @@ public class AiServerException extends BusinessException {
     }
 
     public AiServerException(AiServerErrorCode errorCode, Throwable cause) {
-        super(errorCode);
-        initCause(cause);
+        super(errorCode, cause);
     }
 }

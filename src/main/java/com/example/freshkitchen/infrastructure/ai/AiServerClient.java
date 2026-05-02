@@ -137,9 +137,13 @@ public class AiServerClient {
                 || response.confidence() == null
                 || response.top3() == null
                 || response.source() == null
-                || response.top3().stream().anyMatch(item -> item.name() == null || item.confidence() == null)) {
+                || response.top3().stream().anyMatch(AiServerClient::isInvalidFoodCandidate)) {
             throw new AiServerException(AiServerErrorCode.AI_RESPONSE_INVALID);
         }
+    }
+
+    private static boolean isInvalidFoodCandidate(FoodClassificationResponse.FoodCandidate item) {
+        return item == null || item.name() == null || item.confidence() == null;
     }
 
     private static void validateReceiptOcr(ReceiptOcrResponse response) {

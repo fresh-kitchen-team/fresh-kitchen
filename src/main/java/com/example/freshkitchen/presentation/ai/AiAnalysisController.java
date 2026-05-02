@@ -22,17 +22,17 @@ public class AiAnalysisController {
     private final AiServerClient aiServerClient;
 
     @PostMapping(value = "/food-classification", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<FoodClassificationResponse>> classifyFood(@RequestPart MultipartFile file) {
+    public ResponseEntity<ApiResponse<FoodClassificationResponse>> classifyFood(@RequestPart("file") MultipartFile file) {
         return ApiResponse.success(aiServerClient.classifyFood(file));
     }
 
     @PostMapping(value = "/receipt-ocr", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<ReceiptOcrResponse>> extractReceiptIngredients(@RequestPart MultipartFile file) {
+    public ResponseEntity<ApiResponse<ReceiptOcrResponse>> extractReceiptIngredients(@RequestPart("file") MultipartFile file) {
         return ApiResponse.success(aiServerClient.extractReceiptIngredients(file));
     }
 
     @PostMapping(value = "/fridge-detection", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<FridgeDetectionResponse>> detectFridgeObjects(@RequestPart MultipartFile file) {
+    public ResponseEntity<ApiResponse<FridgeDetectionResponse>> detectFridgeObjects(@RequestPart("file") MultipartFile file) {
         return ApiResponse.success(aiServerClient.detectFridgeObjects(file));
     }
 }

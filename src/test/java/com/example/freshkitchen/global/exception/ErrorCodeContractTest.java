@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 class ErrorCodeContractTest {
 
@@ -170,6 +171,15 @@ class ErrorCodeContractTest {
         assertEquals(UserErrorCode.USER_NOT_FOUND, userException.getErrorCode());
         assertEquals(AiServerErrorCode.AI_SERVER_UNAVAILABLE, aiServerException.getErrorCode());
         assertEquals(CommonErrorCode.INVALID_INPUT, validationException.getErrorCode());
+    }
+
+    @Test
+    void aiServerException_preservesCause() {
+        RuntimeException cause = new RuntimeException("connection refused");
+
+        AiServerException exception = new AiServerException(AiServerErrorCode.AI_SERVER_UNAVAILABLE, cause);
+
+        assertSame(cause, exception.getCause());
     }
 
     private static void assertContract(ErrorCode errorCode, HttpStatus status, String code, String message) {
