@@ -11,6 +11,15 @@ project-level architecture guide and index.
 - Testing: JUnit 5, Spring Boot test slices, Testcontainers for PostgreSQL.
 - Main package: `com.example.freshkitchen`.
 
+## Operating Principles
+
+- Think before editing: identify the task goal, relevant files, and expected verification before changing code.
+- Keep changes surgical: modify only files directly related to the requested task.
+- Prefer simplicity: do not introduce new abstractions, layers, or dependencies unless the task clearly requires them.
+- Preserve project conventions: follow existing package structure, naming, response contracts, and test patterns.
+- Make work verifiable: explain how the change was checked through tests, build commands, or targeted reasoning.
+- Stop at the requested boundary: do not push, open PRs, merge, or perform unrelated cleanup unless explicitly asked.
+
 ## Architecture Map
 
 - `src/main/java/.../domain`: domain entities, enums, repositories, domain services,
@@ -56,6 +65,7 @@ this table unless the task is specifically about that document.
 
 | Task | Source of truth |
 | --- | --- |
+| General implementation work | This file first, then relevant source files |
 | Commit analysis and commit creation | `.codex/skills/smart-commit/SKILL.md` |
 | PR title/body writing | `.codex/skills/pr-writer/SKILL.md` |
 | Personal operations and weekly notes | `.도윤/AGENT.md` |
@@ -101,6 +111,7 @@ When changes exist and the user asks for implementation or cleanup:
 
 ## Personal Ops Documents
 
-- Personal working documents under `./.도윤/` are local operations context.
-- Repo-wide AI rules stay in this file.
-- If a task needs `.도윤` workflows, also read `./.도윤/AGENT.md`.
+- Repo-wide architecture, coding, testing, and automation rules stay in this file.
+- Personal planning, PR context, weekly notes, and operation logs stay under `./.도윤/`.
+- Read `./.도윤/AGENT.md` only when the task explicitly involves personal operations, PR context, planning notes, or `.도윤` documents.
+- Do not mix personal operation notes into repo-wide rules unless they become stable project conventions.
