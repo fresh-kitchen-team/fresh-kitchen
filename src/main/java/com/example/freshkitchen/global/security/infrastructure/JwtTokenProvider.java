@@ -21,7 +21,6 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Date;
-import java.util.Set;
 
 @Component
 public class JwtTokenProvider {
@@ -31,7 +30,6 @@ public class JwtTokenProvider {
     private static final String CLAIM_TOKEN_TYPE = "tokenType";
     private static final String TOKEN_TYPE_ACCESS = "access";
     private static final String TOKEN_TYPE_REFRESH = "refresh";
-    private static final Set<String> ALLOWED_TOKEN_TYPES = Set.of(TOKEN_TYPE_ACCESS, TOKEN_TYPE_REFRESH);
     private static final int MINIMUM_SECRET_BYTES = 32;
     private static final MacAlgorithm SIGNATURE_ALGORITHM = Jwts.SIG.HS256;
 
@@ -53,7 +51,7 @@ public class JwtTokenProvider {
         Assert.isTrue(accessExpirationMinutes > 0, "jwt.access-expiration-minutes must be positive");
         Assert.isTrue(refreshExpirationDays > 0, "jwt.refresh-expiration-days must be positive");
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.jwtParser = Jwts.parser().verifyWith(this.secretKey).build();
+        this.jwtParser = Jwts.parser().verifyWith(this.secretKey).clockSkewSeconds(30).build();
         this.accessExpirationMillis = Duration.ofMinutes(accessExpirationMinutes).toMillis();
         this.refreshExpirationMillis = Duration.ofDays(refreshExpirationDays).toMillis();
     }
@@ -90,16 +88,37 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public void validateToken(String token) {
-        parseAndExtractUserId(token);
+    public TokenPayload validateAccessToken(String token) {
+        Claims claims = parseClaims(token);
+        assertTokenType(claims, TOKEN_TYPE_ACCESS);
+        Role role = extractRole(claims);
+        Long userId = extractUserId(claims);
+        return new TokenPayload(userId, role);
     }
 
-    public Long validateAndGetUserId(String token) {
-        return parseAndExtractUserId(token);
+    public Long validateRefreshToken(String token) {
+        Claims claims = parseClaims(token);
+        assertTokenType(claims, TOKEN_TYPE_REFRESH);
+        return extractUserId(claims);
     }
 
-    private Long parseAndExtractUserId(String token) {
-        return extractUserId(parseClaims(token));
+    private void assertTokenType(Claims claims, String expectedType) {
+        Object tokenTypeClaim = claims.get(CLAIM_TOKEN_TYPE);
+        if (!(tokenTypeClaim instanceof String tokenType) || !tokenType.equals(expectedType)) {
+            throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
+        }
+    }
+
+    private Role extractRole(Claims claims) {
+        Object roleClaim = claims.get(CLAIM_ROLE);
+        if (!(roleClaim instanceof String roleStr) || roleStr.isBlank()) {
+            throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
+        }
+        try {
+            return Role.valueOf(roleStr);
+        } catch (IllegalArgumentException e) {
+            throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
+        }
     }
 
     private Long extractUserId(Claims claims) {
@@ -120,21 +139,6 @@ public class JwtTokenProvider {
                     .getPayload();
             if (claims.getExpiration() == null) {
                 throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
-            }
-            Object tokenTypeClaim = claims.get(CLAIM_TOKEN_TYPE);
-            if (!(tokenTypeClaim instanceof String tokenType) || !ALLOWED_TOKEN_TYPES.contains(tokenType)) {
-                throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
-            }
-            if (TOKEN_TYPE_ACCESS.equals(tokenType)) {
-                Object roleClaim = claims.get(CLAIM_ROLE);
-                if (!(roleClaim instanceof String role) || role.isBlank()) {
-                    throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
-                }
-                try {
-                    Role.valueOf(role);
-                } catch (IllegalArgumentException e) {
-                    throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
-                }
             }
             return claims;
         } catch (ExpiredJwtException e) {

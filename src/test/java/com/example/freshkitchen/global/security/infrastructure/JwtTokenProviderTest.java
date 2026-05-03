@@ -15,7 +15,6 @@ import java.time.Duration;
 import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
@@ -32,6 +31,8 @@ class JwtTokenProviderTest {
     void setUp() {
         provider = new JwtTokenProvider(SECRET, ACCESS_EXP_MIN, REFRESH_EXP_DAYS);
     }
+
+    // --- Constructor validation ---
 
     @Test
     void constructor_throwsException_whenSecretIsBlank() {
@@ -57,12 +58,16 @@ class JwtTokenProviderTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    // --- Token generation ---
+
     @Test
     void generateAccessToken_returnsValidJwt() {
         String token = provider.generateAccessToken(1L, Role.USER);
 
         assertThat(token).isNotBlank();
-        assertThatCode(() -> provider.validateToken(token)).doesNotThrowAnyException();
+        TokenPayload payload = provider.validateAccessToken(token);
+        assertThat(payload.userId()).isEqualTo(1L);
+        assertThat(payload.role()).isEqualTo(Role.USER);
     }
 
     @Test
@@ -70,7 +75,8 @@ class JwtTokenProviderTest {
         String token = provider.generateRefreshToken(1L);
 
         assertThat(token).isNotBlank();
-        assertThatCode(() -> provider.validateToken(token)).doesNotThrowAnyException();
+        Long userId = provider.validateRefreshToken(token);
+        assertThat(userId).isEqualTo(1L);
     }
 
     @Test
@@ -149,33 +155,68 @@ class JwtTokenProviderTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    // --- validateAccessToken: happy path ---
+
     @Test
-    void validateAndGetUserId_returnsSameUserIdAsIssued() {
+    void validateAccessToken_returnsPayloadWithUserIdAndRole() {
         Long userId = 42L;
         String token = provider.generateAccessToken(userId, Role.USER);
 
-        Long extracted = provider.validateAndGetUserId(token);
+        TokenPayload payload = provider.validateAccessToken(token);
 
-        assertThat(extracted).isEqualTo(userId);
+        assertThat(payload.userId()).isEqualTo(userId);
+        assertThat(payload.role()).isEqualTo(Role.USER);
     }
 
+    // --- validateRefreshToken: happy path ---
+
     @Test
-    void validateAndGetUserId_worksForRefreshToken() {
+    void validateRefreshToken_returnsUserId() {
         Long userId = 99L;
         String token = provider.generateRefreshToken(userId);
 
-        Long extracted = provider.validateAndGetUserId(token);
+        Long extracted = provider.validateRefreshToken(token);
 
         assertThat(extracted).isEqualTo(userId);
     }
 
+    // --- Token type enforcement (#1) ---
+
     @Test
-    void validateToken_throwsExpired_whenTokenAlreadyExpired() {
-        String expiredToken = buildExpiredToken(1L);
+    void validateAccessToken_throwsMalformed_whenRefreshTokenIsPresented() {
+        String refreshToken = provider.generateRefreshToken(1L);
 
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
-                () -> provider.validateToken(expiredToken)
+                () -> provider.validateAccessToken(refreshToken)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
+    }
+
+    @Test
+    void validateRefreshToken_throwsMalformed_whenAccessTokenIsPresented() {
+        String accessToken = provider.generateAccessToken(1L, Role.USER);
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateRefreshToken(accessToken)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
+    }
+
+    // --- Signature & expiration errors ---
+
+    @Test
+    void validateAccessToken_throwsExpired_whenTokenAlreadyExpired() {
+        String expiredToken = buildExpiredAccessToken(1L);
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateAccessToken(expiredToken)
         );
 
         assertThat(exception).isNotNull();
@@ -183,13 +224,13 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void validateToken_throwsInvalidSignature_whenTokenSignedWithDifferentSecret() {
+    void validateAccessToken_throwsInvalidSignature_whenTokenSignedWithDifferentSecret() {
         JwtTokenProvider otherProvider = new JwtTokenProvider(OTHER_SECRET, ACCESS_EXP_MIN, REFRESH_EXP_DAYS);
         String tampered = otherProvider.generateAccessToken(1L, Role.USER);
 
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
-                () -> provider.validateToken(tampered)
+                () -> provider.validateAccessToken(tampered)
         );
 
         assertThat(exception).isNotNull();
@@ -197,12 +238,10 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void validateToken_throwsMalformed_whenTokenIsArbitraryString() {
-        String malformed = "this-is-not-a-valid-jwt";
-
+    void validateAccessToken_throwsMalformed_whenTokenIsArbitraryString() {
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
-                () -> provider.validateToken(malformed)
+                () -> provider.validateAccessToken("this-is-not-a-valid-jwt")
         );
 
         assertThat(exception).isNotNull();
@@ -210,14 +249,12 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void validateToken_throwsUnsupported_whenTokenIsUnsigned() {
-        String unsigned = Jwts.builder()
-                .subject("1")
-                .compact();
+    void validateAccessToken_throwsUnsupported_whenTokenIsUnsigned() {
+        String unsigned = Jwts.builder().subject("1").compact();
 
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
-                () -> provider.validateToken(unsigned)
+                () -> provider.validateAccessToken(unsigned)
         );
 
         assertThat(exception).isNotNull();
@@ -225,10 +262,10 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void validateToken_throwsEmptyClaims_whenTokenIsBlank() {
+    void validateAccessToken_throwsEmptyClaims_whenTokenIsBlank() {
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
-                () -> provider.validateToken("")
+                () -> provider.validateAccessToken("")
         );
 
         assertThat(exception).isNotNull();
@@ -236,64 +273,79 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void validateAndGetUserId_throwsExpired_whenAccessingExpiredToken() {
-        String expiredToken = buildExpiredToken(1L);
-
+    void validateAccessToken_throwsEmptyClaims_whenTokenIsNull() {
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
-                () -> provider.validateAndGetUserId(expiredToken)
+                () -> provider.validateAccessToken(null)
         );
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.EXPIRED_TOKEN);
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.EMPTY_CLAIMS);
     }
 
     @Test
-    void validateToken_throwsMalformed_whenUserIdClaimIsMissing() {
-        String token = buildTokenWithoutUserId();
-
+    void validateRefreshToken_throwsEmptyClaims_whenTokenIsNull() {
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
-                () -> provider.validateToken(token)
+                () -> provider.validateRefreshToken(null)
         );
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.EMPTY_CLAIMS);
     }
 
     @Test
-    void validateToken_throwsMalformed_whenExpirationClaimIsMissing() {
-        String token = buildTokenWithoutExpiration(1L);
+    void validateAccessToken_throwsNotYetValid_whenTokenIsPremature() {
+        String token = buildPrematureAccessToken(1L);
 
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
-                () -> provider.validateToken(token)
-        );
-
-        assertThat(exception).isNotNull();
-        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
-    }
-
-    @Test
-    void validateToken_throwsNotYetValid_whenTokenIsPremature() {
-        String token = buildPrematureToken(1L);
-
-        JwtTokenException exception = catchThrowableOfType(
-                JwtTokenException.class,
-                () -> provider.validateToken(token)
+                () -> provider.validateAccessToken(token)
         );
 
         assertThat(exception).isNotNull();
         assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.NOT_YET_VALID_TOKEN);
     }
 
+    // --- Claim validation: userId ---
+
     @Test
-    void validateToken_throwsMalformed_whenTokenTypeClaimIsMissing() {
+    void validateAccessToken_throwsMalformed_whenUserIdClaimIsMissing() {
+        String token = buildAccessTokenWithoutUserId();
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateAccessToken(token)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
+    }
+
+    // --- Claim validation: expiration ---
+
+    @Test
+    void validateAccessToken_throwsMalformed_whenExpirationClaimIsMissing() {
+        String token = buildAccessTokenWithoutExpiration(1L);
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateAccessToken(token)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
+    }
+
+    // --- Claim validation: tokenType ---
+
+    @Test
+    void validateAccessToken_throwsMalformed_whenTokenTypeClaimIsMissing() {
         String token = buildTokenWithoutTokenType(1L);
 
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
-                () -> provider.validateToken(token)
+                () -> provider.validateAccessToken(token)
         );
 
         assertThat(exception).isNotNull();
@@ -301,12 +353,12 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void validateToken_throwsMalformed_whenTokenTypeIsUnknownValue() {
+    void validateAccessToken_throwsMalformed_whenTokenTypeIsUnknownValue() {
         String token = buildTokenWithTokenType(1L, "guest");
 
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
-                () -> provider.validateToken(token)
+                () -> provider.validateAccessToken(token)
         );
 
         assertThat(exception).isNotNull();
@@ -314,25 +366,27 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void validateToken_throwsMalformed_whenTokenTypeIsNotString() {
+    void validateAccessToken_throwsMalformed_whenTokenTypeIsNotString() {
         String token = buildTokenWithNonStringTokenType(1L);
 
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
-                () -> provider.validateToken(token)
+                () -> provider.validateAccessToken(token)
         );
 
         assertThat(exception).isNotNull();
         assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
     }
 
+    // --- Claim validation: role ---
+
     @Test
-    void validateToken_throwsMalformed_whenAccessTokenHasNoRoleClaim() {
+    void validateAccessToken_throwsMalformed_whenRoleClaimIsMissing() {
         String token = buildAccessTokenWithoutRole(1L);
 
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
-                () -> provider.validateToken(token)
+                () -> provider.validateAccessToken(token)
         );
 
         assertThat(exception).isNotNull();
@@ -340,12 +394,12 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void validateToken_throwsMalformed_whenAccessTokenHasBlankRole() {
+    void validateAccessToken_throwsMalformed_whenRoleClaimIsBlank() {
         String token = buildAccessTokenWithRole(1L, "  ");
 
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
-                () -> provider.validateToken(token)
+                () -> provider.validateAccessToken(token)
         );
 
         assertThat(exception).isNotNull();
@@ -353,12 +407,12 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void validateToken_throwsMalformed_whenAccessTokenRoleIsNotInRoleEnum() {
+    void validateAccessToken_throwsMalformed_whenRoleIsNotInEnum() {
         String token = buildAccessTokenWithRole(1L, "ADMIN");
 
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
-                () -> provider.validateToken(token)
+                () -> provider.validateAccessToken(token)
         );
 
         assertThat(exception).isNotNull();
@@ -366,12 +420,12 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void validateToken_throwsMalformed_whenAccessTokenRoleIsLowercaseEnumName() {
+    void validateAccessToken_throwsMalformed_whenRoleIsLowercaseEnumName() {
         String token = buildAccessTokenWithRole(1L, "user");
 
         JwtTokenException exception = catchThrowableOfType(
                 JwtTokenException.class,
-                () -> provider.validateToken(token)
+                () -> provider.validateAccessToken(token)
         );
 
         assertThat(exception).isNotNull();
@@ -379,20 +433,48 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void validateToken_doesNotRequireRoleClaim_forRefreshToken() {
+    void validateRefreshToken_doesNotRequireRoleClaim() {
         String token = provider.generateRefreshToken(1L);
 
-        assertThatCode(() -> provider.validateToken(token)).doesNotThrowAnyException();
+        Long userId = provider.validateRefreshToken(token);
+
+        assertThat(userId).isEqualTo(1L);
     }
 
-    private String buildExpiredToken(Long userId) {
+    // --- Clock skew tolerance (#4) ---
+
+    @Test
+    void validateAccessToken_toleratesClockSkewWithin30Seconds() {
+        String token = buildAccessTokenExpiringSecondsAgo(25);
+
+        TokenPayload payload = provider.validateAccessToken(token);
+
+        assertThat(payload.userId()).isEqualTo(1L);
+    }
+
+    @Test
+    void validateAccessToken_throwsExpired_whenBeyondClockSkewTolerance() {
+        String token = buildAccessTokenExpiringSecondsAgo(35);
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateAccessToken(token)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.EXPIRED_TOKEN);
+    }
+
+    // --- Helper methods ---
+
+    private String buildExpiredAccessToken(Long userId) {
         SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         Date issuedAt = new Date(System.currentTimeMillis() - 120_000);
         Date expiration = new Date(System.currentTimeMillis() - 60_000);
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("userId", userId)
-                .claim("role", "USER")
+                .claim("role", Role.USER.name())
                 .claim("tokenType", "access")
                 .issuedAt(issuedAt)
                 .expiration(expiration)
@@ -400,13 +482,15 @@ class JwtTokenProviderTest {
                 .compact();
     }
 
-    private String buildTokenWithoutUserId() {
+    private String buildAccessTokenExpiringSecondsAgo(int secondsAgo) {
         SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
-        Date issuedAt = new Date();
-        Date expiration = new Date(System.currentTimeMillis() + 60_000);
+        long now = System.currentTimeMillis();
+        Date issuedAt = new Date(now - 60_000);
+        Date expiration = new Date(now - (secondsAgo * 1000L));
         return Jwts.builder()
                 .subject("1")
-                .claim("role", "USER")
+                .claim("userId", 1L)
+                .claim("role", Role.USER.name())
                 .claim("tokenType", "access")
                 .issuedAt(issuedAt)
                 .expiration(expiration)
@@ -414,19 +498,7 @@ class JwtTokenProviderTest {
                 .compact();
     }
 
-    private String buildTokenWithoutExpiration(Long userId) {
-        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
-        return Jwts.builder()
-                .subject(String.valueOf(userId))
-                .claim("userId", userId)
-                .claim("role", "USER")
-                .claim("tokenType", "access")
-                .issuedAt(new Date())
-                .signWith(key, Jwts.SIG.HS256)
-                .compact();
-    }
-
-    private String buildPrematureToken(Long userId) {
+    private String buildPrematureAccessToken(Long userId) {
         SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         Date now = new Date();
         Date notBefore = new Date(now.getTime() + 60_000);
@@ -434,11 +506,37 @@ class JwtTokenProviderTest {
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("userId", userId)
-                .claim("role", "USER")
+                .claim("role", Role.USER.name())
                 .claim("tokenType", "access")
                 .issuedAt(now)
                 .notBefore(notBefore)
                 .expiration(expiration)
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    private String buildAccessTokenWithoutUserId() {
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        Date issuedAt = new Date();
+        Date expiration = new Date(System.currentTimeMillis() + 60_000);
+        return Jwts.builder()
+                .subject("1")
+                .claim("role", Role.USER.name())
+                .claim("tokenType", "access")
+                .issuedAt(issuedAt)
+                .expiration(expiration)
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    private String buildAccessTokenWithoutExpiration(Long userId) {
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim("userId", userId)
+                .claim("role", Role.USER.name())
+                .claim("tokenType", "access")
+                .issuedAt(new Date())
                 .signWith(key, Jwts.SIG.HS256)
                 .compact();
     }
@@ -450,7 +548,7 @@ class JwtTokenProviderTest {
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("userId", userId)
-                .claim("role", "USER")
+                .claim("role", Role.USER.name())
                 .issuedAt(issuedAt)
                 .expiration(expiration)
                 .signWith(key, Jwts.SIG.HS256)
@@ -464,8 +562,23 @@ class JwtTokenProviderTest {
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("userId", userId)
-                .claim("role", "USER")
+                .claim("role", Role.USER.name())
                 .claim("tokenType", tokenType)
+                .issuedAt(issuedAt)
+                .expiration(expiration)
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    private String buildTokenWithNonStringTokenType(Long userId) {
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        Date issuedAt = new Date();
+        Date expiration = new Date(System.currentTimeMillis() + 60_000);
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim("userId", userId)
+                .claim("role", Role.USER.name())
+                .claim("tokenType", 1)
                 .issuedAt(issuedAt)
                 .expiration(expiration)
                 .signWith(key, Jwts.SIG.HS256)
@@ -495,21 +608,6 @@ class JwtTokenProviderTest {
                 .claim("userId", userId)
                 .claim("role", role)
                 .claim("tokenType", "access")
-                .issuedAt(issuedAt)
-                .expiration(expiration)
-                .signWith(key, Jwts.SIG.HS256)
-                .compact();
-    }
-
-    private String buildTokenWithNonStringTokenType(Long userId) {
-        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
-        Date issuedAt = new Date();
-        Date expiration = new Date(System.currentTimeMillis() + 60_000);
-        return Jwts.builder()
-                .subject(String.valueOf(userId))
-                .claim("userId", userId)
-                .claim("role", "USER")
-                .claim("tokenType", 1)
                 .issuedAt(issuedAt)
                 .expiration(expiration)
                 .signWith(key, Jwts.SIG.HS256)
