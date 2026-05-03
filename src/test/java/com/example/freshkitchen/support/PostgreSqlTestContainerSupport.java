@@ -1,7 +1,9 @@
 package com.example.freshkitchen.support;
 
+import org.opentest4j.TestAbortedException;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -30,6 +32,9 @@ public abstract class PostgreSqlTestContainerSupport {
 
     private static synchronized void startContainerIfNeeded() {
         if (!POSTGRESQL_CONTAINER.isRunning()) {
+            if (!DockerClientFactory.instance().isDockerAvailable()) {
+                throw new TestAbortedException("Docker is not available");
+            }
             POSTGRESQL_CONTAINER.start();
         }
     }

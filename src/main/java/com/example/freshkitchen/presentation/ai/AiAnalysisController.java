@@ -1,5 +1,6 @@
 package com.example.freshkitchen.presentation.ai;
 
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.global.response.ApiResponse;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import com.example.freshkitchen.infrastructure.ai.dto.FoodClassificationResponse;
@@ -23,16 +24,25 @@ public class AiAnalysisController {
 
     @PostMapping(value = "/food-classification", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<FoodClassificationResponse>> classifyFood(@RequestPart("file") MultipartFile file) {
+        validateFile(file);
         return ApiResponse.success(aiServerClient.classifyFood(file));
     }
 
     @PostMapping(value = "/receipt-ocr", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ReceiptOcrResponse>> extractReceiptIngredients(@RequestPart("file") MultipartFile file) {
+        validateFile(file);
         return ApiResponse.success(aiServerClient.extractReceiptIngredients(file));
     }
 
     @PostMapping(value = "/fridge-detection", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<FridgeDetectionResponse>> detectFridgeObjects(@RequestPart("file") MultipartFile file) {
+        validateFile(file);
         return ApiResponse.success(aiServerClient.detectFridgeObjects(file));
+    }
+
+    private static void validateFile(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new BusinessValidationException("file must not be empty");
+        }
     }
 }
