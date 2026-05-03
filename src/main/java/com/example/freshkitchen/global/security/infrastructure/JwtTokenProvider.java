@@ -31,6 +31,7 @@ public class JwtTokenProvider {
     private static final String TOKEN_TYPE_ACCESS = "access";
     private static final String TOKEN_TYPE_REFRESH = "refresh";
     private static final int MINIMUM_SECRET_BYTES = 32;
+    private static final int CLOCK_SKEW_SECONDS = 30;
     private static final MacAlgorithm SIGNATURE_ALGORITHM = Jwts.SIG.HS256;
 
     private final SecretKey secretKey;
@@ -51,7 +52,7 @@ public class JwtTokenProvider {
         Assert.isTrue(accessExpirationMinutes > 0, "jwt.access-expiration-minutes must be positive");
         Assert.isTrue(refreshExpirationDays > 0, "jwt.refresh-expiration-days must be positive");
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.jwtParser = Jwts.parser().verifyWith(this.secretKey).clockSkewSeconds(30).build();
+        this.jwtParser = Jwts.parser().verifyWith(this.secretKey).clockSkewSeconds(CLOCK_SKEW_SECONDS).build();
         this.accessExpirationMillis = Duration.ofMinutes(accessExpirationMinutes).toMillis();
         this.refreshExpirationMillis = Duration.ofDays(refreshExpirationDays).toMillis();
     }
@@ -63,7 +64,6 @@ public class JwtTokenProvider {
         Date expiration = new Date(now.getTime() + accessExpirationMillis);
 
         return Jwts.builder()
-                .subject(String.valueOf(userId))
                 .claim(CLAIM_USER_ID, userId)
                 .claim(CLAIM_ROLE, role.name())
                 .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_ACCESS)
@@ -79,7 +79,6 @@ public class JwtTokenProvider {
         Date expiration = new Date(now.getTime() + refreshExpirationMillis);
 
         return Jwts.builder()
-                .subject(String.valueOf(userId))
                 .claim(CLAIM_USER_ID, userId)
                 .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_REFRESH)
                 .issuedAt(now)

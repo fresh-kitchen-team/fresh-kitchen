@@ -472,7 +472,6 @@ class JwtTokenProviderTest {
         Date issuedAt = new Date(System.currentTimeMillis() - 120_000);
         Date expiration = new Date(System.currentTimeMillis() - 60_000);
         return Jwts.builder()
-                .subject(String.valueOf(userId))
                 .claim("userId", userId)
                 .claim("role", Role.USER.name())
                 .claim("tokenType", "access")
@@ -488,7 +487,6 @@ class JwtTokenProviderTest {
         Date issuedAt = new Date(now - 60_000);
         Date expiration = new Date(now - (secondsAgo * 1000L));
         return Jwts.builder()
-                .subject("1")
                 .claim("userId", 1L)
                 .claim("role", Role.USER.name())
                 .claim("tokenType", "access")
@@ -504,7 +502,6 @@ class JwtTokenProviderTest {
         Date notBefore = new Date(now.getTime() + 60_000);
         Date expiration = new Date(now.getTime() + 120_000);
         return Jwts.builder()
-                .subject(String.valueOf(userId))
                 .claim("userId", userId)
                 .claim("role", Role.USER.name())
                 .claim("tokenType", "access")
@@ -520,7 +517,6 @@ class JwtTokenProviderTest {
         Date issuedAt = new Date();
         Date expiration = new Date(System.currentTimeMillis() + 60_000);
         return Jwts.builder()
-                .subject("1")
                 .claim("role", Role.USER.name())
                 .claim("tokenType", "access")
                 .issuedAt(issuedAt)
@@ -532,7 +528,6 @@ class JwtTokenProviderTest {
     private String buildAccessTokenWithoutExpiration(Long userId) {
         SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         return Jwts.builder()
-                .subject(String.valueOf(userId))
                 .claim("userId", userId)
                 .claim("role", Role.USER.name())
                 .claim("tokenType", "access")
@@ -546,7 +541,6 @@ class JwtTokenProviderTest {
         Date issuedAt = new Date();
         Date expiration = new Date(System.currentTimeMillis() + 60_000);
         return Jwts.builder()
-                .subject(String.valueOf(userId))
                 .claim("userId", userId)
                 .claim("role", Role.USER.name())
                 .issuedAt(issuedAt)
@@ -560,7 +554,6 @@ class JwtTokenProviderTest {
         Date issuedAt = new Date();
         Date expiration = new Date(System.currentTimeMillis() + 60_000);
         return Jwts.builder()
-                .subject(String.valueOf(userId))
                 .claim("userId", userId)
                 .claim("role", Role.USER.name())
                 .claim("tokenType", tokenType)
@@ -575,7 +568,6 @@ class JwtTokenProviderTest {
         Date issuedAt = new Date();
         Date expiration = new Date(System.currentTimeMillis() + 60_000);
         return Jwts.builder()
-                .subject(String.valueOf(userId))
                 .claim("userId", userId)
                 .claim("role", Role.USER.name())
                 .claim("tokenType", 1)
@@ -590,7 +582,6 @@ class JwtTokenProviderTest {
         Date issuedAt = new Date();
         Date expiration = new Date(System.currentTimeMillis() + 60_000);
         return Jwts.builder()
-                .subject(String.valueOf(userId))
                 .claim("userId", userId)
                 .claim("tokenType", "access")
                 .issuedAt(issuedAt)
@@ -604,7 +595,6 @@ class JwtTokenProviderTest {
         Date issuedAt = new Date();
         Date expiration = new Date(System.currentTimeMillis() + 60_000);
         return Jwts.builder()
-                .subject(String.valueOf(userId))
                 .claim("userId", userId)
                 .claim("role", role)
                 .claim("tokenType", "access")
