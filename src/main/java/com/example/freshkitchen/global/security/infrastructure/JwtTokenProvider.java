@@ -124,13 +124,18 @@ public class JwtTokenProvider {
 
     private Long extractUserId(Claims claims) {
         Object userIdClaim = claims.get(CLAIM_USER_ID);
-        if (userIdClaim instanceof Long id) {
-            return id;
+        long id;
+        if (userIdClaim instanceof Long l) {
+            id = l;
+        } else if (userIdClaim instanceof Integer i) {
+            id = i.longValue();
+        } else {
+            throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
         }
-        if (userIdClaim instanceof Integer id) {
-            return id.longValue();
+        if (id <= 0) {
+            throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
         }
-        throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
+        return id;
     }
 
     private Claims parseClaims(String token) {

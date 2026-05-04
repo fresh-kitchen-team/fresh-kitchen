@@ -347,6 +347,32 @@ class JwtTokenProviderTest {
         assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
     }
 
+    @Test
+    void validateAccessToken_throwsMalformed_whenUserIdIsZeroInToken() {
+        String token = tokenBuilder().userId(0L).build();
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateAccessToken(token)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
+    }
+
+    @Test
+    void validateAccessToken_throwsMalformed_whenUserIdIsNegativeInToken() {
+        String token = tokenBuilder().userId(-1L).build();
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateAccessToken(token)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
+    }
+
     // --- Claim validation: expiration ---
 
     @Test
@@ -492,130 +518,97 @@ class JwtTokenProviderTest {
 
     // --- Helper methods ---
 
+    private TestTokenBuilder tokenBuilder() {
+        return new TestTokenBuilder();
+    }
+
+    private static class TestTokenBuilder {
+        private Long userId = 1L;
+        private String role = Role.USER.name();
+        private Object tokenType = "access";
+        private Date issuedAt = new Date();
+        private Date expiration = new Date(System.currentTimeMillis() + 60_000);
+        private Date notBefore = null;
+        private boolean includeUserId = true;
+        private boolean includeRole = true;
+        private boolean includeTokenType = true;
+        private boolean includeExpiration = true;
+
+        TestTokenBuilder userId(Long userId) { this.userId = userId; this.includeUserId = true; return this; }
+        TestTokenBuilder noUserId() { this.includeUserId = false; return this; }
+        TestTokenBuilder role(String role) { this.role = role; this.includeRole = true; return this; }
+        TestTokenBuilder noRole() { this.includeRole = false; return this; }
+        TestTokenBuilder tokenType(Object tokenType) { this.tokenType = tokenType; this.includeTokenType = true; return this; }
+        TestTokenBuilder noTokenType() { this.includeTokenType = false; return this; }
+        TestTokenBuilder issuedAt(Date issuedAt) { this.issuedAt = issuedAt; return this; }
+        TestTokenBuilder expiration(Date expiration) { this.expiration = expiration; this.includeExpiration = true; return this; }
+        TestTokenBuilder noExpiration() { this.includeExpiration = false; return this; }
+        TestTokenBuilder notBefore(Date notBefore) { this.notBefore = notBefore; return this; }
+
+        String build() {
+            var builder = Jwts.builder();
+            if (includeUserId) builder.claim("userId", userId);
+            if (includeRole) builder.claim("role", role);
+            if (includeTokenType) builder.claim("tokenType", tokenType);
+            builder.issuedAt(issuedAt);
+            if (includeExpiration) builder.expiration(expiration);
+            if (notBefore != null) builder.notBefore(notBefore);
+            builder.signWith(KEY, Jwts.SIG.HS256);
+            return builder.compact();
+        }
+    }
+
     private String buildExpiredAccessToken(Long userId) {
-        Date issuedAt = new Date(System.currentTimeMillis() - 120_000);
-        Date expiration = new Date(System.currentTimeMillis() - 60_000);
-        return Jwts.builder()
-                .claim("userId", userId)
-                .claim("role", Role.USER.name())
-                .claim("tokenType", "access")
-                .issuedAt(issuedAt)
-                .expiration(expiration)
-                .signWith(KEY, Jwts.SIG.HS256)
-                .compact();
+        return tokenBuilder()
+                .userId(userId)
+                .issuedAt(new Date(System.currentTimeMillis() - 120_000))
+                .expiration(new Date(System.currentTimeMillis() - 60_000))
+                .build();
     }
 
     private String buildAccessTokenExpiringSecondsAgo(int secondsAgo) {
         long now = System.currentTimeMillis();
-        Date issuedAt = new Date(now - 60_000);
-        Date expiration = new Date(now - (secondsAgo * 1000L));
-        return Jwts.builder()
-                .claim("userId", 1L)
-                .claim("role", Role.USER.name())
-                .claim("tokenType", "access")
-                .issuedAt(issuedAt)
-                .expiration(expiration)
-                .signWith(KEY, Jwts.SIG.HS256)
-                .compact();
+        return tokenBuilder()
+                .issuedAt(new Date(now - 60_000))
+                .expiration(new Date(now - (secondsAgo * 1000L)))
+                .build();
     }
 
     private String buildPrematureAccessToken(Long userId) {
         Date now = new Date();
-        Date notBefore = new Date(now.getTime() + 60_000);
-        Date expiration = new Date(now.getTime() + 120_000);
-        return Jwts.builder()
-                .claim("userId", userId)
-                .claim("role", Role.USER.name())
-                .claim("tokenType", "access")
+        return tokenBuilder()
+                .userId(userId)
                 .issuedAt(now)
-                .notBefore(notBefore)
-                .expiration(expiration)
-                .signWith(KEY, Jwts.SIG.HS256)
-                .compact();
+                .notBefore(new Date(now.getTime() + 60_000))
+                .expiration(new Date(now.getTime() + 120_000))
+                .build();
     }
 
     private String buildAccessTokenWithoutUserId() {
-        Date issuedAt = new Date();
-        Date expiration = new Date(System.currentTimeMillis() + 60_000);
-        return Jwts.builder()
-                .claim("role", Role.USER.name())
-                .claim("tokenType", "access")
-                .issuedAt(issuedAt)
-                .expiration(expiration)
-                .signWith(KEY, Jwts.SIG.HS256)
-                .compact();
+        return tokenBuilder().noUserId().build();
     }
 
     private String buildAccessTokenWithoutExpiration(Long userId) {
-        return Jwts.builder()
-                .claim("userId", userId)
-                .claim("role", Role.USER.name())
-                .claim("tokenType", "access")
-                .issuedAt(new Date())
-                .signWith(KEY, Jwts.SIG.HS256)
-                .compact();
+        return tokenBuilder().userId(userId).noExpiration().build();
     }
 
     private String buildTokenWithoutTokenType(Long userId) {
-        Date issuedAt = new Date();
-        Date expiration = new Date(System.currentTimeMillis() + 60_000);
-        return Jwts.builder()
-                .claim("userId", userId)
-                .claim("role", Role.USER.name())
-                .issuedAt(issuedAt)
-                .expiration(expiration)
-                .signWith(KEY, Jwts.SIG.HS256)
-                .compact();
+        return tokenBuilder().userId(userId).noTokenType().build();
     }
 
     private String buildTokenWithTokenType(Long userId, String tokenType) {
-        Date issuedAt = new Date();
-        Date expiration = new Date(System.currentTimeMillis() + 60_000);
-        return Jwts.builder()
-                .claim("userId", userId)
-                .claim("role", Role.USER.name())
-                .claim("tokenType", tokenType)
-                .issuedAt(issuedAt)
-                .expiration(expiration)
-                .signWith(KEY, Jwts.SIG.HS256)
-                .compact();
+        return tokenBuilder().userId(userId).tokenType(tokenType).build();
     }
 
     private String buildTokenWithNonStringTokenType(Long userId) {
-        Date issuedAt = new Date();
-        Date expiration = new Date(System.currentTimeMillis() + 60_000);
-        return Jwts.builder()
-                .claim("userId", userId)
-                .claim("role", Role.USER.name())
-                .claim("tokenType", 1)
-                .issuedAt(issuedAt)
-                .expiration(expiration)
-                .signWith(KEY, Jwts.SIG.HS256)
-                .compact();
+        return tokenBuilder().userId(userId).tokenType(1).build();
     }
 
     private String buildAccessTokenWithoutRole(Long userId) {
-        Date issuedAt = new Date();
-        Date expiration = new Date(System.currentTimeMillis() + 60_000);
-        return Jwts.builder()
-                .claim("userId", userId)
-                .claim("tokenType", "access")
-                .issuedAt(issuedAt)
-                .expiration(expiration)
-                .signWith(KEY, Jwts.SIG.HS256)
-                .compact();
+        return tokenBuilder().userId(userId).noRole().build();
     }
 
     private String buildAccessTokenWithRole(Long userId, String role) {
-        Date issuedAt = new Date();
-        Date expiration = new Date(System.currentTimeMillis() + 60_000);
-        return Jwts.builder()
-                .claim("userId", userId)
-                .claim("role", role)
-                .claim("tokenType", "access")
-                .issuedAt(issuedAt)
-                .expiration(expiration)
-                .signWith(KEY, Jwts.SIG.HS256)
-                .compact();
+        return tokenBuilder().userId(userId).role(role).build();
     }
 }
