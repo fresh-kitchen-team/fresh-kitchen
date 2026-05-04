@@ -151,8 +151,32 @@ class JwtTokenProviderTest {
     }
 
     @Test
+    void generateAccessToken_throwsException_whenUserIdIsZero() {
+        assertThatThrownBy(() -> provider.generateAccessToken(0L, Role.USER))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void generateAccessToken_throwsException_whenUserIdIsNegative() {
+        assertThatThrownBy(() -> provider.generateAccessToken(-1L, Role.USER))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void generateRefreshToken_throwsException_whenUserIdIsNull() {
         assertThatThrownBy(() -> provider.generateRefreshToken(null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void generateRefreshToken_throwsException_whenUserIdIsZero() {
+        assertThatThrownBy(() -> provider.generateRefreshToken(0L))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void generateRefreshToken_throwsException_whenUserIdIsNegative() {
+        assertThatThrownBy(() -> provider.generateRefreshToken(-1L))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 

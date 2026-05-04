@@ -59,6 +59,7 @@ public class JwtTokenProvider {
 
     public String generateAccessToken(Long userId, Role role) {
         Assert.notNull(userId, "userId must not be null");
+        Assert.isTrue(userId > 0, "userId must be positive");
         Assert.notNull(role, "role must not be null");
         Date now = new Date();
         Date expiration = new Date(now.getTime() + accessExpirationMillis);
@@ -75,6 +76,7 @@ public class JwtTokenProvider {
 
     public String generateRefreshToken(Long userId) {
         Assert.notNull(userId, "userId must not be null");
+        Assert.isTrue(userId > 0, "userId must be positive");
         Date now = new Date();
         Date expiration = new Date(now.getTime() + refreshExpirationMillis);
 
