@@ -1,10 +1,12 @@
 package com.example.freshkitchen.global.security.infrastructure;
 
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.global.security.Role;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
 import com.example.freshkitchen.global.security.exception.JwtTokenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
@@ -58,9 +60,10 @@ public class JwtTokenProvider {
     }
 
     public String generateAccessToken(Long userId, Role role) {
-        Assert.notNull(userId, "userId must not be null");
-        Assert.isTrue(userId > 0, "userId must be positive");
-        Assert.notNull(role, "role must not be null");
+        validateUserId(userId);
+        if (role == null) {
+            throw new BusinessValidationException("role must not be null");
+        }
         Date now = new Date();
         Date expiration = new Date(now.getTime() + accessExpirationMillis);
 
@@ -75,8 +78,7 @@ public class JwtTokenProvider {
     }
 
     public String generateRefreshToken(Long userId) {
-        Assert.notNull(userId, "userId must not be null");
-        Assert.isTrue(userId > 0, "userId must be positive");
+        validateUserId(userId);
         Date now = new Date();
         Date expiration = new Date(now.getTime() + refreshExpirationMillis);
 
@@ -138,6 +140,15 @@ public class JwtTokenProvider {
         return id;
     }
 
+    private void validateUserId(Long userId) {
+        if (userId == null) {
+            throw new BusinessValidationException("userId must not be null");
+        }
+        if (userId <= 0) {
+            throw new BusinessValidationException("userId must be positive");
+        }
+    }
+
     private Claims parseClaims(String token) {
         try {
             Claims claims = jwtParser
@@ -157,6 +168,8 @@ public class JwtTokenProvider {
             throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN, e);
         } catch (UnsupportedJwtException e) {
             throw new JwtTokenException(JwtErrorCode.UNSUPPORTED_TOKEN, e);
+        } catch (JwtException e) {
+            throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN, e);
         } catch (IllegalArgumentException e) {
             throw new JwtTokenException(JwtErrorCode.EMPTY_CLAIMS, e);
         }

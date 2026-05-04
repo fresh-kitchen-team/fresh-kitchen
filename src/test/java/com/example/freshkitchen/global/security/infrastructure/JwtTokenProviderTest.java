@@ -1,5 +1,6 @@
 package com.example.freshkitchen.global.security.infrastructure;
 
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.global.security.Role;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
 import com.example.freshkitchen.global.security.exception.JwtTokenException;
@@ -141,43 +142,43 @@ class JwtTokenProviderTest {
     @Test
     void generateAccessToken_throwsException_whenUserIdIsNull() {
         assertThatThrownBy(() -> provider.generateAccessToken(null, Role.USER))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessValidationException.class);
     }
 
     @Test
     void generateAccessToken_throwsException_whenRoleIsNull() {
         assertThatThrownBy(() -> provider.generateAccessToken(1L, null))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessValidationException.class);
     }
 
     @Test
     void generateAccessToken_throwsException_whenUserIdIsZero() {
         assertThatThrownBy(() -> provider.generateAccessToken(0L, Role.USER))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessValidationException.class);
     }
 
     @Test
     void generateAccessToken_throwsException_whenUserIdIsNegative() {
         assertThatThrownBy(() -> provider.generateAccessToken(-1L, Role.USER))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessValidationException.class);
     }
 
     @Test
     void generateRefreshToken_throwsException_whenUserIdIsNull() {
         assertThatThrownBy(() -> provider.generateRefreshToken(null))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessValidationException.class);
     }
 
     @Test
     void generateRefreshToken_throwsException_whenUserIdIsZero() {
         assertThatThrownBy(() -> provider.generateRefreshToken(0L))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessValidationException.class);
     }
 
     @Test
     void generateRefreshToken_throwsException_whenUserIdIsNegative() {
         assertThatThrownBy(() -> provider.generateRefreshToken(-1L))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessValidationException.class);
     }
 
     // --- validateAccessToken: happy path ---
@@ -556,6 +557,40 @@ class JwtTokenProviderTest {
 
         assertThat(exception).isNotNull();
         assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.EXPIRED_TOKEN);
+    }
+
+    // --- Clock skew tolerance: nbf ---
+
+    @Test
+    void validateAccessToken_toleratesNbfClockSkewWithin30Seconds() {
+        long now = System.currentTimeMillis();
+        String token = tokenBuilder()
+                .issuedAt(new Date(now))
+                .notBefore(new Date(now + 25_000))
+                .expiration(new Date(now + 120_000))
+                .build();
+
+        TokenPayload payload = provider.validateAccessToken(token);
+
+        assertThat(payload.userId()).isEqualTo(1L);
+    }
+
+    @Test
+    void validateAccessToken_throwsNotYetValid_whenNbfExceedsClockSkew() {
+        long now = System.currentTimeMillis();
+        String token = tokenBuilder()
+                .issuedAt(new Date(now))
+                .notBefore(new Date(now + 35_000))
+                .expiration(new Date(now + 120_000))
+                .build();
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateAccessToken(token)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.NOT_YET_VALID_TOKEN);
     }
 
     // --- Helper methods ---
