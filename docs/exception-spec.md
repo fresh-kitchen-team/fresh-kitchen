@@ -41,6 +41,7 @@
 - `IngredientException`
 - `ImageException`
 - `UserException`
+- `AiServerException`
 
 도메인별 예외는 각 도메인의 `ErrorCode` enum 과 1:1로 연결한다.
 
@@ -104,7 +105,7 @@
 - `DOMAIN`
   - uppercase 사용
   - 대표 도메인명 사용
-  - 예: `COMMON`, `USER`, `INGREDIENT`, `IMAGE`
+  - 예: `COMMON`, `USER`, `INGREDIENT`, `IMAGE`, `AI`
 
 - `HTTP_STATUS`
   - 실제 응답 status 와 일치해야 한다.
@@ -180,6 +181,14 @@
 | Enum | HTTP Status | Code | Message | 의미 |
 |------|-------------|------|---------|------|
 | `USER_NOT_FOUND` | `404` | `USER-404-1` | `user not found` | 대상 사용자 조회 실패 |
+
+### 6.4 AiServerErrorCode
+
+| Enum | HTTP Status | Code | Message | 의미 |
+|------|-------------|------|---------|------|
+| `AI_SERVER_UNAVAILABLE` | `503` | `AI-503-1` | `AI server unavailable` | AI 서버 연결 실패 또는 5xx 응답 |
+| `AI_SERVER_TIMEOUT` | `504` | `AI-504-1` | `AI server timeout` | AI 서버 요청 timeout |
+| `AI_RESPONSE_INVALID` | `502` | `AI-502-1` | `AI response invalid` | AI 서버 응답 형식 오류 또는 FastAPI 4xx 응답 |
 
 ---
 
@@ -308,11 +317,14 @@
 - 이미지 도메인 코드
   - `src/main/java/com/example/freshkitchen/domain/image/exception`
 
+- AI 서버 연동 코드
+  - `src/main/java/com/example/freshkitchen/infrastructure/ai/exception`
+
 ---
 
 ## 12. 후속 확장 포인트
 
-- `UserErrorCode`, `CatalogErrorCode` 추가
+- `CatalogErrorCode` 추가
 - Bean Validation 연동 시 필드 에러 목록 확장
 - API 문서화 도구와 연결해 에러 코드 테이블 자동화
 - 프론트 공통 에러 매핑 테이블 정의

@@ -7,7 +7,14 @@ services:
       - DB_URL=${DB_URL}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
+<<<<<<< feat/security-filter-chain
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+=======
+      - AI_SERVER_BASE_URL=${AI_SERVER_BASE_URL}
+      - AI_SERVER_TOKEN=${AI_SERVER_TOKEN}
+      - AI_SERVER_CONNECT_TIMEOUT_MS=${AI_SERVER_CONNECT_TIMEOUT_MS:-3000}
+      - AI_SERVER_READ_TIMEOUT_MS=${AI_SERVER_READ_TIMEOUT_MS:-30000}
+>>>>>>> dev
     ports:
       - "8080:8080"
     restart: unless-stopped

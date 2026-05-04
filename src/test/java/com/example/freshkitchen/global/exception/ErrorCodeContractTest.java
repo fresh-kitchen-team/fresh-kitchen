@@ -9,10 +9,13 @@ import com.example.freshkitchen.domain.user.exception.UserException;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
 import com.example.freshkitchen.global.security.exception.JwtTokenException;
 import com.example.freshkitchen.global.security.exception.SecurityErrorCode;
+import com.example.freshkitchen.infrastructure.ai.exception.AiServerErrorCode;
+import com.example.freshkitchen.infrastructure.ai.exception.AiServerException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 class ErrorCodeContractTest {
 
@@ -149,6 +152,25 @@ class ErrorCodeContractTest {
         assertContract(JwtErrorCode.UNSUPPORTED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-4", "unsupported token");
         assertContract(JwtErrorCode.EMPTY_CLAIMS, HttpStatus.UNAUTHORIZED, "AUTH-401-5", "token claims are empty");
         assertContract(JwtErrorCode.NOT_YET_VALID_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-6", "token is not yet valid");
+    void aiServerErrorCode_contractMatchesSpecification() {
+        assertContract(
+                AiServerErrorCode.AI_SERVER_UNAVAILABLE,
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "AI-503-1",
+                "AI server unavailable"
+        );
+        assertContract(
+                AiServerErrorCode.AI_SERVER_TIMEOUT,
+                HttpStatus.GATEWAY_TIMEOUT,
+                "AI-504-1",
+                "AI server timeout"
+        );
+        assertContract(
+                AiServerErrorCode.AI_RESPONSE_INVALID,
+                HttpStatus.BAD_GATEWAY,
+                "AI-502-1",
+                "AI response invalid"
+        );
     }
 
     @Test
@@ -156,11 +178,13 @@ class ErrorCodeContractTest {
         IngredientException ingredientException = new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND);
         ImageException imageException = new ImageException(ImageErrorCode.USER_UPLOAD_OWNER_REQUIRED);
         UserException userException = new UserException(UserErrorCode.USER_NOT_FOUND);
+        AiServerException aiServerException = new AiServerException(AiServerErrorCode.AI_SERVER_UNAVAILABLE);
         BusinessValidationException validationException = new BusinessValidationException("name must not be blank");
 
         assertEquals(IngredientErrorCode.INGREDIENT_NOT_FOUND, ingredientException.getErrorCode());
         assertEquals(ImageErrorCode.USER_UPLOAD_OWNER_REQUIRED, imageException.getErrorCode());
         assertEquals(UserErrorCode.USER_NOT_FOUND, userException.getErrorCode());
+        assertEquals(AiServerErrorCode.AI_SERVER_UNAVAILABLE, aiServerException.getErrorCode());
         assertEquals(CommonErrorCode.INVALID_INPUT, validationException.getErrorCode());
     }
 
@@ -169,6 +193,12 @@ class ErrorCodeContractTest {
         JwtTokenException jwtException = new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
 
         assertEquals(JwtErrorCode.EXPIRED_TOKEN, jwtException.getErrorCode());
+    void aiServerException_preservesCause() {
+        RuntimeException cause = new RuntimeException("connection refused");
+
+        AiServerException exception = new AiServerException(AiServerErrorCode.AI_SERVER_UNAVAILABLE, cause);
+
+        assertSame(cause, exception.getCause());
     }
 
     private static void assertContract(ErrorCode errorCode, HttpStatus status, String code, String message) {
