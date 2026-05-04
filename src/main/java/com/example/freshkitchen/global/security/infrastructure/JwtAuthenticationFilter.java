@@ -29,7 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         String token = extractToken(request);
 
-        if (token != null) {
+        if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 TokenPayload payload = jwtTokenProvider.validateAccessToken(token);
                 SecurityContextHolder.getContext().setAuthentication(

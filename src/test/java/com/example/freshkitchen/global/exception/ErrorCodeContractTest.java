@@ -152,6 +152,9 @@ class ErrorCodeContractTest {
         assertContract(JwtErrorCode.UNSUPPORTED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-4", "unsupported token");
         assertContract(JwtErrorCode.EMPTY_CLAIMS, HttpStatus.UNAUTHORIZED, "AUTH-401-5", "token claims are empty");
         assertContract(JwtErrorCode.NOT_YET_VALID_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-6", "token is not yet valid");
+    }
+
+    @Test
     void aiServerErrorCode_contractMatchesSpecification() {
         assertContract(
                 AiServerErrorCode.AI_SERVER_UNAVAILABLE,
@@ -193,6 +196,9 @@ class ErrorCodeContractTest {
         JwtTokenException jwtException = new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
 
         assertEquals(JwtErrorCode.EXPIRED_TOKEN, jwtException.getErrorCode());
+    }
+
+    @Test
     void aiServerException_preservesCause() {
         RuntimeException cause = new RuntimeException("connection refused");
 

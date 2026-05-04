@@ -9,6 +9,7 @@ import com.example.freshkitchen.global.security.infrastructure.TokenPayload;
 import com.example.freshkitchen.application.user.usecase.DeleteUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.GetUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
+import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -41,6 +42,9 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private DeleteUserProfileUseCase deleteUserProfileUseCase;
+
+    @MockitoBean
+    private AiServerClient aiServerClient;
 
     @Test
     void protectedEndpoint_returns401_whenNoTokenProvided() throws Exception {
