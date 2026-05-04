@@ -118,7 +118,7 @@ public class JwtTokenProvider {
         try {
             return Role.valueOf(roleStr);
         } catch (IllegalArgumentException e) {
-            throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
+            throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN, e);
         }
     }
 
@@ -148,17 +148,17 @@ public class JwtTokenProvider {
             }
             return claims;
         } catch (ExpiredJwtException e) {
-            throw new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
+            throw new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN, e);
         } catch (PrematureJwtException e) {
-            throw new JwtTokenException(JwtErrorCode.NOT_YET_VALID_TOKEN);
+            throw new JwtTokenException(JwtErrorCode.NOT_YET_VALID_TOKEN, e);
         } catch (SignatureException e) {
-            throw new JwtTokenException(JwtErrorCode.INVALID_SIGNATURE);
+            throw new JwtTokenException(JwtErrorCode.INVALID_SIGNATURE, e);
         } catch (MalformedJwtException e) {
-            throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN);
+            throw new JwtTokenException(JwtErrorCode.MALFORMED_TOKEN, e);
         } catch (UnsupportedJwtException e) {
-            throw new JwtTokenException(JwtErrorCode.UNSUPPORTED_TOKEN);
+            throw new JwtTokenException(JwtErrorCode.UNSUPPORTED_TOKEN, e);
         } catch (IllegalArgumentException e) {
-            throw new JwtTokenException(JwtErrorCode.EMPTY_CLAIMS);
+            throw new JwtTokenException(JwtErrorCode.EMPTY_CLAIMS, e);
         }
     }
 }
