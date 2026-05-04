@@ -24,6 +24,7 @@ class JwtTokenProviderTest {
     private static final String OTHER_SECRET = "another-secret-key-must-be-at-least-32-bytes-long-for-hmac";
     private static final long ACCESS_EXP_MIN = 30L;
     private static final long REFRESH_EXP_DAYS = 14L;
+    private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
 
     private JwtTokenProvider provider;
 
@@ -84,7 +85,7 @@ class JwtTokenProviderTest {
         String token = provider.generateAccessToken(1L, Role.USER);
 
         Claims claims = Jwts.parser()
-                .verifyWith(Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8)))
+                .verifyWith(KEY)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -99,7 +100,7 @@ class JwtTokenProviderTest {
         String token = provider.generateRefreshToken(1L);
 
         Claims claims = Jwts.parser()
-                .verifyWith(Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8)))
+                .verifyWith(KEY)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -114,7 +115,7 @@ class JwtTokenProviderTest {
         String token = provider.generateAccessToken(1L, Role.USER);
 
         Claims claims = Jwts.parser()
-                .verifyWith(Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8)))
+                .verifyWith(KEY)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -128,7 +129,7 @@ class JwtTokenProviderTest {
         String token = provider.generateRefreshToken(1L);
 
         Claims claims = Jwts.parser()
-                .verifyWith(Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8)))
+                .verifyWith(KEY)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -468,7 +469,6 @@ class JwtTokenProviderTest {
     // --- Helper methods ---
 
     private String buildExpiredAccessToken(Long userId) {
-        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         Date issuedAt = new Date(System.currentTimeMillis() - 120_000);
         Date expiration = new Date(System.currentTimeMillis() - 60_000);
         return Jwts.builder()
@@ -477,12 +477,11 @@ class JwtTokenProviderTest {
                 .claim("tokenType", "access")
                 .issuedAt(issuedAt)
                 .expiration(expiration)
-                .signWith(key, Jwts.SIG.HS256)
+                .signWith(KEY, Jwts.SIG.HS256)
                 .compact();
     }
 
     private String buildAccessTokenExpiringSecondsAgo(int secondsAgo) {
-        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         long now = System.currentTimeMillis();
         Date issuedAt = new Date(now - 60_000);
         Date expiration = new Date(now - (secondsAgo * 1000L));
@@ -492,12 +491,11 @@ class JwtTokenProviderTest {
                 .claim("tokenType", "access")
                 .issuedAt(issuedAt)
                 .expiration(expiration)
-                .signWith(key, Jwts.SIG.HS256)
+                .signWith(KEY, Jwts.SIG.HS256)
                 .compact();
     }
 
     private String buildPrematureAccessToken(Long userId) {
-        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         Date now = new Date();
         Date notBefore = new Date(now.getTime() + 60_000);
         Date expiration = new Date(now.getTime() + 120_000);
@@ -508,12 +506,11 @@ class JwtTokenProviderTest {
                 .issuedAt(now)
                 .notBefore(notBefore)
                 .expiration(expiration)
-                .signWith(key, Jwts.SIG.HS256)
+                .signWith(KEY, Jwts.SIG.HS256)
                 .compact();
     }
 
     private String buildAccessTokenWithoutUserId() {
-        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         Date issuedAt = new Date();
         Date expiration = new Date(System.currentTimeMillis() + 60_000);
         return Jwts.builder()
@@ -521,23 +518,21 @@ class JwtTokenProviderTest {
                 .claim("tokenType", "access")
                 .issuedAt(issuedAt)
                 .expiration(expiration)
-                .signWith(key, Jwts.SIG.HS256)
+                .signWith(KEY, Jwts.SIG.HS256)
                 .compact();
     }
 
     private String buildAccessTokenWithoutExpiration(Long userId) {
-        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         return Jwts.builder()
                 .claim("userId", userId)
                 .claim("role", Role.USER.name())
                 .claim("tokenType", "access")
                 .issuedAt(new Date())
-                .signWith(key, Jwts.SIG.HS256)
+                .signWith(KEY, Jwts.SIG.HS256)
                 .compact();
     }
 
     private String buildTokenWithoutTokenType(Long userId) {
-        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         Date issuedAt = new Date();
         Date expiration = new Date(System.currentTimeMillis() + 60_000);
         return Jwts.builder()
@@ -545,12 +540,11 @@ class JwtTokenProviderTest {
                 .claim("role", Role.USER.name())
                 .issuedAt(issuedAt)
                 .expiration(expiration)
-                .signWith(key, Jwts.SIG.HS256)
+                .signWith(KEY, Jwts.SIG.HS256)
                 .compact();
     }
 
     private String buildTokenWithTokenType(Long userId, String tokenType) {
-        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         Date issuedAt = new Date();
         Date expiration = new Date(System.currentTimeMillis() + 60_000);
         return Jwts.builder()
@@ -559,12 +553,11 @@ class JwtTokenProviderTest {
                 .claim("tokenType", tokenType)
                 .issuedAt(issuedAt)
                 .expiration(expiration)
-                .signWith(key, Jwts.SIG.HS256)
+                .signWith(KEY, Jwts.SIG.HS256)
                 .compact();
     }
 
     private String buildTokenWithNonStringTokenType(Long userId) {
-        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         Date issuedAt = new Date();
         Date expiration = new Date(System.currentTimeMillis() + 60_000);
         return Jwts.builder()
@@ -573,12 +566,11 @@ class JwtTokenProviderTest {
                 .claim("tokenType", 1)
                 .issuedAt(issuedAt)
                 .expiration(expiration)
-                .signWith(key, Jwts.SIG.HS256)
+                .signWith(KEY, Jwts.SIG.HS256)
                 .compact();
     }
 
     private String buildAccessTokenWithoutRole(Long userId) {
-        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         Date issuedAt = new Date();
         Date expiration = new Date(System.currentTimeMillis() + 60_000);
         return Jwts.builder()
@@ -586,12 +578,11 @@ class JwtTokenProviderTest {
                 .claim("tokenType", "access")
                 .issuedAt(issuedAt)
                 .expiration(expiration)
-                .signWith(key, Jwts.SIG.HS256)
+                .signWith(KEY, Jwts.SIG.HS256)
                 .compact();
     }
 
     private String buildAccessTokenWithRole(Long userId, String role) {
-        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         Date issuedAt = new Date();
         Date expiration = new Date(System.currentTimeMillis() + 60_000);
         return Jwts.builder()
@@ -600,7 +591,7 @@ class JwtTokenProviderTest {
                 .claim("tokenType", "access")
                 .issuedAt(issuedAt)
                 .expiration(expiration)
-                .signWith(key, Jwts.SIG.HS256)
+                .signWith(KEY, Jwts.SIG.HS256)
                 .compact();
     }
 }
