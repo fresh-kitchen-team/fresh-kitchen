@@ -5,9 +5,12 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Testcontainers(disabledWithoutDocker = true)
+/*
+ * Container lifecycle is managed manually instead of @Container.
+ * This avoids class-level container stop while Spring context cache may still hold DataSource.
+ */
+
 public abstract class PostgreSqlTestContainerSupport {
 
     @SuppressWarnings("resource")

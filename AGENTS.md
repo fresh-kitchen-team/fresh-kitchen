@@ -71,6 +71,7 @@ this table unless the task is specifically about that document.
 | Personal operations and weekly notes | `.도윤/AGENT.md` |
 | Commit and branch convention maintenance | `docs/git-convention.md` |
 | Exception and error code policy | `docs/exception-spec.md` |
+| Test infrastructure policy and context | `docs/test-infra-spec.md` |
 
 ## Commit Workflow
 
