@@ -2,7 +2,7 @@
 
 ## andrej-karpathy-skills
 
-Some AI working principles in `AGENT.md` are adapted from:
+Some AI working principles in `AGENTS.md` are adapted from:
 
 - Repository: forrestchang/andrej-karpathy-skills
 - License: MIT
