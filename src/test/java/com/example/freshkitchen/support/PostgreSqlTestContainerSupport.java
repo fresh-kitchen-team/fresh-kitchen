@@ -1,8 +1,15 @@
 package com.example.freshkitchen.support;
 
+import org.opentest4j.TestAbortedException;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
+
+/*
+ * Container lifecycle is managed manually instead of @Container.
+ * This avoids class-level container stop while Spring context cache may still hold DataSource.
+ */
 
 public abstract class PostgreSqlTestContainerSupport {
 
@@ -13,17 +20,25 @@ public abstract class PostgreSqlTestContainerSupport {
                     .withUsername("test")
                     .withPassword("test");
 
-    static {
-        POSTGRESQL_CONTAINER.start();
-    }
-
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
+        startContainerIfNeeded();
         registry.add("spring.datasource.url", POSTGRESQL_CONTAINER::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGRESQL_CONTAINER::getUsername);
         registry.add("spring.datasource.password", POSTGRESQL_CONTAINER::getPassword);
         registry.add("spring.datasource.driver-class-name", POSTGRESQL_CONTAINER::getDriverClassName);
+        registry.add("spring.datasource.hikari.maximum-pool-size", () -> 2);
+        registry.add("spring.datasource.hikari.minimum-idle", () -> 0);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
         registry.add("spring.flyway.enabled", () -> true);
+    }
+
+    private static synchronized void startContainerIfNeeded() {
+        if (!POSTGRESQL_CONTAINER.isRunning()) {
+            if (!DockerClientFactory.instance().isDockerAvailable()) {
+                throw new TestAbortedException("Docker is not available");
+            }
+            POSTGRESQL_CONTAINER.start();
+        }
     }
 }

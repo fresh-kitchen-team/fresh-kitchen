@@ -1,7 +1,14 @@
 # 🤖 AI Code Review & Generation Guidelines
 
-When performing a code review or generating code suggestions, respond in Korean.
-When performing a code review, focus on readability and avoid nested ternary operators.
+## Language Rules
+
+- When performing a GitHub Copilot pull request review, write all review comments in Korean.
+- When generating code suggestions, explanations, or follow-up notes, respond in Korean.
+- If a quoted identifier, API name, error message, commit message, or code snippet is in English, keep that quoted content unchanged.
+
+## Review Focus
+
+- When performing a code review, focus on readability and avoid nested ternary operators.
 
 ---
 
