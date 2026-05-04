@@ -189,7 +189,7 @@
 
 ### 7.1 JwtErrorCode
 
-인증 토큰 처리 실패 시 `JwtTokenException` 으로 래핑되어 클라이언트에 반환된다.
+인증 토큰 처리 실패는 `JwtTokenException` 및 아래 `JwtErrorCode`로 분류한다.
 
 | Enum | HTTP Status | Code | Message | 의미 |
 |------|-------------|------|---------|------|

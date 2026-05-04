@@ -320,6 +320,48 @@ class JwtTokenProviderTest {
     }
 
     @Test
+    void validateRefreshToken_throwsExpired_whenTokenAlreadyExpired() {
+        String token = tokenBuilder()
+                .tokenType("refresh").noRole()
+                .issuedAt(new Date(System.currentTimeMillis() - 120_000))
+                .expiration(new Date(System.currentTimeMillis() - 60_000))
+                .build();
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateRefreshToken(token)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.EXPIRED_TOKEN);
+    }
+
+    @Test
+    void validateRefreshToken_throwsInvalidSignature_whenTokenSignedWithDifferentSecret() {
+        JwtTokenProvider otherProvider = new JwtTokenProvider(OTHER_SECRET, ACCESS_EXP_MIN, REFRESH_EXP_DAYS);
+        String tampered = otherProvider.generateRefreshToken(1L);
+
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateRefreshToken(tampered)
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.INVALID_SIGNATURE);
+    }
+
+    @Test
+    void validateRefreshToken_throwsMalformed_whenTokenIsArbitraryString() {
+        JwtTokenException exception = catchThrowableOfType(
+                JwtTokenException.class,
+                () -> provider.validateRefreshToken("not-a-jwt")
+        );
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(JwtErrorCode.MALFORMED_TOKEN);
+    }
+
+    @Test
     void validateAccessToken_throwsNotYetValid_whenTokenIsPremature() {
         String token = buildPrematureAccessToken(1L);
 
