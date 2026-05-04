@@ -14,3 +14,10 @@ jwt:
   secret: ${JWT_SECRET}
   access-expiration-minutes: 30
   refresh-expiration-days: 14
+
+ai:
+  server:
+    base-url: ${AI_SERVER_BASE_URL}
+    token: ${AI_SERVER_TOKEN}
+    connect-timeout-ms: ${AI_SERVER_CONNECT_TIMEOUT_MS:3000}
+    read-timeout-ms: ${AI_SERVER_READ_TIMEOUT_MS:30000}
