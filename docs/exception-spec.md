@@ -187,7 +187,15 @@
 
 2.4절에서 정의한 인프라/보안 계층 예외 분류에 따라 도메인 에러 코드와 분리해 관리한다.
 
-### 7.1 JwtErrorCode
+### 7.1 SecurityErrorCode
+
+보안 필터 체인에서 인증 자체가 필요하지만 토큰이 제공되지 않은 경우를 표현한다.
+
+| Enum | HTTP Status | Code | Message | 의미 |
+|------|-------------|------|---------|------|
+| `AUTHENTICATION_REQUIRED` | `401` | `AUTH-401-0` | `authentication required` | `Authorization` 헤더가 없거나 `Bearer` 접두사가 없는 요청이 보호된 엔드포인트에 접근 |
+
+### 7.2 JwtErrorCode
 
 인증 토큰 처리 실패는 `JwtTokenException` 및 아래 `JwtErrorCode`로 분류한다.
 
