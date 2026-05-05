@@ -19,8 +19,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.freshkitchen.application.user.dto.UserProfileResult;
+
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -89,6 +95,33 @@ class SecurityFilterChainIntegrationTest {
         mockMvc.perform(get("/test/protected")
                         .header("Authorization", "Bearer valid-token"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void userProfileEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(get("/api/v1/users/me/profile"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void userProfileEndpoint_returns200_andPassesUserIdFromToken() throws Exception {
+        Long expectedUserId = 42L;
+        given(jwtTokenProvider.validateAccessToken("valid-token"))
+                .willReturn(new TokenPayload(expectedUserId, Role.USER));
+        given(getUserProfileUseCase.get(new GetUserProfileUseCase.Query(expectedUserId)))
+                .willReturn(new UserProfileResult(
+                        expectedUserId, "tester", null, null,
+                        Set.of(), Set.of(), Set.of(), Set.of()
+                ));
+
+        mockMvc.perform(get("/api/v1/users/me/profile")
+                        .header("Authorization", "Bearer valid-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.userId").value(42))
+                .andExpect(jsonPath("$.data.nickname").value("tester"));
+
+        verify(getUserProfileUseCase).get(new GetUserProfileUseCase.Query(expectedUserId));
     }
 
     @Test

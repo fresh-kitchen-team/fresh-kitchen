@@ -74,7 +74,7 @@ class UserProfileControllerTest {
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.code").value("COMMON-200"))
                 .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data.userId").value(1))
+                .andExpect(jsonPath("$.data.userId").value(TEST_USER_ID.intValue()))
                 .andExpect(jsonPath("$.data.nickname").value("fresh-chef"))
                 .andExpect(jsonPath("$.data.profileImageUrl").value("https://example.com/profile.png"))
                 .andExpect(jsonPath("$.data.bio").value("fridge clean-up mode"))
@@ -106,7 +106,7 @@ class UserProfileControllerTest {
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.code").value("COMMON-200"))
                 .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data.userId").value(1))
+                .andExpect(jsonPath("$.data.userId").value(TEST_USER_ID.intValue()))
                 .andExpect(jsonPath("$.data.nickname").value(nullValue()))
                 .andExpect(jsonPath("$.data.profileImageUrl").value(nullValue()))
                 .andExpect(jsonPath("$.data.bio").value(nullValue()))
@@ -311,9 +311,10 @@ class UserProfileControllerTest {
 
     @Test
     void updateProfile_returnsBadRequestWhenJsonIsMalformed() throws Exception {
+        String malformedJson = "{";
         mockMvc.perform(patch("/api/v1/users/me/profile")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{"))
+                        .content(malformedJson))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
