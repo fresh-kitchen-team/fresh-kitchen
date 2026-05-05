@@ -9,6 +9,7 @@ import com.example.freshkitchen.global.security.infrastructure.TokenPayload;
 import com.example.freshkitchen.application.user.usecase.DeleteUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.GetUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
+import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import com.example.freshkitchen.application.user.dto.UserProfileResult;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -47,6 +49,9 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private DeleteUserProfileUseCase deleteUserProfileUseCase;
+
+    @MockitoBean
+    private GoogleLoginUseCase googleLoginUseCase;
 
     @MockitoBean
     private AiServerClient aiServerClient;
@@ -120,6 +125,17 @@ class SecurityFilterChainIntegrationTest {
                 .andExpect(jsonPath("$.data.nickname").value("tester"));
 
         verify(getUserProfileUseCase).get(new GetUserProfileUseCase.Query(expectedUserId));
+    }
+
+    @Test
+    void authEndpoint_isAccessibleWithoutToken() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/google")
+                        .contentType("application/json")
+                        .content("""
+                                { "idToken": "test" }
+                                """))
+                .andExpect(result ->
+                        assertThat(result.getResponse().getStatus()).isNotEqualTo(401));
     }
 
     @Test

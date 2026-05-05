@@ -1,0 +1,14 @@
+package com.example.freshkitchen.presentation.auth.dto;
+
+import jakarta.validation.constraints.NotBlank;
+
+public class AuthRequest {
+
+    private AuthRequest() {
+    }
+
+    public record GoogleLogin(
+            @NotBlank String idToken
+    ) {
+    }
+}
