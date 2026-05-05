@@ -35,7 +35,11 @@ dependencies {
 	// Spring Boot 기본
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+
 
 	// Spring Security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -48,8 +52,9 @@ dependencies {
 	// Flyway
 	implementation 'org.flywaydb:flyway-database-postgresql'
 
-	// Swagger
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
+
 
 	// Spring AI - Gemini
 	implementation 'org.springframework.ai:spring-ai-starter-model-google-genai'
@@ -78,10 +83,12 @@ dependencies {
 
 	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
 	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation platform('org.testcontainers:testcontainers-bom:1.20.4')
 	testImplementation 'org.testcontainers:junit-jupiter'
 	testImplementation 'org.testcontainers:postgresql'
+
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
