@@ -24,7 +24,6 @@ import com.example.freshkitchen.application.user.dto.UserProfileResult;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -127,8 +126,7 @@ class SecurityFilterChainIntegrationTest {
     @Test
     void swaggerEndpoint_isNotBlockedBySecurityFilter() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
-                .andExpect(result ->
-                        assertThat(result.getResponse().getStatus()).isNotEqualTo(401));
+                .andExpect(status().isOk());
     }
 
     @RestController
@@ -137,6 +135,11 @@ class SecurityFilterChainIntegrationTest {
         @GetMapping("/test/protected")
         String protectedEndpoint() {
             return "ok";
+        }
+
+        @GetMapping("/v3/api-docs")
+        String dummySwaggerEndpoint() {
+            return "swagger-dummy";
         }
     }
 }
