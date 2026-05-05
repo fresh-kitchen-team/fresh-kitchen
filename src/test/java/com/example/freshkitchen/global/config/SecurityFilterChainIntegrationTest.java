@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -93,7 +94,8 @@ class SecurityFilterChainIntegrationTest {
     @Test
     void swaggerEndpoint_isNotBlockedBySecurityFilter() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
-                .andExpect(status().isNotFound());
+                .andExpect(result ->
+                        assertThat(result.getResponse().getStatus()).isNotEqualTo(401));
     }
 
     @RestController

@@ -99,12 +99,19 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
-    void doFilter_doesNotSetAuthentication_whenBearerPrefixOnly() throws ServletException, IOException {
+    void doFilter_setsEmptyClaimsException_whenBearerPrefixOnly() throws ServletException, IOException {
         request.addHeader("Authorization", "Bearer ");
+        given(jwtTokenProvider.validateAccessToken(""))
+                .willThrow(new JwtTokenException(JwtErrorCode.EMPTY_CLAIMS));
 
         filter.doFilterInternal(request, response, filterChain);
 
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+        JwtTokenException stored = (JwtTokenException) request.getAttribute(
+                JwtAuthenticationFilter.JWT_EXCEPTION_ATTRIBUTE
+        );
+        assertThat(stored).isNotNull();
+        assertThat(stored.getErrorCode()).isEqualTo(JwtErrorCode.EMPTY_CLAIMS);
         verify(filterChain).doFilter(request, response);
     }
 }
