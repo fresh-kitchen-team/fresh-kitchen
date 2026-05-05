@@ -6,28 +6,35 @@ import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCas
 import com.example.freshkitchen.global.response.ApiResponse;
 import com.example.freshkitchen.presentation.user.dto.UserProfileRequest;
 import com.example.freshkitchen.presentation.user.dto.UserProfileResponse;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.fasterxml.jackson.databind.JsonNode;
 
+@Tag(name = "User Profile", description = "인증된 사용자의 프로필 관리")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/v1/users/me")
 public class UserProfileController {
 
     private final GetUserProfileUseCase getUserProfileUseCase;
     private final UpdateUserProfileUseCase updateUserProfileUseCase;
     private final DeleteUserProfileUseCase deleteUserProfileUseCase;
 
-    @GetMapping("/{userId}/profile")
-    public ResponseEntity<ApiResponse<UserProfileResponse>> getProfile(@PathVariable Long userId) {
+    @Operation(summary = "내 프로필 조회")
+    @GetMapping("/profile")
+    public ResponseEntity<ApiResponse<UserProfileResponse>> getProfile(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId
+    ) {
         UserProfileResponse response = UserProfileResponse.from(
                 getUserProfileUseCase.get(new GetUserProfileUseCase.Query(userId))
         );
@@ -35,9 +42,10 @@ public class UserProfileController {
         return ApiResponse.success(response);
     }
 
-    @PatchMapping("/{userId}/profile")
+    @Operation(summary = "내 프로필 수정")
+    @PatchMapping("/profile")
     public ResponseEntity<ApiResponse<Void>> updateProfile(
-            @PathVariable Long userId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @RequestBody JsonNode body
     ) {
         UserProfileRequest.Update request = new UserProfileRequest.Update(body);
@@ -45,8 +53,11 @@ public class UserProfileController {
         return ApiResponse.success();
     }
 
-    @DeleteMapping("/{userId}/profile")
-    public ResponseEntity<ApiResponse<Void>> deleteProfile(@PathVariable Long userId) {
+    @Operation(summary = "내 프로필 삭제")
+    @DeleteMapping("/profile")
+    public ResponseEntity<ApiResponse<Void>> deleteProfile(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId
+    ) {
         deleteUserProfileUseCase.delete(new DeleteUserProfileUseCase.Command(userId));
         return ApiResponse.success();
     }

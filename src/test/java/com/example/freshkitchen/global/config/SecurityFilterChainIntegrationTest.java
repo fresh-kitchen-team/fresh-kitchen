@@ -10,6 +10,7 @@ import com.example.freshkitchen.application.user.usecase.DeleteUserProfileUseCas
 import com.example.freshkitchen.application.user.usecase.GetUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
+import com.example.freshkitchen.application.user.dto.UserProfileResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -19,8 +20,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -92,10 +96,36 @@ class SecurityFilterChainIntegrationTest {
     }
 
     @Test
+    void userProfileEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(get("/api/v1/users/me/profile"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void userProfileEndpoint_returns200_andPassesUserIdFromToken() throws Exception {
+        Long expectedUserId = 42L;
+        given(jwtTokenProvider.validateAccessToken("valid-token"))
+                .willReturn(new TokenPayload(expectedUserId, Role.USER));
+        given(getUserProfileUseCase.get(new GetUserProfileUseCase.Query(expectedUserId)))
+                .willReturn(new UserProfileResult(
+                        expectedUserId, "tester", null, null,
+                        Set.of(), Set.of(), Set.of(), Set.of()
+                ));
+
+        mockMvc.perform(get("/api/v1/users/me/profile")
+                        .header("Authorization", "Bearer valid-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.userId").value(42))
+                .andExpect(jsonPath("$.data.nickname").value("tester"));
+
+        verify(getUserProfileUseCase).get(new GetUserProfileUseCase.Query(expectedUserId));
+    }
+
+    @Test
     void swaggerEndpoint_isNotBlockedBySecurityFilter() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
-                .andExpect(result ->
-                        assertThat(result.getResponse().getStatus()).isNotEqualTo(401));
+                .andExpect(status().isOk());
     }
 
     @RestController
@@ -104,6 +134,11 @@ class SecurityFilterChainIntegrationTest {
         @GetMapping("/test/protected")
         String protectedEndpoint() {
             return "ok";
+        }
+
+        @GetMapping("/v3/api-docs")
+        String dummySwaggerEndpoint() {
+            return "swagger-dummy";
         }
     }
 }
