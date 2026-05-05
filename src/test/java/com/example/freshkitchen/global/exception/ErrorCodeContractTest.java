@@ -8,6 +8,7 @@ import com.example.freshkitchen.domain.user.exception.UserErrorCode;
 import com.example.freshkitchen.domain.user.exception.UserException;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
 import com.example.freshkitchen.global.security.exception.JwtTokenException;
+import com.example.freshkitchen.global.security.exception.SecurityErrorCode;
 import com.example.freshkitchen.infrastructure.ai.exception.AiServerErrorCode;
 import com.example.freshkitchen.infrastructure.ai.exception.AiServerException;
 import org.junit.jupiter.api.Test;
@@ -136,6 +137,11 @@ class ErrorCodeContractTest {
                 "USER-404-1",
                 "user not found"
         );
+    }
+
+    @Test
+    void securityErrorCode_contractMatchesSpecification() {
+        assertContract(SecurityErrorCode.AUTHENTICATION_REQUIRED, HttpStatus.UNAUTHORIZED, "AUTH-401-0", "authentication required");
     }
 
     @Test
