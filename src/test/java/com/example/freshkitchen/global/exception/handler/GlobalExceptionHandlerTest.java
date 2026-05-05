@@ -3,6 +3,8 @@ package com.example.freshkitchen.global.exception.handler;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
+import com.example.freshkitchen.global.security.exception.JwtErrorCode;
+import com.example.freshkitchen.global.security.exception.JwtTokenException;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -66,6 +68,17 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void handleJwtTokenException_returnsUnauthorizedResponse() throws Exception {
+        mockMvc.perform(get("/test-exceptions/jwt"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.code").value("AUTH-401-1"))
+                .andExpect(jsonPath("$.message").value("expired token"))
+                .andExpect(jsonPath("$.path").value("/test-exceptions/jwt"))
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
     void handleUnexpectedRuntimeException_returnsInternalServerErrorResponse() throws Exception {
         mockMvc.perform(get("/test-exceptions/unexpected"))
                 .andExpect(status().isInternalServerError())
@@ -98,6 +111,11 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/business-validation")
         String businessValidationException() {
             throw new BusinessValidationException("sensitive validation detail");
+        }
+
+        @GetMapping("/jwt")
+        String jwtTokenException() {
+            throw new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
         }
 
         @GetMapping("/unexpected")

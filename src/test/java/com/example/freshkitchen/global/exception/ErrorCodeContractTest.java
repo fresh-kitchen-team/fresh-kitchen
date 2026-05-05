@@ -6,6 +6,8 @@ import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.user.exception.UserErrorCode;
 import com.example.freshkitchen.domain.user.exception.UserException;
+import com.example.freshkitchen.global.security.exception.JwtErrorCode;
+import com.example.freshkitchen.global.security.exception.JwtTokenException;
 import com.example.freshkitchen.infrastructure.ai.exception.AiServerErrorCode;
 import com.example.freshkitchen.infrastructure.ai.exception.AiServerException;
 import org.junit.jupiter.api.Test;
@@ -137,6 +139,16 @@ class ErrorCodeContractTest {
     }
 
     @Test
+    void jwtErrorCode_contractMatchesSpecification() {
+        assertContract(JwtErrorCode.EXPIRED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-1", "expired token");
+        assertContract(JwtErrorCode.INVALID_SIGNATURE, HttpStatus.UNAUTHORIZED, "AUTH-401-2", "invalid token signature");
+        assertContract(JwtErrorCode.MALFORMED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-3", "malformed token");
+        assertContract(JwtErrorCode.UNSUPPORTED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-4", "unsupported token");
+        assertContract(JwtErrorCode.EMPTY_CLAIMS, HttpStatus.UNAUTHORIZED, "AUTH-401-5", "token claims are empty");
+        assertContract(JwtErrorCode.NOT_YET_VALID_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-6", "token is not yet valid");
+    }
+
+    @Test
     void aiServerErrorCode_contractMatchesSpecification() {
         assertContract(
                 AiServerErrorCode.AI_SERVER_UNAVAILABLE,
@@ -171,6 +183,13 @@ class ErrorCodeContractTest {
         assertEquals(UserErrorCode.USER_NOT_FOUND, userException.getErrorCode());
         assertEquals(AiServerErrorCode.AI_SERVER_UNAVAILABLE, aiServerException.getErrorCode());
         assertEquals(CommonErrorCode.INVALID_INPUT, validationException.getErrorCode());
+    }
+
+    @Test
+    void jwtTokenException_exposesItsErrorCode() {
+        JwtTokenException jwtException = new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
+
+        assertEquals(JwtErrorCode.EXPIRED_TOKEN, jwtException.getErrorCode());
     }
 
     @Test

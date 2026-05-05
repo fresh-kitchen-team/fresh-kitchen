@@ -12,6 +12,8 @@ spring:
     enabled: true
 jwt:
   secret: ${JWT_SECRET}
+  access-expiration-minutes: 30
+  refresh-expiration-days: 14
 
 ai:
   server:

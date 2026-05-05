@@ -45,11 +45,21 @@
 
 도메인별 예외는 각 도메인의 `ErrorCode` enum 과 1:1로 연결한다.
 
-### 2.4 글로벌 핸들러
+### 2.4 인증 예외
+
+- `JwtTokenException`
+  - `global/security/exception` 에 위치한다.
+  - 도메인 계층이 아닌 인프라/보안 계층에서 발생하는 인증 토큰 오류를 표현한다.
+  - `JwtErrorCode` 와 1:1로 연결되며, 모두 `401 Unauthorized` 상태로 응답한다.
+
+### 2.5 글로벌 핸들러
 
 - `GlobalExceptionHandler`
   - `BusinessException` 처리
   - `IllegalArgumentException` 처리
+  - `MethodArgumentTypeMismatchException` 처리
+  - `HttpMessageNotReadableException` 처리
+  - `MissingServletRequestPartException` / `MultipartException` 처리
   - `IllegalStateException` 처리
   - 그 외 `RuntimeException` 처리
 
@@ -185,9 +195,28 @@
 
 ---
 
-## 7. 예외 사용 규칙
+## 7. 보안/인증 에러 코드
 
-### 7.1 어떤 예외를 써야 하는가
+2.4절에서 정의한 인프라/보안 계층 예외 분류에 따라 도메인 에러 코드와 분리해 관리한다.
+
+### 7.1 JwtErrorCode
+
+인증 토큰 처리 실패는 `JwtTokenException` 및 아래 `JwtErrorCode`로 분류한다.
+
+| Enum | HTTP Status | Code | Message | 의미 |
+|------|-------------|------|---------|------|
+| `EXPIRED_TOKEN` | `401` | `AUTH-401-1` | `expired token` | 토큰 만료 (`exp` + 30초 clock skew 경과) |
+| `INVALID_SIGNATURE` | `401` | `AUTH-401-2` | `invalid token signature` | 서명 검증 실패 |
+| `MALFORMED_TOKEN` | `401` | `AUTH-401-3` | `malformed token` | 토큰 형식 오류, 필수 claim(`exp`, `tokenType`, `userId`) 누락, `tokenType` 값이 기대하는 타입(`access`/`refresh`)과 불일치 또는 비문자열, `userId`가 숫자형(`Long`/`Integer`)이 아니거나 0 이하인 값, access 토큰에서 `role` claim이 누락/빈 문자열이거나 `Role` enum에 정의된 값이 아님 |
+| `UNSUPPORTED_TOKEN` | `401` | `AUTH-401-4` | `unsupported token` | 서명되지 않은 토큰 등 지원하지 않는 형식 |
+| `EMPTY_CLAIMS` | `401` | `AUTH-401-5` | `token claims are empty` | 토큰 문자열이 `null`이거나 비어있음 |
+| `NOT_YET_VALID_TOKEN` | `401` | `AUTH-401-6` | `token is not yet valid` | 토큰이 아직 활성화되지 않음 (`nbf`가 현재 시각보다 30초를 초과해 미래인 경우; 최대 30초 clock skew 허용) |
+
+---
+
+## 8. 예외 사용 규칙
+
+### 8.1 어떤 예외를 써야 하는가
 
 - 공통 필드 검증
   - `BusinessValidationException`
@@ -204,7 +233,7 @@
   - 직접 잡아서 숨기지 말고 상위로 전파
   - `GlobalExceptionHandler` 가 `COMMON-500` 으로 처리
 
-### 7.2 메시지 작성 기준
+### 8.2 메시지 작성 기준
 
 - message 는 현재 영어로 통일한다.
 - 클라이언트/프론트가 그대로 읽어도 의미가 통해야 한다.
@@ -212,12 +241,15 @@
 - 도메인 `ErrorCode` 는 하나의 대표 메시지를 가진다.
 - 공통 코드 fallback 응답은 예외별 상세 메시지를 외부로 노출하지 않는다.
 
-### 7.3 status 선택 기준
+### 8.3 status 선택 기준
 
 - `400 Bad Request`
   - 입력값 오류
   - 소유권/연결 관계 불일치
   - 요청 자체가 도메인 규칙을 만족하지 못하는 경우
+
+- `401 Unauthorized`
+  - 유효하지 않은 인증 토큰인 경우
 
 - `404 Not Found`
   - 조회 대상이 존재하지 않는 경우
@@ -230,7 +262,7 @@
   - 처리되지 않은 예외
   - 서버 내부 예상 밖 오류
 
-### 7.4 로깅 기준
+### 8.4 로깅 기준
 
 - `BusinessException` 은 `errorCode.status()` 기준으로 로그 레벨을 정한다.
 - `4xx` `BusinessException` 과 `IllegalArgumentException`, `IllegalStateException` 은 `debug` 레벨로 기록한다.
@@ -240,7 +272,7 @@
 
 ---
 
-## 8. 신규 에러 코드 추가 규칙
+## 9. 신규 에러 코드 추가 규칙
 
 신규 기능에서 예외를 추가할 때는 아래 순서를 따른다.
 
@@ -253,7 +285,7 @@
 
 ---
 
-## 9. 팀 합의 권장 사항
+## 10. 팀 합의 권장 사항
 
 - 문자열만 다른 비슷한 예외를 여러 개 만들지 않는다.
 - `IllegalArgumentException` 를 서비스/도메인에서 직접 던지는 방식은 지양한다.
@@ -263,7 +295,7 @@
 
 ---
 
-## 10. 현재 코드 기준 구현 위치
+## 11. 현재 코드 기준 구현 위치
 
 - 공통 계약
   - `src/main/java/com/example/freshkitchen/global/exception`
@@ -285,7 +317,7 @@
 
 ---
 
-## 11. 후속 확장 포인트
+## 12. 후속 확장 포인트
 
 - `CatalogErrorCode` 추가
 - Bean Validation 연동 시 필드 에러 목록 확장

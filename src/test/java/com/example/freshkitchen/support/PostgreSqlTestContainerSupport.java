@@ -31,6 +31,9 @@ public abstract class PostgreSqlTestContainerSupport {
         registry.add("spring.datasource.hikari.minimum-idle", () -> 0);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
         registry.add("spring.flyway.enabled", () -> true);
+        registry.add("jwt.secret", () -> "test-secret-key-must-be-at-least-32-bytes-long-for-hmac-sha256");
+        registry.add("jwt.access-expiration-minutes", () -> 30L);
+        registry.add("jwt.refresh-expiration-days", () -> 14L);
     }
 
     private static synchronized void startContainerIfNeeded() {
