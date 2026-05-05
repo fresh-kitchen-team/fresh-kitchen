@@ -10,6 +10,7 @@ import com.example.freshkitchen.application.user.usecase.DeleteUserProfileUseCas
 import com.example.freshkitchen.application.user.usecase.GetUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
+import com.example.freshkitchen.application.user.dto.UserProfileResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,8 +19,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.example.freshkitchen.application.user.dto.UserProfileResult;
 
 import java.util.Set;
 
