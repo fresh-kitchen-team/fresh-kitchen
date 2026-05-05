@@ -26,10 +26,9 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             HttpServletResponse response,
             AuthenticationException authException
     ) throws IOException {
-        JwtTokenException jwtException =
-                (JwtTokenException) request.getAttribute(JwtAuthenticationFilter.JWT_EXCEPTION_ATTRIBUTE);
+        Object attribute = request.getAttribute(JwtAuthenticationFilter.JWT_EXCEPTION_ATTRIBUTE);
 
-        ErrorCode errorCode = (jwtException != null)
+        ErrorCode errorCode = (attribute instanceof JwtTokenException jwtException)
                 ? jwtException.getErrorCode()
                 : SecurityErrorCode.AUTHENTICATION_REQUIRED;
 

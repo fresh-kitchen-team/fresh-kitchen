@@ -15,7 +15,8 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    static final String JWT_EXCEPTION_ATTRIBUTE = "jwtException";
+    static final String JWT_EXCEPTION_ATTRIBUTE =
+            "com.example.freshkitchen.security.jwtException";
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
 
