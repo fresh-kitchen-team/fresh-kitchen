@@ -397,9 +397,10 @@ class UserProfileControllerTest {
         return new HandlerMethodArgumentResolver() {
             @Override
             public boolean supportsParameter(MethodParameter parameter) {
+                Class<?> type = parameter.getParameterType();
                 return parameter.hasParameterAnnotation(
                         org.springframework.security.core.annotation.AuthenticationPrincipal.class
-                );
+                ) && (Long.class.equals(type) || long.class.equals(type));
             }
 
             @Override

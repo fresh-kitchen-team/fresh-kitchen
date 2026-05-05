@@ -26,7 +26,7 @@ class JwtAuthenticationEntryPointTest {
     @BeforeEach
     void setUp() {
         entryPoint = new JwtAuthenticationEntryPoint(objectMapper);
-        request = new MockHttpServletRequest("GET", "/api/v1/users/1/profile");
+        request = new MockHttpServletRequest("GET", "/api/v1/users/me/profile");
         response = new MockHttpServletResponse();
     }
 
@@ -42,7 +42,7 @@ class JwtAuthenticationEntryPointTest {
         String body = response.getContentAsString();
         assertThat(body).contains("\"code\":\"" + SecurityErrorCode.AUTHENTICATION_REQUIRED.code() + "\"");
         assertThat(body).contains("\"message\":\"" + SecurityErrorCode.AUTHENTICATION_REQUIRED.message() + "\"");
-        assertThat(body).contains("\"path\":\"/api/v1/users/1/profile\"");
+        assertThat(body).contains("\"path\":\"/api/v1/users/me/profile\"");
         assertThat(body).contains("\"status\":401");
     }
 
