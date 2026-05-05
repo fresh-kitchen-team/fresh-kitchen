@@ -12,6 +12,8 @@ import com.example.freshkitchen.infrastructure.oauth.GoogleTokenVerifier.GoogleU
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,18 +28,25 @@ public class GoogleLoginService implements GoogleLoginUseCase {
     public AuthTokenResult login(Command command) {
         GoogleUserInfo userInfo = googleTokenVerifier.verify(command.idToken());
 
-        boolean[] isNew = {false};
-        User user = userRepository.findByProviderAndProviderUserId(Provider.GOOGLE, userInfo.sub())
-                .orElseGet(() -> {
-                    isNew[0] = true;
-                    return userRepository.save(
-                            User.create(new User.CreateCommand(userInfo.sub(), Provider.GOOGLE))
-                    );
-                });
+        Optional<User> optionalUser = userRepository.findByProviderAndProviderUserId(Provider.GOOGLE, userInfo.sub());
+        boolean isNew = optionalUser.isEmpty();
+        User user;
+
+        if (isNew) {
+            try {
+                user = userRepository.save(User.create(new User.CreateCommand(userInfo.sub(), Provider.GOOGLE)));
+            } catch (DataIntegrityViolationException e) {
+                user = userRepository.findByProviderAndProviderUserId(Provider.GOOGLE, userInfo.sub())
+                        .orElseThrow(() -> new IllegalStateException("User should exist after unique constraint violation", e));
+                isNew = false;
+            }
+        } else {
+            user = optionalUser.get();
+        }
 
         String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), Role.USER);
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
 
-        return new AuthTokenResult(accessToken, refreshToken, isNew[0]);
+        return new AuthTokenResult(accessToken, refreshToken, isNew);
     }
 }

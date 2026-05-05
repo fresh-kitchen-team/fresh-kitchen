@@ -12,6 +12,7 @@ import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCas
 import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import com.example.freshkitchen.application.user.dto.UserProfileResult;
+import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -129,13 +131,15 @@ class SecurityFilterChainIntegrationTest {
 
     @Test
     void authEndpoint_isAccessibleWithoutToken() throws Exception {
+        given(googleLoginUseCase.login(any()))
+                .willReturn(new AuthTokenResult("access-token", "refresh-token", true));
+
         mockMvc.perform(post("/api/v1/auth/google")
                         .contentType("application/json")
                         .content("""
                                 { "idToken": "test" }
                                 """))
-                .andExpect(result ->
-                        assertThat(result.getResponse().getStatus()).isNotEqualTo(401));
+                .andExpect(status().isOk());
     }
 
     @Test

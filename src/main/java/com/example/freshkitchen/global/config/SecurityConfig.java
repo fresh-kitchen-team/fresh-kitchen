@@ -23,7 +23,7 @@ public class SecurityConfig {
             "/swagger-resources/**",
             "/actuator/health",
             "/error",
-            "/api/v1/auth/**",
+            "/api/v1/auth/google",
     };
 
     private final JwtTokenProvider jwtTokenProvider;
