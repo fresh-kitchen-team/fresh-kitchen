@@ -23,6 +23,7 @@ public class SecurityConfig {
             "/swagger-resources/**",
             "/actuator/health",
             "/error",
+            "/api/v1/test/**" // 스웨거 로컬 테스트용
     };
 
     private final JwtTokenProvider jwtTokenProvider;
