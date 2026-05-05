@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 public enum OAuthErrorCode implements ErrorCode {
 
     INVALID_ID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-401-7", "invalid id token"),
-    PROVIDER_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "AUTH-400-1", "OAuth provider not supported");
+    PROVIDER_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "AUTH-400-1", "oauth provider not supported");
 
     private final HttpStatus status;
     private final String code;

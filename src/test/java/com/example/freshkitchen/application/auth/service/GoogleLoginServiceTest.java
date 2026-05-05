@@ -14,6 +14,7 @@ import com.example.freshkitchen.infrastructure.oauth.GoogleTokenVerifier.GoogleU
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -39,6 +40,7 @@ class GoogleLoginServiceTest {
         given(googleTokenVerifier.verify("valid-id-token")).willReturn(userInfo);
 
         User existingUser = User.create(new User.CreateCommand("google-sub-123", Provider.GOOGLE));
+        ReflectionTestUtils.setField(existingUser, "id", 1L);
         given(userRepository.findByProviderAndProviderUserId(Provider.GOOGLE, "google-sub-123"))
                 .willReturn(Optional.of(existingUser));
         given(jwtTokenProvider.generateAccessToken(existingUser.getId(), Role.USER))
@@ -62,6 +64,7 @@ class GoogleLoginServiceTest {
                 .willReturn(Optional.empty());
 
         User savedUser = User.create(new User.CreateCommand("new-google-sub", Provider.GOOGLE));
+        ReflectionTestUtils.setField(savedUser, "id", 2L);
         given(userRepository.save(any(User.class))).willReturn(savedUser);
         given(jwtTokenProvider.generateAccessToken(savedUser.getId(), Role.USER))
                 .willReturn("new-access-token");

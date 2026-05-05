@@ -214,7 +214,7 @@ OAuth 인증 과정에서 발생하는 예외를 `OAuthException` 및 아래 `OA
 | Enum | HTTP Status | Code | Message | 의미 |
 |------|-------------|------|---------|------|
 | `INVALID_ID_TOKEN` | `401` | `AUTH-401-7` | `invalid id token` | OAuth provider가 발급한 ID Token 검증 실패 (서명, 만료, audience 불일치 등) |
-| `PROVIDER_NOT_SUPPORTED` | `400` | `AUTH-400-1` | `OAuth provider not supported` | 지원하지 않는 OAuth provider 요청 |
+| `PROVIDER_NOT_SUPPORTED` | `400` | `AUTH-400-1` | `oauth provider not supported` | 지원하지 않는 OAuth provider 요청 |
 
 ### 7.3 JwtErrorCode
 

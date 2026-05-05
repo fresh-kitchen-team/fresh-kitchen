@@ -149,7 +149,7 @@ class ErrorCodeContractTest {
     @Test
     void oAuthErrorCode_contractMatchesSpecification() {
         assertContract(OAuthErrorCode.INVALID_ID_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-7", "invalid id token");
-        assertContract(OAuthErrorCode.PROVIDER_NOT_SUPPORTED, HttpStatus.BAD_REQUEST, "AUTH-400-1", "OAuth provider not supported");
+        assertContract(OAuthErrorCode.PROVIDER_NOT_SUPPORTED, HttpStatus.BAD_REQUEST, "AUTH-400-1", "oauth provider not supported");
     }
 
     @Test

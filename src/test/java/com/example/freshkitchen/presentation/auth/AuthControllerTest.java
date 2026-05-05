@@ -84,7 +84,12 @@ class AuthControllerTest {
                         .content("""
                                 { "idToken": "" }
                                 """))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.message").isNotEmpty())
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/google"))
+                .andExpect(jsonPath("$.timestamp").exists());
 
         verifyNoInteractions(googleLoginUseCase);
     }
@@ -94,7 +99,12 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.message").isNotEmpty())
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/google"))
+                .andExpect(jsonPath("$.timestamp").exists());
 
         verifyNoInteractions(googleLoginUseCase);
     }
