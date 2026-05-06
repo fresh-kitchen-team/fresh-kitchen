@@ -17,6 +17,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestConstructor;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -47,7 +49,7 @@ class CompleteImageUploadServiceTest extends PostgreSqlTestContainerSupport {
         Long imageAssetId = completeImageUploadUseCase.complete(new CompleteImageUploadUseCase.Command(
                 user.getId(),
                 ImageKind.INGREDIENT,
-                "images/1/ingredient/upload.jpg",
+                objectKey(user.getId(), ImageKind.INGREDIENT, ".jpg"),
                 null,
                 null
         ));
@@ -62,7 +64,7 @@ class CompleteImageUploadServiceTest extends PostgreSqlTestContainerSupport {
         assertEquals(AssetType.USER_UPLOAD, imageAsset.getAssetType());
         assertEquals(ImageKind.INGREDIENT, imageAsset.getKind());
         assertEquals(StorageProvider.S3, imageAsset.getStorageProvider());
-        assertEquals("images/1/ingredient/upload.jpg", imageAsset.getObjectKey());
+        assertEquals("images/%d/ingredient/00000000-0000-0000-0000-000000000001.jpg".formatted(user.getId()), imageAsset.getObjectKey());
         assertNull(imageAsset.getWidth());
         assertNull(imageAsset.getHeight());
     }
@@ -92,8 +94,56 @@ class CompleteImageUploadServiceTest extends PostgreSqlTestContainerSupport {
                 () -> completeImageUploadUseCase.complete(new CompleteImageUploadUseCase.Command(
                         user.getId(),
                         ImageKind.INGREDIENT,
-                        "images/negative.png",
+                        objectKey(user.getId(), ImageKind.INGREDIENT, ".png"),
                         -1,
+                        null
+                ))
+        );
+    }
+
+    @Test
+    void complete_rejectsOtherUserObjectKeyPrefix() {
+        User user = persistUser("object-key-owner", Provider.GOOGLE);
+
+        assertThrows(
+                BusinessValidationException.class,
+                () -> completeImageUploadUseCase.complete(new CompleteImageUploadUseCase.Command(
+                        user.getId(),
+                        ImageKind.INGREDIENT,
+                        objectKey(user.getId() + 1, ImageKind.INGREDIENT, ".jpg"),
+                        null,
+                        null
+                ))
+        );
+    }
+
+    @Test
+    void complete_rejectsDifferentKindObjectKeyPrefix() {
+        User user = persistUser("object-key-kind-user", Provider.KAKAO);
+
+        assertThrows(
+                BusinessValidationException.class,
+                () -> completeImageUploadUseCase.complete(new CompleteImageUploadUseCase.Command(
+                        user.getId(),
+                        ImageKind.INGREDIENT,
+                        "images/%d/profile/00000000-0000-0000-0000-000000000001.jpg".formatted(user.getId()),
+                        null,
+                        null
+                ))
+        );
+    }
+
+    @Test
+    void complete_rejectsObjectKeyWithNestedPath() {
+        User user = persistUser("object-key-nested-user", Provider.GOOGLE);
+
+        assertThrows(
+                BusinessValidationException.class,
+                () -> completeImageUploadUseCase.complete(new CompleteImageUploadUseCase.Command(
+                        user.getId(),
+                        ImageKind.INGREDIENT,
+                        "images/%d/ingredient/00000000-0000-0000-0000-000000000001.jpg/evil".formatted(user.getId()),
+                        null,
                         null
                 ))
         );
@@ -103,5 +153,14 @@ class CompleteImageUploadServiceTest extends PostgreSqlTestContainerSupport {
         User user = User.create(new User.CreateCommand(providerUserId, provider));
         entityManager.persist(user);
         return user;
+    }
+
+    private static String objectKey(Long userId, ImageKind kind, String extension) {
+        return "images/%d/%s/%s%s".formatted(
+                userId,
+                kind.name().toLowerCase(),
+                UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                extension
+        );
     }
 }

@@ -12,10 +12,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
+import java.util.regex.Pattern;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class CompleteImageUploadService implements CompleteImageUploadUseCase {
+
+    private static final String OBJECT_KEY_FORMAT = "images/%d/%s/";
+    private static final Pattern OBJECT_FILE_NAME_PATTERN = Pattern.compile(
+            "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.(jpg|png|webp)"
+    );
 
     private final ImageAssetRepository imageAssetRepository;
     private final EntityManager entityManager;
@@ -45,6 +53,25 @@ public class CompleteImageUploadService implements CompleteImageUploadUseCase {
         }
         if (command.kind() == null) {
             throw new BusinessValidationException("kind must not be null");
+        }
+        if (command.objectKey() == null || command.objectKey().isBlank()) {
+            throw new BusinessValidationException("objectKey must not be blank");
+        }
+        validateObjectKey(command);
+    }
+
+    private static void validateObjectKey(Command command) {
+        String expectedPrefix = OBJECT_KEY_FORMAT.formatted(
+                command.userId(),
+                command.kind().name().toLowerCase(Locale.ROOT)
+        );
+        if (!command.objectKey().startsWith(expectedPrefix)) {
+            throw new BusinessValidationException("objectKey must match upload path");
+        }
+
+        String objectFileName = command.objectKey().substring(expectedPrefix.length());
+        if (!OBJECT_FILE_NAME_PATTERN.matcher(objectFileName).matches()) {
+            throw new BusinessValidationException("objectKey must match upload path");
         }
     }
 }
