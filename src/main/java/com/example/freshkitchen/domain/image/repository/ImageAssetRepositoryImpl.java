@@ -35,9 +35,10 @@ class ImageAssetRepositoryImpl implements ImageAssetRepositoryCustom {
         return entityManager.createQuery("""
                 select imageAsset
                 from ImageAsset imageAsset
+                left join imageAsset.user user
                 where imageAsset.id = :imageAssetId
                   and (
-                      (imageAsset.assetType = :userUpload and imageAsset.user.id = :userId)
+                      (imageAsset.assetType = :userUpload and user.id = :userId)
                       or imageAsset.assetType = :systemDefault
                   )
                 """, ImageAsset.class)
