@@ -66,7 +66,7 @@ class JpaMappingTest extends PostgreSqlTestContainerSupport {
                 AssetType.USER_UPLOAD,
                 ImageKind.INGREDIENT,
                 StorageProvider.LOCAL,
-                "https://cdn.example/asset.png",
+                "images/asset.png",
                 320,
                 240
         ));
@@ -113,7 +113,7 @@ class JpaMappingTest extends PostgreSqlTestContainerSupport {
         ImageVariant imageVariant = ImageVariant.create(new ImageVariant.CreateCommand(
                 imageAsset,
                 ImageVariantType.THUMBNAIL,
-                "https://cdn.example/thumb.png",
+                "images/thumb.png",
                 120,
                 90
         ));

@@ -35,8 +35,8 @@ public class ImageVariant extends CreatedAtEntity {
     @Column(name = "variant_type", nullable = false, length = 20)
     private ImageVariantType variantType;
 
-    @Column(name = "image_url", nullable = false, columnDefinition = "TEXT")
-    private String imageUrl;
+    @Column(name = "object_key", nullable = false, columnDefinition = "TEXT")
+    private String objectKey;
 
     @Column(name = "width", nullable = false)
     private int width;
@@ -47,13 +47,13 @@ public class ImageVariant extends CreatedAtEntity {
     private ImageVariant(
             ImageAsset imageAsset,
             ImageVariantType variantType,
-            String imageUrl,
+            String objectKey,
             int width,
             int height
     ) {
         this.imageAsset = requireNonNull(imageAsset, "imageAsset");
         this.variantType = requireNonNull(variantType, "variantType");
-        this.imageUrl = requireNonBlank(imageUrl, "imageUrl");
+        this.objectKey = requireNonBlank(objectKey, "objectKey");
         this.width = requirePositive(width, "width");
         this.height = requirePositive(height, "height");
     }
@@ -63,7 +63,7 @@ public class ImageVariant extends CreatedAtEntity {
         return new ImageVariant(
                 command.imageAsset(),
                 command.variantType(),
-                command.imageUrl(),
+                command.objectKey(),
                 command.width(),
                 command.height()
         );
@@ -78,8 +78,8 @@ public class ImageVariant extends CreatedAtEntity {
         if (command.variantType() != null) {
             this.variantType = requireNonNull(command.variantType(), "variantType");
         }
-        if (command.imageUrl() != null) {
-            this.imageUrl = requireNonBlank(command.imageUrl(), "imageUrl");
+        if (command.objectKey() != null) {
+            this.objectKey = requireNonBlank(command.objectKey(), "objectKey");
         }
         if (command.width() != null) {
             this.width = requirePositive(command.width(), "width");
@@ -92,7 +92,7 @@ public class ImageVariant extends CreatedAtEntity {
     public record CreateCommand(
             ImageAsset imageAsset,
             ImageVariantType variantType,
-            String imageUrl,
+            String objectKey,
             int width,
             int height
     ) {
@@ -101,7 +101,7 @@ public class ImageVariant extends CreatedAtEntity {
     public record UpdateCommand(
             ImageAsset imageAsset,
             ImageVariantType variantType,
-            String imageUrl,
+            String objectKey,
             Integer width,
             Integer height
     ) {
