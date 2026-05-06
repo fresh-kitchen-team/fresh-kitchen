@@ -168,6 +168,9 @@
 | `INGREDIENT_IMAGE_ALREADY_ATTACHED` | `400` | `IMAGE-400-1` | `ingredient image is already attached to another ingredient` | 다른 식재료에 연결된 이미지 재할당 시도 |
 | `SYSTEM_DEFAULT_OWNER_MUST_BE_NULL` | `400` | `IMAGE-400-2` | `user must be null when assetType is SYSTEM_DEFAULT` | 시스템 기본 이미지 소유자 규칙 위반 |
 | `USER_UPLOAD_OWNER_REQUIRED` | `400` | `IMAGE-400-3` | `user must not be null when assetType is USER_UPLOAD` | 사용자 업로드 이미지 소유자 누락 |
+| `IMAGE_ASSET_ID_REQUIRED` | `400` | `IMAGE-400-4` | `imageAssetId must not be null` | 이미지 asset id 누락 |
+| `IMAGE_ASSET_ALREADY_ATTACHED` | `400` | `IMAGE-400-5` | `image asset is already attached to ingredient` | 식재료-이미지 중복 연결 |
+| `IMAGE_ASSET_NOT_FOUND` | `404` | `IMAGE-404-1` | `image asset not found` | 이미지 asset 조회 실패 |
 
 ### 6.3 UserErrorCode
 

@@ -124,6 +124,24 @@ class ErrorCodeContractTest {
                 "IMAGE-400-3",
                 "user must not be null when assetType is USER_UPLOAD"
         );
+        assertContract(
+                ImageErrorCode.IMAGE_ASSET_ID_REQUIRED,
+                HttpStatus.BAD_REQUEST,
+                "IMAGE-400-4",
+                "imageAssetId must not be null"
+        );
+        assertContract(
+                ImageErrorCode.IMAGE_ASSET_ALREADY_ATTACHED,
+                HttpStatus.BAD_REQUEST,
+                "IMAGE-400-5",
+                "image asset is already attached to ingredient"
+        );
+        assertContract(
+                ImageErrorCode.IMAGE_ASSET_NOT_FOUND,
+                HttpStatus.NOT_FOUND,
+                "IMAGE-404-1",
+                "image asset not found"
+        );
     }
 
     @Test
