@@ -19,12 +19,11 @@ class CreateImageUploadUrlServiceTest {
             new CreateImageUploadUrlService(new FakeImageStoragePort());
 
     @Test
-    void create_returnsPresignedUploadUrl() {
+    void create_returnsPresignedUploadUrlForJpeg() {
         CreateImageUploadUrlUseCase.Result result = createImageUploadUrlUseCase.create(
                 new CreateImageUploadUrlUseCase.Command(
                         1L,
                         ImageKind.INGREDIENT,
-                        "tomato.JPG",
                         "image/jpeg"
                 )
         );
@@ -37,27 +36,52 @@ class CreateImageUploadUrlServiceTest {
     }
 
     @Test
+    void create_usesPngExtensionForPngContentType() {
+        CreateImageUploadUrlUseCase.Result result = createImageUploadUrlUseCase.create(
+                new CreateImageUploadUrlUseCase.Command(
+                        1L,
+                        ImageKind.INGREDIENT,
+                        " IMAGE/PNG "
+                )
+        );
+
+        assertTrue(result.objectKey().endsWith(".png"));
+        assertEquals("image/png", result.contentType());
+    }
+
+    @Test
+    void create_usesWebpExtensionForWebpContentType() {
+        CreateImageUploadUrlUseCase.Result result = createImageUploadUrlUseCase.create(
+                new CreateImageUploadUrlUseCase.Command(
+                        1L,
+                        ImageKind.INGREDIENT,
+                        "image/webp"
+                )
+        );
+
+        assertTrue(result.objectKey().endsWith(".webp"));
+    }
+
+    @Test
     void create_rejectsBlankContentType() {
         assertThrows(
                 BusinessValidationException.class,
                 () -> createImageUploadUrlUseCase.create(new CreateImageUploadUrlUseCase.Command(
                         1L,
                         ImageKind.INGREDIENT,
-                        "tomato.jpg",
                         " "
                 ))
         );
     }
 
     @Test
-    void create_rejectsBlankOriginalFileName() {
+    void create_rejectsUnsupportedContentType() {
         assertThrows(
                 BusinessValidationException.class,
                 () -> createImageUploadUrlUseCase.create(new CreateImageUploadUrlUseCase.Command(
                         1L,
                         ImageKind.INGREDIENT,
-                        " ",
-                        "image/jpeg"
+                        "text/plain"
                 ))
         );
     }

@@ -11,7 +11,6 @@ public interface CreateImageUploadUrlUseCase {
     record Command(
             Long userId,
             ImageKind kind,
-            String originalFileName,
             String contentType
     ) {
     }
