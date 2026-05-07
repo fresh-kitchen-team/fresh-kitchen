@@ -2,7 +2,7 @@ package com.example.freshkitchen.presentation.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public class AuthRequest {
+public final class AuthRequest {
 
     private AuthRequest() {
     }

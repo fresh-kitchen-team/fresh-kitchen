@@ -2,7 +2,7 @@ package com.example.freshkitchen.presentation.auth.dto;
 
 import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
 
-public class AuthResponse {
+public final class AuthResponse {
 
     private AuthResponse() {
     }
