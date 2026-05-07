@@ -108,7 +108,7 @@ public record IngredientUpdateRequest(
         try {
             return LocalDate.parse(value);
         } catch (DateTimeParseException exception) {
-            throw new BusinessValidationException(fieldName + " must be date", exception);
+            throw new BusinessValidationException(fieldName + " must be a valid date", exception);
         }
     }
 
