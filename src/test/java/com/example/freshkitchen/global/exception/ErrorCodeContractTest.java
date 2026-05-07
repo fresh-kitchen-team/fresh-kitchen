@@ -8,6 +8,8 @@ import com.example.freshkitchen.domain.user.exception.UserErrorCode;
 import com.example.freshkitchen.domain.user.exception.UserException;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
 import com.example.freshkitchen.global.security.exception.JwtTokenException;
+import com.example.freshkitchen.global.security.exception.OAuthErrorCode;
+import com.example.freshkitchen.global.security.exception.OAuthException;
 import com.example.freshkitchen.global.security.exception.SecurityErrorCode;
 import com.example.freshkitchen.infrastructure.ai.exception.AiServerErrorCode;
 import com.example.freshkitchen.infrastructure.ai.exception.AiServerException;
@@ -163,6 +165,12 @@ class ErrorCodeContractTest {
     }
 
     @Test
+    void oauthErrorCode_contractMatchesSpecification() {
+        assertContract(OAuthErrorCode.INVALID_ID_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-7", "invalid id token");
+        assertContract(OAuthErrorCode.PROVIDER_NOT_SUPPORTED, HttpStatus.BAD_REQUEST, "AUTH-400-1", "oauth provider not supported");
+    }
+
+    @Test
     void jwtErrorCode_contractMatchesSpecification() {
         assertContract(JwtErrorCode.EXPIRED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-1", "expired token");
         assertContract(JwtErrorCode.INVALID_SIGNATURE, HttpStatus.UNAUTHORIZED, "AUTH-401-2", "invalid token signature");
@@ -214,6 +222,22 @@ class ErrorCodeContractTest {
         JwtTokenException jwtException = new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
 
         assertEquals(JwtErrorCode.EXPIRED_TOKEN, jwtException.getErrorCode());
+    }
+
+    @Test
+    void oauthException_exposesItsErrorCode() {
+        OAuthException oAuthException = new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN);
+
+        assertEquals(OAuthErrorCode.INVALID_ID_TOKEN, oAuthException.getErrorCode());
+    }
+
+    @Test
+    void oauthException_preservesCause() {
+        RuntimeException cause = new RuntimeException("token verification failed");
+
+        OAuthException exception = new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN, cause);
+
+        assertSame(cause, exception.getCause());
     }
 
     @Test

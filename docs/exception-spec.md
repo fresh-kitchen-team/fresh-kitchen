@@ -210,7 +210,16 @@
 |------|-------------|------|---------|------|
 | `AUTHENTICATION_REQUIRED` | `401` | `AUTH-401-0` | `authentication required` | `Authorization` 헤더가 없거나 `Bearer` 접두사가 없는 요청이 보호된 엔드포인트에 접근 |
 
-### 7.2 JwtErrorCode
+### 7.2 OAuthErrorCode
+
+OAuth 인증 과정에서 발생하는 예외를 `OAuthException` 및 아래 `OAuthErrorCode`로 분류한다.
+
+| Enum | HTTP Status | Code | Message | 의미 |
+|------|-------------|------|---------|------|
+| `INVALID_ID_TOKEN` | `401` | `AUTH-401-7` | `invalid id token` | OAuth provider가 발급한 ID Token 검증 실패 (서명, 만료, audience 불일치 등) |
+| `PROVIDER_NOT_SUPPORTED` | `400` | `AUTH-400-1` | `oauth provider not supported` | 지원하지 않는 OAuth provider 요청 |
+
+### 7.3 JwtErrorCode
 
 인증 토큰 처리 실패는 `JwtTokenException` 및 아래 `JwtErrorCode`로 분류한다.
 
