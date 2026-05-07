@@ -103,7 +103,10 @@ class IngredientControllerTest {
                                 }
                                 """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.ingredientId").value(10));
+                .andExpect(jsonPath("$.status").value(201))
+                .andExpect(jsonPath("$.code").value("COMMON-201"))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.data.ingredientId").value(10));
 
         ArgumentCaptor<CreateIngredientUseCase.Command> captor = ArgumentCaptor.forClass(CreateIngredientUseCase.Command.class);
         verify(createIngredientUseCase).create(captor.capture());
@@ -134,7 +137,11 @@ class IngredientControllerTest {
                                   "name": "Milk"
                                 }
                                 """))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.code").value("COMMON-200"))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.data").doesNotExist());
 
         ArgumentCaptor<UpdateIngredientUseCase.Command> captor = ArgumentCaptor.forClass(UpdateIngredientUseCase.Command.class);
         verify(updateIngredientUseCase).update(captor.capture());
@@ -177,10 +184,13 @@ class IngredientControllerTest {
         mockMvc.perform(get("/api/v1/ingredients/10")
                         .header("X-User-Id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.ingredientId").value(10))
-                .andExpect(jsonPath("$.userId").value(1))
-                .andExpect(jsonPath("$.name").value("Tomato"))
-                .andExpect(jsonPath("$.storageType").value("FRIDGE"));
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.code").value("COMMON-200"))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.data.ingredientId").value(10))
+                .andExpect(jsonPath("$.data.userId").value(1))
+                .andExpect(jsonPath("$.data.name").value("Tomato"))
+                .andExpect(jsonPath("$.data.storageType").value("FRIDGE"));
 
         ArgumentCaptor<GetIngredientUseCase.Query> captor = ArgumentCaptor.forClass(GetIngredientUseCase.Query.class);
         verify(getIngredientUseCase).get(captor.capture());
@@ -208,8 +218,11 @@ class IngredientControllerTest {
         mockMvc.perform(get("/api/v1/ingredients")
                         .header("X-User-Id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].ingredientId").value(10))
-                .andExpect(jsonPath("$[0].name").value("Tomato"));
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.code").value("COMMON-200"))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.data[0].ingredientId").value(10))
+                .andExpect(jsonPath("$.data[0].name").value("Tomato"));
 
         ArgumentCaptor<ListIngredientsUseCase.Query> captor = ArgumentCaptor.forClass(ListIngredientsUseCase.Query.class);
         verify(listIngredientsUseCase).list(captor.capture());
@@ -227,9 +240,12 @@ class IngredientControllerTest {
                         .queryParam("category", "VEGETABLE")
                         .queryParam("storageType", "FRIDGE"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.catalogId").value(3))
-                .andExpect(jsonPath("$.defaultStorageType").value("FRIDGE"))
-                .andExpect(jsonPath("$.shelfLifeDays").value(7));
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.code").value("COMMON-200"))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.data.catalogId").value(3))
+                .andExpect(jsonPath("$.data.defaultStorageType").value("FRIDGE"))
+                .andExpect(jsonPath("$.data.shelfLifeDays").value(7));
 
         ArgumentCaptor<ResolveIngredientDefaultsUseCase.Query> captor = ArgumentCaptor.forClass(ResolveIngredientDefaultsUseCase.Query.class);
         verify(resolveIngredientDefaultsUseCase).resolve(captor.capture());
@@ -249,8 +265,11 @@ class IngredientControllerTest {
         mockMvc.perform(get("/api/v1/ingredients/storages")
                         .header("X-User-Id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].storageId").value(2))
-                .andExpect(jsonPath("$[0].storageType").value("FRIDGE"));
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.code").value("COMMON-200"))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.data[0].storageId").value(2))
+                .andExpect(jsonPath("$.data[0].storageType").value("FRIDGE"));
 
         ArgumentCaptor<ListStoragesUseCase.Query> captor = ArgumentCaptor.forClass(ListStoragesUseCase.Query.class);
         verify(listStoragesUseCase).list(captor.capture());

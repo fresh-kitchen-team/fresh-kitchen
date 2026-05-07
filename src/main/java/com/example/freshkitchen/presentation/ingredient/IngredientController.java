@@ -9,6 +9,7 @@ import com.example.freshkitchen.application.ingredient.usecase.ResolveIngredient
 import com.example.freshkitchen.application.ingredient.usecase.UpdateIngredientUseCase;
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
+import com.example.freshkitchen.global.response.ApiResponse;
 import com.example.freshkitchen.presentation.ingredient.dto.IngredientCreateRequest;
 import com.example.freshkitchen.presentation.ingredient.dto.IngredientCreateResponse;
 import com.example.freshkitchen.presentation.ingredient.dto.IngredientUpdateRequest;
@@ -17,6 +18,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -26,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -47,56 +48,63 @@ public class IngredientController {
     private final ListStoragesUseCase listStoragesUseCase;
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public IngredientCreateResponse create(
+    public ResponseEntity<ApiResponse<IngredientCreateResponse>> create(
             @RequestHeader(USER_ID_HEADER) @Positive Long userId,
             @Valid @RequestBody IngredientCreateRequest request
     ) {
         Long ingredientId = createIngredientUseCase.create(request.toCommand(userId));
-        return new IngredientCreateResponse(ingredientId);
+        return ApiResponse.success(HttpStatus.CREATED, new IngredientCreateResponse(ingredientId));
     }
 
     @PatchMapping("/{ingredientId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void update(
+    public ResponseEntity<ApiResponse<Void>> update(
             @RequestHeader(USER_ID_HEADER) @Positive Long userId,
             @PathVariable @Positive Long ingredientId,
             @RequestBody JsonNode request
     ) {
         IngredientUpdateRequest updateRequest = IngredientUpdateRequest.from(request);
         updateIngredientUseCase.update(updateRequest.toCommand(ingredientId, userId));
+        return ApiResponse.success();
     }
 
     @GetMapping("/{ingredientId}")
-    public IngredientDto.DetailResponse get(
+    public ResponseEntity<ApiResponse<IngredientDto.DetailResponse>> get(
             @RequestHeader(USER_ID_HEADER) @Positive Long userId,
             @PathVariable @Positive Long ingredientId
     ) {
-        return getIngredientUseCase.get(new GetIngredientUseCase.Query(ingredientId, userId));
+        return ApiResponse.success(
+                getIngredientUseCase.get(new GetIngredientUseCase.Query(ingredientId, userId))
+        );
     }
 
     @GetMapping
-    public List<IngredientDto.SummaryResponse> list(
+    public ResponseEntity<ApiResponse<List<IngredientDto.SummaryResponse>>> list(
             @RequestHeader(USER_ID_HEADER) @Positive Long userId
     ) {
-        return listIngredientsUseCase.list(new ListIngredientsUseCase.Query(userId));
+        return ApiResponse.success(
+                listIngredientsUseCase.list(new ListIngredientsUseCase.Query(userId))
+        );
     }
 
     @GetMapping("/defaults")
-    public IngredientDto.DefaultsResponse defaults(
+    public ResponseEntity<ApiResponse<IngredientDto.DefaultsResponse>> defaults(
             @RequestParam(required = false) @Positive Long catalogId,
             @RequestParam(required = false) CatalogCategory category,
             @RequestParam(required = false) StorageType storageType
     ) {
-        return resolveIngredientDefaultsUseCase.resolve(
-                new ResolveIngredientDefaultsUseCase.Query(catalogId, category, storageType)
+        return ApiResponse.success(
+                resolveIngredientDefaultsUseCase.resolve(
+                        new ResolveIngredientDefaultsUseCase.Query(catalogId, category, storageType)
+                )
         );
     }
 
     @GetMapping("/storages")
-    public List<IngredientDto.StorageSummaryResponse> storages(
+    public ResponseEntity<ApiResponse<List<IngredientDto.StorageSummaryResponse>>> storages(
             @RequestHeader(USER_ID_HEADER) @Positive Long userId
     ) {
-        return listStoragesUseCase.list(new ListStoragesUseCase.Query(userId));
+        return ApiResponse.success(
+                listStoragesUseCase.list(new ListStoragesUseCase.Query(userId))
+        );
     }
 }
