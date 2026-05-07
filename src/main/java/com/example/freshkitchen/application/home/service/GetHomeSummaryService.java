@@ -36,13 +36,19 @@ public class GetHomeSummaryService implements GetHomeSummaryUseCase {
     @Override
     public HomeDto.SummaryResponse get(Query query) {
         LocalDate today = LocalDate.now();
-        List<Ingredient> activeIngredients = ingredientRepository.findAllByUserId(query.userId()).stream()
-                .filter(ingredient -> ingredient.getStatus() == IngredientStatus.ACTIVE)
+        List<HomeIngredientSummary> activeIngredients = ingredientRepository
+                .findAllByUserIdAndStatus(query.userId(), IngredientStatus.ACTIVE)
+                .stream()
+                .map(ingredient -> HomeIngredientSummary.from(
+                        ingredient,
+                        resolveStatus(ingredient, today),
+                        resolveEmoji(ingredient)
+                ))
                 .toList();
 
-        long expiredCount = countByStatus(activeIngredients, today, HomeIngredientStatus.EXPIRED);
-        long nearExpiryCount = countByStatus(activeIngredients, today, HomeIngredientStatus.NEAR_EXPIRY);
-        long freshCount = countByStatus(activeIngredients, today, HomeIngredientStatus.FRESH);
+        long expiredCount = countByStatus(activeIngredients, HomeIngredientStatus.EXPIRED);
+        long nearExpiryCount = countByStatus(activeIngredients, HomeIngredientStatus.NEAR_EXPIRY);
+        long freshCount = countByStatus(activeIngredients, HomeIngredientStatus.FRESH);
 
         return new HomeDto.SummaryResponse(
                 activeIngredients.size(),
@@ -50,19 +56,19 @@ public class GetHomeSummaryService implements GetHomeSummaryUseCase {
                 nearExpiryCount,
                 expiredCount,
                 storageSummaries(activeIngredients),
-                previewItems(activeIngredients, today, HomeIngredientStatus.NEAR_EXPIRY, expiryAscending()),
-                previewItems(activeIngredients, today, HomeIngredientStatus.EXPIRED, expiryAscending()),
-                recentItems(activeIngredients, today)
+                previewItems(activeIngredients, HomeIngredientStatus.NEAR_EXPIRY, expiryAscending()),
+                previewItems(activeIngredients, HomeIngredientStatus.EXPIRED, expiryAscending()),
+                recentItems(activeIngredients)
         );
     }
 
-    private long countByStatus(List<Ingredient> ingredients, LocalDate today, HomeIngredientStatus status) {
+    private long countByStatus(List<HomeIngredientSummary> ingredients, HomeIngredientStatus status) {
         return ingredients.stream()
-                .filter(ingredient -> resolveStatus(ingredient, today) == status)
+                .filter(ingredient -> ingredient.status() == status)
                 .count();
     }
 
-    private List<HomeDto.StorageSummaryResponse> storageSummaries(List<Ingredient> activeIngredients) {
+    private List<HomeDto.StorageSummaryResponse> storageSummaries(List<HomeIngredientSummary> activeIngredients) {
         return STORAGE_DISPLAYS.stream()
                 .map(display -> new HomeDto.StorageSummaryResponse(
                         display.storageType(),
@@ -74,53 +80,41 @@ public class GetHomeSummaryService implements GetHomeSummaryUseCase {
                 .toList();
     }
 
-    private long countByStorage(List<Ingredient> ingredients, StorageType storageType) {
+    private long countByStorage(List<HomeIngredientSummary> ingredients, StorageType storageType) {
         return ingredients.stream()
-                .filter(ingredient -> ingredient.getStorage().getStorageType() == storageType)
+                .filter(ingredient -> ingredient.storageType() == storageType)
                 .count();
     }
 
     private List<HomeDto.ItemPreviewResponse> previewItems(
-            List<Ingredient> ingredients,
-            LocalDate today,
+            List<HomeIngredientSummary> ingredients,
             HomeIngredientStatus status,
-            Comparator<Ingredient> comparator
+            Comparator<HomeIngredientSummary> comparator
     ) {
         return ingredients.stream()
-                .filter(ingredient -> resolveStatus(ingredient, today) == status)
+                .filter(ingredient -> ingredient.status() == status)
                 .sorted(comparator)
                 .limit(PREVIEW_LIMIT)
-                .map(ingredient -> toPreview(ingredient, today))
+                .map(HomeIngredientSummary::toPreview)
                 .toList();
     }
 
-    private List<HomeDto.ItemPreviewResponse> recentItems(List<Ingredient> ingredients, LocalDate today) {
+    private List<HomeDto.ItemPreviewResponse> recentItems(List<HomeIngredientSummary> ingredients) {
         return ingredients.stream()
-                .sorted(Comparator.comparing(Ingredient::getCreatedAt, nullsLastOffsetDateTime()).reversed()
-                        .thenComparing(Ingredient::getId, Comparator.nullsLast(Comparator.reverseOrder())))
+                .sorted(Comparator.comparing(HomeIngredientSummary::createdAt, nullsLastOffsetDateTime()).reversed()
+                        .thenComparing(HomeIngredientSummary::id, Comparator.nullsLast(Comparator.reverseOrder())))
                 .limit(PREVIEW_LIMIT)
-                .map(ingredient -> toPreview(ingredient, today))
+                .map(HomeIngredientSummary::toPreview)
                 .toList();
     }
 
-    private Comparator<Ingredient> expiryAscending() {
-        return Comparator.comparing(Ingredient::getExpiresAt, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(Ingredient::getId, Comparator.nullsLast(Comparator.naturalOrder()));
+    private Comparator<HomeIngredientSummary> expiryAscending() {
+        return Comparator.comparing(HomeIngredientSummary::expiresAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(HomeIngredientSummary::id, Comparator.nullsLast(Comparator.naturalOrder()));
     }
 
     private Comparator<OffsetDateTime> nullsLastOffsetDateTime() {
         return Comparator.nullsLast(Comparator.naturalOrder());
-    }
-
-    private HomeDto.ItemPreviewResponse toPreview(Ingredient ingredient, LocalDate today) {
-        return new HomeDto.ItemPreviewResponse(
-                ingredient.getId(),
-                ingredient.getName(),
-                ingredient.getStorage().getStorageType(),
-                ingredient.getExpiresAt(),
-                resolveStatus(ingredient, today),
-                resolveEmoji(ingredient)
-        );
     }
 
     private HomeIngredientStatus resolveStatus(Ingredient ingredient, LocalDate today) {
@@ -151,5 +145,43 @@ public class GetHomeSummaryService implements GetHomeSummaryUseCase {
             String name,
             String filterKey
     ) {
+    }
+
+    private record HomeIngredientSummary(
+            Long id,
+            String name,
+            StorageType storageType,
+            LocalDate expiresAt,
+            HomeIngredientStatus status,
+            String emoji,
+            OffsetDateTime createdAt
+    ) {
+
+        private static HomeIngredientSummary from(
+                Ingredient ingredient,
+                HomeIngredientStatus status,
+                String emoji
+        ) {
+            return new HomeIngredientSummary(
+                    ingredient.getId(),
+                    ingredient.getName(),
+                    ingredient.getStorage().getStorageType(),
+                    ingredient.getExpiresAt(),
+                    status,
+                    emoji,
+                    ingredient.getCreatedAt()
+            );
+        }
+
+        private HomeDto.ItemPreviewResponse toPreview() {
+            return new HomeDto.ItemPreviewResponse(
+                    id,
+                    name,
+                    storageType,
+                    expiresAt,
+                    status,
+                    emoji
+            );
+        }
     }
 }
