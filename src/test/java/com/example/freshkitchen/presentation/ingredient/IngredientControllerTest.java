@@ -384,4 +384,21 @@ class IngredientControllerTest {
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
                 .andExpect(jsonPath("$.path").value("/api/v1/ingredients/10"));
     }
+
+    @Test
+    void update_withTooLongName_returnsInvalidInput() throws Exception {
+        String tooLongName = "a".repeat(101);
+
+        mockMvc.perform(patch("/api/v1/ingredients/10")
+                        .header("X-User-Id", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "%s"
+                                }
+                                """.formatted(tooLongName)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.path").value("/api/v1/ingredients/10"));
+    }
 }

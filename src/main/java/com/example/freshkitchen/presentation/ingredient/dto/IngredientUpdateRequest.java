@@ -24,6 +24,8 @@ public record IngredientUpdateRequest(
         IngredientSourceType sourceType
 ) {
 
+    private static final int NAME_MAX_LENGTH = 100;
+
     public static IngredientUpdateRequest from(JsonNode request) {
         if (request == null || !request.isObject()) {
             throw new BusinessValidationException("ingredient update request must be a JSON object");
@@ -33,7 +35,7 @@ public record IngredientUpdateRequest(
                 readPositiveLong(request, "storageId"),
                 readPositiveLong(request, "catalogId"),
                 request.has("catalogId"),
-                readString(request, "name"),
+                readBoundedString(request, "name", NAME_MAX_LENGTH),
                 readDate(request, "registeredAt"),
                 request.has("registeredAt"),
                 readDate(request, "expiresAt"),
@@ -88,6 +90,14 @@ public record IngredientUpdateRequest(
             throw new BusinessValidationException(fieldName + " must be a string");
         }
         return value.textValue();
+    }
+
+    private static String readBoundedString(JsonNode request, String fieldName, int maxLength) {
+        String value = readString(request, fieldName);
+        if (value != null && value.length() > maxLength) {
+            throw new BusinessValidationException(fieldName + " must be at most " + maxLength + " characters");
+        }
+        return value;
     }
 
     private static LocalDate readDate(JsonNode request, String fieldName) {
