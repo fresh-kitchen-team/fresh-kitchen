@@ -28,6 +28,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -141,7 +142,7 @@ class IngredientControllerTest {
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.code").value("COMMON-200"))
                 .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data").doesNotExist());
+                .andExpect(jsonPath("$.data").value(nullValue()));
 
         ArgumentCaptor<UpdateIngredientUseCase.Command> captor = ArgumentCaptor.forClass(UpdateIngredientUseCase.Command.class);
         verify(updateIngredientUseCase).update(captor.capture());
