@@ -11,4 +11,9 @@ public class AuthRequest {
             @NotBlank String idToken
     ) {
     }
+
+    public record KakaoLogin(
+            @NotBlank String idToken
+    ) {
+    }
 }
