@@ -116,7 +116,9 @@ public class GetHomeSummaryService implements GetHomeSummaryUseCase {
 
     private List<HomeDto.ItemPreviewResponse> recentItems(List<HomeIngredientSummary> ingredients) {
         return ingredients.stream()
-                .sorted(Comparator.comparing(HomeIngredientSummary::createdAt, nullsLastOffsetDateTime()).reversed()
+                .sorted(Comparator.comparing(
+                                HomeIngredientSummary::createdAt,
+                                Comparator.nullsLast(Comparator.reverseOrder()))
                         .thenComparing(HomeIngredientSummary::id, Comparator.nullsLast(Comparator.reverseOrder())))
                 .limit(PREVIEW_LIMIT)
                 .map(HomeIngredientSummary::toPreview)
@@ -126,10 +128,6 @@ public class GetHomeSummaryService implements GetHomeSummaryUseCase {
     private Comparator<HomeIngredientSummary> expiryAscending() {
         return Comparator.comparing(HomeIngredientSummary::expiresAt, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(HomeIngredientSummary::id, Comparator.nullsLast(Comparator.naturalOrder()));
-    }
-
-    private Comparator<OffsetDateTime> nullsLastOffsetDateTime() {
-        return Comparator.nullsLast(Comparator.naturalOrder());
     }
 
     private HomeIngredientStatus resolveStatus(Ingredient ingredient, LocalDate today) {
