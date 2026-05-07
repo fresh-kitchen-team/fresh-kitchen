@@ -8,6 +8,7 @@ import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,8 @@ public class GetHomeSummaryService implements GetHomeSummaryUseCase {
 
     @Override
     public HomeDto.SummaryResponse get(Query query) {
+        validate(query);
+
         LocalDate today = LocalDate.now();
         List<HomeIngredientSummary> activeIngredients = ingredientRepository
                 .findAllByUserIdAndStatus(query.userId(), IngredientStatus.ACTIVE)
@@ -60,6 +63,18 @@ public class GetHomeSummaryService implements GetHomeSummaryUseCase {
                 previewItems(activeIngredients, HomeIngredientStatus.EXPIRED, expiryAscending()),
                 recentItems(activeIngredients)
         );
+    }
+
+    private static void validate(Query query) {
+        if (query == null) {
+            throw new BusinessValidationException("query must not be null");
+        }
+        if (query.userId() == null) {
+            throw new BusinessValidationException("userId must not be null");
+        }
+        if (query.userId() <= 0) {
+            throw new BusinessValidationException("userId must be positive");
+        }
     }
 
     private long countByStatus(List<HomeIngredientSummary> ingredients, HomeIngredientStatus status) {

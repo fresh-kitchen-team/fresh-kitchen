@@ -12,6 +12,7 @@ import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.domain.user.entity.User;
 import com.example.freshkitchen.domain.user.enums.Provider;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.support.PostgreSqlTestContainerSupport;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -25,6 +26,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
 @Import(GetHomeSummaryService.class)
@@ -107,6 +109,17 @@ class GetHomeSummaryServiceTest extends PostgreSqlTestContainerSupport {
                 () -> assertEquals(5, response.nearExpiryItems().size()),
                 () -> assertEquals(5, response.expiredItems().size()),
                 () -> assertEquals(5, response.recentItems().size())
+        );
+    }
+
+    @Test
+    void get_withInvalidQuery_throwsBusinessValidationException() {
+        assertAll(
+                () -> assertThrows(BusinessValidationException.class, () -> getHomeSummaryUseCase.get(null)),
+                () -> assertThrows(BusinessValidationException.class,
+                        () -> getHomeSummaryUseCase.get(new GetHomeSummaryUseCase.Query(null))),
+                () -> assertThrows(BusinessValidationException.class,
+                        () -> getHomeSummaryUseCase.get(new GetHomeSummaryUseCase.Query(0L)))
         );
     }
 
