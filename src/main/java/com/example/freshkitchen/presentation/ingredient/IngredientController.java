@@ -33,7 +33,7 @@ import java.util.List;
 
 @Validated
 @RestController
-@RequestMapping("/api/ingredients")
+@RequestMapping("/api/v1/ingredients")
 @RequiredArgsConstructor
 public class IngredientController {
 

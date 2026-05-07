@@ -87,7 +87,7 @@ class IngredientControllerTest {
     void create_returnsCreatedIngredientId() throws Exception {
         when(createIngredientUseCase.create(any(CreateIngredientUseCase.Command.class))).thenReturn(10L);
 
-        mockMvc.perform(post("/api/ingredients")
+        mockMvc.perform(post("/api/v1/ingredients")
                         .header("X-User-Id", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -123,7 +123,7 @@ class IngredientControllerTest {
 
     @Test
     void update_mapsExplicitNullFieldsAsSet() throws Exception {
-        mockMvc.perform(patch("/api/ingredients/10")
+        mockMvc.perform(patch("/api/v1/ingredients/10")
                         .header("X-User-Id", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -174,7 +174,7 @@ class IngredientControllerTest {
                 IngredientSourceType.MANUAL
         ));
 
-        mockMvc.perform(get("/api/ingredients/10")
+        mockMvc.perform(get("/api/v1/ingredients/10")
                         .header("X-User-Id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.ingredientId").value(10))
@@ -205,7 +205,7 @@ class IngredientControllerTest {
                 )
         ));
 
-        mockMvc.perform(get("/api/ingredients")
+        mockMvc.perform(get("/api/v1/ingredients")
                         .header("X-User-Id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].ingredientId").value(10))
@@ -222,7 +222,7 @@ class IngredientControllerTest {
                 new IngredientDto.DefaultsResponse(3L, StorageType.FRIDGE, 7, "default rule")
         );
 
-        mockMvc.perform(get("/api/ingredients/defaults")
+        mockMvc.perform(get("/api/v1/ingredients/defaults")
                         .queryParam("catalogId", "3")
                         .queryParam("category", "VEGETABLE")
                         .queryParam("storageType", "FRIDGE"))
@@ -246,7 +246,7 @@ class IngredientControllerTest {
                 new IngredientDto.StorageSummaryResponse(2L, StorageType.FRIDGE, "Fridge")
         ));
 
-        mockMvc.perform(get("/api/ingredients/storages")
+        mockMvc.perform(get("/api/v1/ingredients/storages")
                         .header("X-User-Id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].storageId").value(2))
@@ -259,7 +259,7 @@ class IngredientControllerTest {
 
     @Test
     void create_withoutUserIdHeader_returnsInvalidInput() throws Exception {
-        mockMvc.perform(post("/api/ingredients")
+        mockMvc.perform(post("/api/v1/ingredients")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -271,12 +271,12 @@ class IngredientControllerTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
-                .andExpect(jsonPath("$.path").value("/api/ingredients"));
+                .andExpect(jsonPath("$.path").value("/api/v1/ingredients"));
     }
 
     @Test
     void create_withInvalidUserIdHeader_returnsInvalidInput() throws Exception {
-        mockMvc.perform(post("/api/ingredients")
+        mockMvc.perform(post("/api/v1/ingredients")
                         .header("X-User-Id", "abc")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -289,12 +289,12 @@ class IngredientControllerTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
-                .andExpect(jsonPath("$.path").value("/api/ingredients"));
+                .andExpect(jsonPath("$.path").value("/api/v1/ingredients"));
     }
 
     @Test
     void create_withBlankName_returnsInvalidInput() throws Exception {
-        mockMvc.perform(post("/api/ingredients")
+        mockMvc.perform(post("/api/v1/ingredients")
                         .header("X-User-Id", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -307,6 +307,6 @@ class IngredientControllerTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
-                .andExpect(jsonPath("$.path").value("/api/ingredients"));
+                .andExpect(jsonPath("$.path").value("/api/v1/ingredients"));
     }
 }
