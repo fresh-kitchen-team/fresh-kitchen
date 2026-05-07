@@ -309,4 +309,60 @@ class IngredientControllerTest {
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
                 .andExpect(jsonPath("$.path").value("/api/v1/ingredients"));
     }
+
+    @Test
+    void update_withNonObjectBody_returnsInvalidInput() throws Exception {
+        mockMvc.perform(patch("/api/v1/ingredients/10")
+                        .header("X-User-Id", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("[]"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.path").value("/api/v1/ingredients/10"));
+    }
+
+    @Test
+    void update_withInvalidDate_returnsInvalidInput() throws Exception {
+        mockMvc.perform(patch("/api/v1/ingredients/10")
+                        .header("X-User-Id", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "registeredAt": "not-a-date"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.path").value("/api/v1/ingredients/10"));
+    }
+
+    @Test
+    void update_withInvalidEnum_returnsInvalidInput() throws Exception {
+        mockMvc.perform(patch("/api/v1/ingredients/10")
+                        .header("X-User-Id", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "sourceType": "UNKNOWN"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.path").value("/api/v1/ingredients/10"));
+    }
+
+    @Test
+    void update_withInvalidFieldType_returnsInvalidInput() throws Exception {
+        mockMvc.perform(patch("/api/v1/ingredients/10")
+                        .header("X-User-Id", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "storageId": "2"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.path").value("/api/v1/ingredients/10"));
+    }
 }
