@@ -147,7 +147,7 @@ class ErrorCodeContractTest {
     }
 
     @Test
-    void oAuthErrorCode_contractMatchesSpecification() {
+    void oauthErrorCode_contractMatchesSpecification() {
         assertContract(OAuthErrorCode.INVALID_ID_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-7", "invalid id token");
         assertContract(OAuthErrorCode.PROVIDER_NOT_SUPPORTED, HttpStatus.BAD_REQUEST, "AUTH-400-1", "oauth provider not supported");
     }
@@ -207,14 +207,14 @@ class ErrorCodeContractTest {
     }
 
     @Test
-    void oAuthException_exposesItsErrorCode() {
+    void oauthException_exposesItsErrorCode() {
         OAuthException oAuthException = new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN);
 
         assertEquals(OAuthErrorCode.INVALID_ID_TOKEN, oAuthException.getErrorCode());
     }
 
     @Test
-    void oAuthException_preservesCause() {
+    void oauthException_preservesCause() {
         RuntimeException cause = new RuntimeException("token verification failed");
 
         OAuthException exception = new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN, cause);
