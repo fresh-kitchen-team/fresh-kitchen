@@ -4,9 +4,9 @@ spring:
       max-file-size: 100MB
       max-request-size: 100MB
   datasource:
-    url: jdbc:postgresql://localhost:5432/mydb
-    username: user01
-    password: "1111"
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -22,13 +22,13 @@ spring:
             initialize-schema: never
     google:
       genai:
-        api-key: AIzaSyB1RNIYdOvDV1GyHadPxePOX9gM-mIt9Rc
+        api-key: ${GEMINI_API_KEY}
         chat:
           options:
             model: gemini-2.5-flash
             temperature: 0.7
         embedding:
-          api-key: AIzaSyB1RNIYdOvDV1GyHadPxePOX9gM-mIt9Rc
+          api-key: ${GEMINI_API_KEY}
           options:
             model: text-embedding-004
     vectorstore:
@@ -38,7 +38,7 @@ spring:
         distance-type: cosine_distance
 
 jwt:
-  secret: freshkitchen-jwt-super-secret-2024!
+  secret: ${JWT_SECRET}
   access-expiration-minutes: 30
   refresh-expiration-days: 14
 
@@ -54,7 +54,7 @@ logging:
 
 ai:
   server:
-    base-url: http://52.55.50.125:8000
-    token: freshkitchen-ai-super-secret-2024!
+    base-url: ${AI_SERVER_URL}
+    token: ${AI_SERVER_TOKEN}
     connect-timeout-ms: 3000
     read-timeout-ms: 30000
