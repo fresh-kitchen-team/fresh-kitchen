@@ -8,7 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 		"ai.server.base-url=http://localhost:8000",
 		"ai.server.token=test-token",
 		"oauth.google.client-id=test-client-id",
-	"oauth.kakao.client-id=test-client-id"
+		"oauth.kakao.client-id=test-client-id"
 })
 class FreshkitchenApplicationTests extends PostgreSqlTestContainerSupport {
 

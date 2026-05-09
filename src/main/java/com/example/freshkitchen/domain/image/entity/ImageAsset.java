@@ -52,8 +52,8 @@ public class ImageAsset extends CreatedAtEntity {
     @Column(name = "storage_provider", nullable = false, length = 20)
     private StorageProvider storageProvider;
 
-    @Column(name = "image_url", nullable = false, columnDefinition = "TEXT")
-    private String imageUrl;
+    @Column(name = "object_key", nullable = false, columnDefinition = "TEXT")
+    private String objectKey;
 
     @Column(name = "width")
     private Integer width;
@@ -72,7 +72,7 @@ public class ImageAsset extends CreatedAtEntity {
             AssetType assetType,
             ImageKind kind,
             StorageProvider storageProvider,
-            String imageUrl,
+            String objectKey,
             Integer width,
             Integer height
     ) {
@@ -80,7 +80,7 @@ public class ImageAsset extends CreatedAtEntity {
         this.user = validateOwnerConsistency(user, this.assetType);
         this.kind = requireNonNull(kind, "kind");
         this.storageProvider = requireNonNull(storageProvider, "storageProvider");
-        this.imageUrl = requireNonBlank(imageUrl, "imageUrl");
+        this.objectKey = requireNonBlank(objectKey, "objectKey");
         this.width = requirePositiveNullable(width, "width");
         this.height = requirePositiveNullable(height, "height");
     }
@@ -92,7 +92,7 @@ public class ImageAsset extends CreatedAtEntity {
                 command.assetType(),
                 command.kind(),
                 command.storageProvider(),
-                command.imageUrl(),
+                command.objectKey(),
                 command.width(),
                 command.height()
         );
@@ -118,8 +118,8 @@ public class ImageAsset extends CreatedAtEntity {
         if (command.storageProvider() != null) {
             this.storageProvider = requireNonNull(command.storageProvider(), "storageProvider");
         }
-        if (command.imageUrl() != null) {
-            this.imageUrl = requireNonBlank(command.imageUrl(), "imageUrl");
+        if (command.objectKey() != null) {
+            this.objectKey = requireNonBlank(command.objectKey(), "objectKey");
         }
         if (command.widthSet()) {
             this.width = requirePositiveNullable(command.width(), "width");
@@ -144,7 +144,7 @@ public class ImageAsset extends CreatedAtEntity {
             AssetType assetType,
             ImageKind kind,
             StorageProvider storageProvider,
-            String imageUrl,
+            String objectKey,
             Integer width,
             Integer height
     ) {
@@ -156,7 +156,7 @@ public class ImageAsset extends CreatedAtEntity {
             AssetType assetType,
             ImageKind kind,
             StorageProvider storageProvider,
-            String imageUrl,
+            String objectKey,
             Integer width,
             boolean widthSet,
             Integer height,

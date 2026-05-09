@@ -11,7 +11,6 @@ import com.example.freshkitchen.infrastructure.oauth.GoogleTokenVerifier;
 import com.example.freshkitchen.infrastructure.oauth.GoogleTokenVerifier.GoogleUserInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.dao.DataIntegrityViolationException;
 import java.util.Optional;
 
@@ -24,7 +23,6 @@ public class GoogleLoginService implements GoogleLoginUseCase {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
-    @Transactional
     public AuthTokenResult login(Command command) {
         GoogleUserInfo userInfo = googleTokenVerifier.verify(command.idToken());
 
@@ -37,7 +35,7 @@ public class GoogleLoginService implements GoogleLoginUseCase {
                 user = userRepository.save(User.create(new User.CreateCommand(userInfo.sub(), Provider.GOOGLE)));
             } catch (DataIntegrityViolationException e) {
                 user = userRepository.findByProviderAndProviderUserId(Provider.GOOGLE, userInfo.sub())
-                        .orElseThrow(() -> new IllegalStateException("User should exist after unique constraint violation", e));
+                        .orElseThrow(() -> e);
                 isNew = false;
             }
         } else {

@@ -12,7 +12,6 @@ import com.example.freshkitchen.infrastructure.oauth.KakaoTokenVerifier.KakaoUse
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -25,7 +24,6 @@ public class KakaoLoginService implements KakaoLoginUseCase {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
-    @Transactional
     public AuthTokenResult login(Command command) {
         KakaoUserInfo userInfo = kakaoTokenVerifier.verify(command.idToken());
 
@@ -38,7 +36,7 @@ public class KakaoLoginService implements KakaoLoginUseCase {
                 user = userRepository.save(User.create(new User.CreateCommand(userInfo.sub(), Provider.KAKAO)));
             } catch (DataIntegrityViolationException e) {
                 user = userRepository.findByProviderAndProviderUserId(Provider.KAKAO, userInfo.sub())
-                        .orElseThrow(() -> new IllegalStateException("User should exist after unique constraint violation", e));
+                        .orElseThrow(() -> e);
                 isNew = false;
             }
         } else {

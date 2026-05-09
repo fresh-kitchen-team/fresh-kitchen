@@ -129,6 +129,24 @@ class ErrorCodeContractTest {
                 "IMAGE-400-3",
                 "user must not be null when assetType is USER_UPLOAD"
         );
+        assertContract(
+                ImageErrorCode.IMAGE_ASSET_ID_REQUIRED,
+                HttpStatus.BAD_REQUEST,
+                "IMAGE-400-4",
+                "imageAssetId must not be null"
+        );
+        assertContract(
+                ImageErrorCode.IMAGE_ASSET_ALREADY_ATTACHED,
+                HttpStatus.BAD_REQUEST,
+                "IMAGE-400-5",
+                "image asset is already attached to ingredient"
+        );
+        assertContract(
+                ImageErrorCode.IMAGE_ASSET_NOT_FOUND,
+                HttpStatus.NOT_FOUND,
+                "IMAGE-404-1",
+                "image asset not found"
+        );
     }
 
     @Test
@@ -147,9 +165,10 @@ class ErrorCodeContractTest {
     }
 
     @Test
-    void oAuthErrorCode_contractMatchesSpecification() {
+    void oauthErrorCode_contractMatchesSpecification() {
         assertContract(OAuthErrorCode.INVALID_ID_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-7", "invalid id token");
         assertContract(OAuthErrorCode.PROVIDER_NOT_SUPPORTED, HttpStatus.BAD_REQUEST, "AUTH-400-1", "oauth provider not supported");
+        assertContract(OAuthErrorCode.OAUTH_PROVIDER_UNAVAILABLE, HttpStatus.SERVICE_UNAVAILABLE, "AUTH-503-1", "oauth provider unavailable");
     }
 
     @Test
@@ -207,14 +226,14 @@ class ErrorCodeContractTest {
     }
 
     @Test
-    void oAuthException_exposesItsErrorCode() {
+    void oauthException_exposesItsErrorCode() {
         OAuthException oAuthException = new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN);
 
         assertEquals(OAuthErrorCode.INVALID_ID_TOKEN, oAuthException.getErrorCode());
     }
 
     @Test
-    void oAuthException_preservesCause() {
+    void oauthException_preservesCause() {
         RuntimeException cause = new RuntimeException("token verification failed");
 
         OAuthException exception = new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN, cause);

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -14,6 +15,8 @@ import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.RSAPublicKeySpec;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,11 +26,15 @@ public class KakaoTokenVerifier {
 
     private static final String JWKS_URI = "https://kauth.kakao.com/.well-known/jwks.json";
     private static final String ISSUER = "https://kauth.kakao.com";
+    private static final Duration JWKS_CACHE_TTL = Duration.ofHours(1);
+    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(3);
+    private static final Duration READ_TIMEOUT = Duration.ofSeconds(5);
 
     private final String clientId;
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
     private final Map<String, RSAPublicKey> keyCache = new ConcurrentHashMap<>();
+    private volatile Instant lastRefreshed = Instant.EPOCH;
 
     public KakaoTokenVerifier(
             @Value("${oauth.kakao.client-id}") String clientId,
@@ -35,7 +42,14 @@ public class KakaoTokenVerifier {
     ) {
         this.clientId = clientId;
         this.objectMapper = objectMapper;
-        this.restClient = RestClient.create();
+
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(CONNECT_TIMEOUT);
+        requestFactory.setReadTimeout(READ_TIMEOUT);
+
+        this.restClient = RestClient.builder()
+                .requestFactory(requestFactory)
+                .build();
     }
 
     public KakaoUserInfo verify(String idTokenString) {
@@ -76,6 +90,10 @@ public class KakaoTokenVerifier {
             return cached;
         }
 
+        if (Duration.between(lastRefreshed, Instant.now()).compareTo(JWKS_CACHE_TTL) < 0 && !keyCache.isEmpty()) {
+            throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN);
+        }
+
         refreshKeys();
 
         RSAPublicKey key = keyCache.get(kid);
@@ -93,6 +111,7 @@ public class KakaoTokenVerifier {
                     .body(String.class);
 
             JsonNode keys = objectMapper.readTree(jwksJson).get("keys");
+            Map<String, RSAPublicKey> newKeys = new ConcurrentHashMap<>();
             for (JsonNode keyNode : keys) {
                 String kid = keyNode.get("kid").asText();
                 BigInteger modulus = new BigInteger(1, Base64.getUrlDecoder().decode(keyNode.get("n").asText()));
@@ -100,10 +119,13 @@ public class KakaoTokenVerifier {
 
                 RSAPublicKey publicKey = (RSAPublicKey) KeyFactory.getInstance("RSA")
                         .generatePublic(new RSAPublicKeySpec(modulus, exponent));
-                keyCache.put(kid, publicKey);
+                newKeys.put(kid, publicKey);
             }
+            keyCache.clear();
+            keyCache.putAll(newKeys);
+            lastRefreshed = Instant.now();
         } catch (Exception e) {
-            throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN, e);
+            throw new OAuthException(OAuthErrorCode.OAUTH_PROVIDER_UNAVAILABLE, e);
         }
     }
 

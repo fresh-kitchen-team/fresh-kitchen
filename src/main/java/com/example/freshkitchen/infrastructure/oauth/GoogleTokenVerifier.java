@@ -31,8 +31,10 @@ public class GoogleTokenVerifier {
         GoogleIdToken idToken;
         try {
             idToken = verifier.verify(idTokenString);
-        } catch (GeneralSecurityException | IOException e) {
+        } catch (GeneralSecurityException e) {
             throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN, e);
+        } catch (IOException e) {
+            throw new OAuthException(OAuthErrorCode.OAUTH_PROVIDER_UNAVAILABLE, e);
         }
 
         if (idToken == null) {

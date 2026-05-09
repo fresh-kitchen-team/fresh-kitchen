@@ -88,7 +88,7 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
         User user = persistUser("provider-user", Provider.GOOGLE);
         Storage storage = persistStorage(user, StorageType.FRIDGE, "Main fridge");
         Ingredient ingredient = persistIngredient(user, storage, "Milk");
-        ImageAsset imageAsset = persistImageAsset(user, "https://cdn.example/milk.png");
+        ImageAsset imageAsset = persistImageAsset(user, "images/milk.png");
         IngredientImage ingredientImage = IngredientImage.create(new IngredientImage.CreateCommand(
                 ingredient,
                 imageAsset,
@@ -166,13 +166,13 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
         return ingredient;
     }
 
-    private ImageAsset persistImageAsset(User user, String imageUrl) {
+    private ImageAsset persistImageAsset(User user, String objectKey) {
         ImageAsset imageAsset = ImageAsset.create(new ImageAsset.CreateCommand(
                 user,
                 AssetType.USER_UPLOAD,
                 ImageKind.INGREDIENT,
                 StorageProvider.LOCAL,
-                imageUrl,
+                objectKey,
                 300,
                 300
         ));
