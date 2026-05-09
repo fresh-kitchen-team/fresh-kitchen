@@ -20,6 +20,7 @@ oauth:
     client-id: ${GOOGLE_CLIENT_ID}
   kakao:
     client-id: ${KAKAO_CLIENT_ID}
+    app-key: ${KAKAO_APP_KEY:}
 
 ai:
   server:

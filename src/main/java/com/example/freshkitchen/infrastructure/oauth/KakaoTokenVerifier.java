@@ -19,18 +19,20 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 public class KakaoTokenVerifier {
 
     private static final String JWKS_URI = "https://kauth.kakao.com/.well-known/jwks.json";
     private static final String ISSUER = "https://kauth.kakao.com";
-    private static final Duration JWKS_CACHE_TTL = Duration.ofHours(1);
+    private static final Duration MIN_REFRESH_INTERVAL = Duration.ofMinutes(5);
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(3);
     private static final Duration READ_TIMEOUT = Duration.ofSeconds(5);
 
-    private final String clientId;
+    private final List<String> allowedAudiences;
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
     private final Object refreshLock = new Object();
@@ -39,9 +41,10 @@ public class KakaoTokenVerifier {
 
     public KakaoTokenVerifier(
             @Value("${oauth.kakao.client-id}") String clientId,
+            @Value("${oauth.kakao.app-key:}") String appKey,
             ObjectMapper objectMapper
     ) {
-        this.clientId = clientId;
+        this.allowedAudiences = appKey.isBlank() ? List.of(clientId) : List.of(clientId, appKey);
         this.objectMapper = objectMapper;
 
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
@@ -62,16 +65,24 @@ public class KakaoTokenVerifier {
             Claims claims = Jwts.parser()
                     .verifyWith(publicKey)
                     .requireIssuer(ISSUER)
-                    .requireAudience(clientId)
                     .build()
                     .parseSignedClaims(idTokenString)
                     .getPayload();
+            
+            verifyAudience(claims);
 
             return new KakaoUserInfo(claims.getSubject(), claims.get("email", String.class));
         } catch (OAuthException e) {
             throw e;
         } catch (Exception e) {
             throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN, e);
+        }
+    }
+
+    private void verifyAudience(Claims claims) {
+        Set<String> audiences = claims.getAudience();
+        if (audiences == null || audiences.stream().noneMatch(allowedAudiences::contains)) {
+            throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN);
         }
     }
 
@@ -98,7 +109,7 @@ public class KakaoTokenVerifier {
                 return cached;
             }
 
-            if (Duration.between(lastRefreshed, Instant.now()).compareTo(JWKS_CACHE_TTL) < 0 && !keyCache.isEmpty()) {
+            if (Duration.between(lastRefreshed, Instant.now()).compareTo(MIN_REFRESH_INTERVAL) < 0 && !keyCache.isEmpty()) {
                 throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN);
             }
 
