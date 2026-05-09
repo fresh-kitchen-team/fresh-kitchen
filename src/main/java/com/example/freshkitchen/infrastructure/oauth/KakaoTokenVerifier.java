@@ -18,8 +18,8 @@ import java.security.spec.RSAPublicKeySpec;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class KakaoTokenVerifier {
@@ -33,7 +33,8 @@ public class KakaoTokenVerifier {
     private final String clientId;
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
-    private final Map<String, RSAPublicKey> keyCache = new ConcurrentHashMap<>();
+    private final Object refreshLock = new Object();
+    private volatile Map<String, RSAPublicKey> keyCache = Map.of();
     private volatile Instant lastRefreshed = Instant.EPOCH;
 
     public KakaoTokenVerifier(
@@ -52,6 +53,7 @@ public class KakaoTokenVerifier {
                 .build();
     }
 
+    // nonce 검증 생략: 서버-투-서버 flow에서는 클라이언트가 nonce를 생성하지 않음
     public KakaoUserInfo verify(String idTokenString) {
         try {
             String kid = extractKid(idTokenString);
@@ -90,17 +92,24 @@ public class KakaoTokenVerifier {
             return cached;
         }
 
-        if (Duration.between(lastRefreshed, Instant.now()).compareTo(JWKS_CACHE_TTL) < 0 && !keyCache.isEmpty()) {
-            throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN);
-        }
+        synchronized (refreshLock) {
+            cached = keyCache.get(kid);
+            if (cached != null) {
+                return cached;
+            }
 
-        refreshKeys();
+            if (Duration.between(lastRefreshed, Instant.now()).compareTo(JWKS_CACHE_TTL) < 0 && !keyCache.isEmpty()) {
+                throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN);
+            }
 
-        RSAPublicKey key = keyCache.get(kid);
-        if (key == null) {
-            throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN);
+            refreshKeys();
+
+            RSAPublicKey key = keyCache.get(kid);
+            if (key == null) {
+                throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN);
+            }
+            return key;
         }
-        return key;
     }
 
     private void refreshKeys() {
@@ -111,7 +120,7 @@ public class KakaoTokenVerifier {
                     .body(String.class);
 
             JsonNode keys = objectMapper.readTree(jwksJson).get("keys");
-            Map<String, RSAPublicKey> newKeys = new ConcurrentHashMap<>();
+            Map<String, RSAPublicKey> newKeys = new HashMap<>();
             for (JsonNode keyNode : keys) {
                 String kid = keyNode.get("kid").asText();
                 BigInteger modulus = new BigInteger(1, Base64.getUrlDecoder().decode(keyNode.get("n").asText()));
@@ -121,8 +130,7 @@ public class KakaoTokenVerifier {
                         .generatePublic(new RSAPublicKeySpec(modulus, exponent));
                 newKeys.put(kid, publicKey);
             }
-            keyCache.clear();
-            keyCache.putAll(newKeys);
+            keyCache = Map.copyOf(newKeys);
             lastRefreshed = Instant.now();
         } catch (Exception e) {
             throw new OAuthException(OAuthErrorCode.OAUTH_PROVIDER_UNAVAILABLE, e);
