@@ -14,6 +14,9 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
+  oauth:
+    google:
+      client-id: ${GOOGLE_CLIENT_ID}
   ai:
     chat:
       memory:

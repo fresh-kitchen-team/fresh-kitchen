@@ -6,7 +6,7 @@ import com.example.freshkitchen.domain.chat.dto.response.ChatMessageResponse;
 import com.example.freshkitchen.domain.chat.dto.response.ChatRoomListResponse;
 import com.example.freshkitchen.domain.chat.dto.response.ChatRoomResponse;
 import com.example.freshkitchen.domain.chat.service.ChatService;
-import com.example.freshkitchen.global.dto.ApiResponse;
+import com.example.freshkitchen.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -33,7 +33,7 @@ public class AiChatController {
         // CustomUserDetails principal = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = 1L;
         ChatMessageResponse response = chatService.sendAiMessage(userId, roomId, request);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ApiResponse.success(response);
     }
 
     @Operation(summary = "AI 채팅방 생성", description = "AI와 1:1 채팅방을 생성합니다.")
@@ -42,7 +42,7 @@ public class AiChatController {
         // CustomUserDetails principal = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = 1L;
         ChatRoomResponse response = chatService.createChatRoom(userId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ApiResponse.success(response);
     }
 
     @Operation(summary = "채팅방 목록 조회", description = "사이드바용 채팅방 목록을 날짜별(오늘/7일/30일)로 조회합니다.")
@@ -51,14 +51,14 @@ public class AiChatController {
         // CustomUserDetails principal = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = 1L;
         ChatRoomListResponse response = chatService.getRoomList(userId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ApiResponse.success(response);
     }
 
     @Operation(summary = "채팅 기록 상세 조회", description = "특정 채팅방의 상세 메시지 내역을 조회합니다.")
     @GetMapping("/room/{roomId}")
     public ResponseEntity<ApiResponse<ChatRoomListResponse>> getChatHistory(@PathVariable Long roomId) {
         ChatRoomListResponse response = chatService.getChatHistory(roomId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ApiResponse.success(response);
     }
 
     @Operation(summary = "채팅방 제목 수정", description = "채팅방 제목을 수정합니다.")
@@ -67,6 +67,6 @@ public class AiChatController {
             @PathVariable Long roomId,
             @Valid @RequestBody UpdateRoomTitleRequest request) {
         ChatRoomResponse response = chatService.updateRoomTitle(roomId, request);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ApiResponse.success(response);
     }
 }

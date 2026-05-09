@@ -1,6 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS vector;
 
-DROP TABLE IF EXISTS chat_pgvector CASCADE;
 CREATE TABLE IF NOT EXISTS public.chat_pgvector (
                                                     id VARCHAR(255) PRIMARY KEY,
     content TEXT,
@@ -14,7 +13,7 @@ CREATE TABLE vector_store (
                               id UUID PRIMARY KEY,
                               content TEXT,
                               metadata JSONB,
-                              embedding VECTOR(3072)
+                              embedding VECTOR(768)
 );
 
 CREATE TABLE IF NOT EXISTS spring_ai_chat_memory (
