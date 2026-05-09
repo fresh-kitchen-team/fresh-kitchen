@@ -23,7 +23,10 @@ public class SecurityConfig {
             "/swagger-resources/**",
             "/actuator/health",
             "/error",
-            "/api/v1/auth/google",
+            "/webjars/**",
+            "/ai/v1/chat/room",
+            "/ai/v1/chat/room/**",
+            "/add-vector-store"
     };
 
     private final JwtTokenProvider jwtTokenProvider;
