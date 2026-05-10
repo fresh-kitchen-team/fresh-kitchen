@@ -110,4 +110,20 @@ class AuthControllerKakaoTest {
 
         verifyNoInteractions(kakaoLoginUseCase);
     }
+
+    @Test
+    void kakaoLogin_returnsBadRequest_whenIdTokenIsTooLong() throws Exception {
+        String longToken = "a".repeat(4097);
+        mockMvc.perform(post("/api/v1/auth/kakao")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                { "idToken": "%s" }
+                                """.formatted(longToken)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.message").isNotEmpty());
+
+        verifyNoInteractions(kakaoLoginUseCase);
+    }
 }

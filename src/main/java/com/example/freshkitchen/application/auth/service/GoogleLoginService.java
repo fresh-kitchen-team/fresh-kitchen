@@ -36,7 +36,9 @@ public class GoogleLoginService implements GoogleLoginUseCase {
             try {
                 user = userRepository.save(User.create(new User.CreateCommand(userInfo.sub(), Provider.GOOGLE)));
             } catch (DataIntegrityViolationException e) {
-                log.warn("동시 회원가입 충돌 감지, 기존 유저 재조회. sub={}", userInfo.sub());
+                String maskedSub = userInfo.sub() != null && userInfo.sub().length() > 4 
+                        ? userInfo.sub().substring(0, 4) + "****" : "****";
+                log.warn("동시 회원가입 충돌 감지, 기존 유저 재조회. sub={}", maskedSub);
                 user = userRepository.findByProviderAndProviderUserId(Provider.GOOGLE, userInfo.sub())
                         .orElseThrow(() -> e);
                 isNew = false;

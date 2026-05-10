@@ -73,7 +73,12 @@ public class KakaoTokenVerifier {
             
             verifyAudience(claims);
 
-            return new KakaoUserInfo(claims.getSubject(), claims.get("email", String.class));
+            String subject = claims.getSubject();
+            if (subject == null || subject.isBlank()) {
+                throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN);
+            }
+
+            return new KakaoUserInfo(subject, claims.get("email", String.class));
         } catch (OAuthException e) {
             throw e;
         } catch (Exception e) {
