@@ -11,4 +11,9 @@ public final class AuthRequest {
             @NotBlank String idToken
     ) {
     }
+
+    public record RefreshToken(
+            @NotBlank String refreshToken
+    ) {
+    }
 }

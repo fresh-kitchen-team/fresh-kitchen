@@ -9,6 +9,7 @@ import com.example.freshkitchen.global.security.Role;
 import com.example.freshkitchen.global.security.exception.OAuthErrorCode;
 import com.example.freshkitchen.global.security.exception.OAuthException;
 import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
+import com.example.freshkitchen.infrastructure.auth.RefreshTokenRepository;
 import com.example.freshkitchen.infrastructure.oauth.GoogleTokenVerifier;
 import com.example.freshkitchen.infrastructure.oauth.GoogleTokenVerifier.GoogleUserInfo;
 import org.junit.jupiter.api.Test;
@@ -29,10 +30,17 @@ class GoogleLoginServiceTest {
     private final GoogleTokenVerifier googleTokenVerifier = mock(GoogleTokenVerifier.class);
     private final UserRepository userRepository = mock(UserRepository.class);
     private final JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
+    private final RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
 
-    private final GoogleLoginService service = new GoogleLoginService(
-            googleTokenVerifier, userRepository, jwtTokenProvider
-    );
+    private final GoogleLoginService service = createService();
+
+    private GoogleLoginService createService() {
+        GoogleLoginService svc = new GoogleLoginService(
+                googleTokenVerifier, userRepository, jwtTokenProvider, refreshTokenRepository
+        );
+        ReflectionTestUtils.setField(svc, "refreshExpirationDays", 14L);
+        return svc;
+    }
 
     @Test
     void login_returnsTokens_whenExistingUser() {
