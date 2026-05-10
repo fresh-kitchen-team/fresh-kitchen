@@ -45,7 +45,11 @@ public class GoogleTokenVerifier {
         }
 
         GoogleIdToken.Payload payload = idToken.getPayload();
-        return new GoogleUserInfo(payload.getSubject(), payload.getEmail());
+        String subject = payload.getSubject();
+        if (subject == null || subject.isBlank()) {
+            throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN);
+        }
+        return new GoogleUserInfo(subject, payload.getEmail());
     }
 
     public record GoogleUserInfo(String sub, String email) {
