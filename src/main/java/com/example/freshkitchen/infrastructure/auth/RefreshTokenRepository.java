@@ -5,7 +5,11 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Repository;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,7 +41,7 @@ public class RefreshTokenRepository {
     private final StringRedisTemplate redisTemplate;
 
     public void save(Long userId, String refreshToken, Duration ttl) {
-        redisTemplate.opsForValue().set(key(userId), refreshToken, ttl);
+        redisTemplate.opsForValue().set(key(userId), hashToken(refreshToken), ttl);
     }
 
     /**
@@ -49,8 +53,8 @@ public class RefreshTokenRepository {
         Long result = redisTemplate.execute(
                 CAS_SCRIPT,
                 List.of(key(userId)),
-                expectedToken,
-                newToken,
+                hashToken(expectedToken),
+                hashToken(newToken),
                 String.valueOf(ttl.getSeconds())
         );
         return result != null ? result : 0L;
@@ -66,5 +70,15 @@ public class RefreshTokenRepository {
 
     private String key(Long userId) {
         return KEY_PREFIX + userId;
+    }
+
+    public String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Failed to hash token", e);
+        }
     }
 }
