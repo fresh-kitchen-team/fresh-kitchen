@@ -37,10 +37,7 @@ public class KakaoLoginService implements KakaoLoginUseCase {
             try {
                 user = userRepository.save(User.create(new User.CreateCommand(userInfo.sub(), Provider.KAKAO)));
             } catch (DataIntegrityViolationException e) {
-                String maskedSub = userInfo.sub().length() > 4
-                        ? userInfo.sub().substring(0, 4) + "****"
-                        : userInfo.sub().substring(0, 1) + "****";
-                log.warn("동시 회원가입 충돌 감지, 기존 유저 재조회. sub={}", maskedSub);
+                log.warn("동시 회원가입 충돌 감지, 기존 유저 재조회 로직 실행");
                 user = userRepository.findByProviderAndProviderUserId(Provider.KAKAO, userInfo.sub())
                         .orElseThrow(() -> e);
                 isNew = false;
