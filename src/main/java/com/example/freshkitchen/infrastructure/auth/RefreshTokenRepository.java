@@ -72,7 +72,7 @@ public class RefreshTokenRepository {
         return KEY_PREFIX + userId;
     }
 
-    public String hashToken(String token) {
+    private String hashToken(String token) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));

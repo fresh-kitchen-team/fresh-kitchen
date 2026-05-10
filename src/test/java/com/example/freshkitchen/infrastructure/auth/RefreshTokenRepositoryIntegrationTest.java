@@ -57,7 +57,7 @@ class RefreshTokenRepositoryIntegrationTest {
 
         Optional<String> found = repository.findByUserId(1L);
 
-        assertThat(found).hasValue(repository.hashToken("token-abc"));
+        assertThat(found).hasValue(hashToken("token-abc"));
     }
 
     @Test
@@ -85,7 +85,7 @@ class RefreshTokenRepositoryIntegrationTest {
         long result = repository.compareAndSwap(1L, "old-token", "new-token", Duration.ofMinutes(1));
 
         assertThat(result).isEqualTo(1L);
-        assertThat(repository.findByUserId(1L)).hasValue(repository.hashToken("new-token"));
+        assertThat(repository.findByUserId(1L)).hasValue(hashToken("new-token"));
     }
 
     @Test
@@ -105,7 +105,7 @@ class RefreshTokenRepositoryIntegrationTest {
         long result = repository.compareAndSwap(1L, "wrong-token", "new-token", Duration.ofMinutes(1));
 
         assertThat(result).isEqualTo(-1L);
-        assertThat(repository.findByUserId(1L)).hasValue(repository.hashToken("real-token"));
+        assertThat(repository.findByUserId(1L)).hasValue(hashToken("real-token"));
     }
 
     @Test
@@ -125,6 +125,16 @@ class RefreshTokenRepositoryIntegrationTest {
 
         assertThat(first).isEqualTo(1L);
         assertThat(second).isEqualTo(-1L);
-        assertThat(repository.findByUserId(1L)).hasValue(repository.hashToken("new-token-1"));
+        assertThat(repository.findByUserId(1L)).hasValue(hashToken("new-token-1"));
+    }
+
+    private String hashToken(String token) {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return java.util.Base64.getEncoder().encodeToString(hash);
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new RuntimeException("Failed to hash token", e);
+        }
     }
 }
