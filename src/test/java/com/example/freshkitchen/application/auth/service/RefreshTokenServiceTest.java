@@ -9,14 +9,13 @@ import com.example.freshkitchen.infrastructure.auth.RefreshTokenRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 class RefreshTokenServiceTest {
@@ -33,42 +32,63 @@ class RefreshTokenServiceTest {
     }
 
     @Test
-    void refresh_returnsNewTokens_whenRefreshTokenIsValid() {
+    void refresh_returnsNewTokens_whenCasSucceeds() {
         String oldRefreshToken = "old-refresh-token";
         given(jwtTokenProvider.validateRefreshToken(oldRefreshToken)).willReturn(1L);
-        given(refreshTokenRepository.findByUserId(1L)).willReturn(Optional.of(oldRefreshToken));
         given(jwtTokenProvider.generateAccessToken(eq(1L), any())).willReturn("new-access-token");
         given(jwtTokenProvider.generateRefreshToken(1L)).willReturn("new-refresh-token");
+        given(refreshTokenRepository.compareAndSwap(eq(1L), eq(oldRefreshToken), eq("new-refresh-token"), any()))
+                .willReturn(1L);
 
         AuthTokenResult result = service.refresh(new RefreshTokenUseCase.Command(oldRefreshToken));
 
         assertThat(result.accessToken()).isEqualTo("new-access-token");
         assertThat(result.refreshToken()).isEqualTo("new-refresh-token");
         assertThat(result.newUser()).isFalse();
-        verify(refreshTokenRepository).save(eq(1L), eq("new-refresh-token"), any());
     }
 
     @Test
-    void refresh_throws_whenRefreshTokenNotInRedis() {
-        given(jwtTokenProvider.validateRefreshToken("unknown-token")).willReturn(1L);
-        given(refreshTokenRepository.findByUserId(1L)).willReturn(Optional.empty());
+    void refresh_deletesAndThrows_whenTokenMismatch() {
+        String oldRefreshToken = "stolen-token";
+        given(jwtTokenProvider.validateRefreshToken(oldRefreshToken)).willReturn(1L);
+        given(jwtTokenProvider.generateAccessToken(eq(1L), any())).willReturn("new-access");
+        given(jwtTokenProvider.generateRefreshToken(1L)).willReturn("new-refresh");
+        given(refreshTokenRepository.compareAndSwap(eq(1L), eq(oldRefreshToken), eq("new-refresh"), any()))
+                .willReturn(-1L);
 
-        assertThatThrownBy(() -> service.refresh(new RefreshTokenUseCase.Command("unknown-token")))
-                .isInstanceOf(JwtTokenException.class)
-                .satisfies(ex -> assertThat(((JwtTokenException) ex).getErrorCode())
-                        .isEqualTo(JwtErrorCode.INVALID_REFRESH_TOKEN));
-    }
-
-    @Test
-    void refresh_deletesAndThrows_whenRefreshTokenMismatch() {
-        given(jwtTokenProvider.validateRefreshToken("stolen-token")).willReturn(1L);
-        given(refreshTokenRepository.findByUserId(1L)).willReturn(Optional.of("real-token"));
-
-        assertThatThrownBy(() -> service.refresh(new RefreshTokenUseCase.Command("stolen-token")))
+        assertThatThrownBy(() -> service.refresh(new RefreshTokenUseCase.Command(oldRefreshToken)))
                 .isInstanceOf(JwtTokenException.class)
                 .satisfies(ex -> assertThat(((JwtTokenException) ex).getErrorCode())
                         .isEqualTo(JwtErrorCode.INVALID_REFRESH_TOKEN));
 
         verify(refreshTokenRepository).deleteByUserId(1L);
+    }
+
+    @Test
+    void refresh_throwsWithoutDelete_whenKeyMissing() {
+        String oldRefreshToken = "expired-token";
+        given(jwtTokenProvider.validateRefreshToken(oldRefreshToken)).willReturn(1L);
+        given(jwtTokenProvider.generateAccessToken(eq(1L), any())).willReturn("new-access");
+        given(jwtTokenProvider.generateRefreshToken(1L)).willReturn("new-refresh");
+        given(refreshTokenRepository.compareAndSwap(eq(1L), eq(oldRefreshToken), eq("new-refresh"), any()))
+                .willReturn(0L);
+
+        assertThatThrownBy(() -> service.refresh(new RefreshTokenUseCase.Command(oldRefreshToken)))
+                .isInstanceOf(JwtTokenException.class)
+                .satisfies(ex -> assertThat(((JwtTokenException) ex).getErrorCode())
+                        .isEqualTo(JwtErrorCode.INVALID_REFRESH_TOKEN));
+
+        verify(refreshTokenRepository, never()).deleteByUserId(1L);
+    }
+
+    @Test
+    void refresh_throws_whenRefreshTokenSignatureInvalid() {
+        given(jwtTokenProvider.validateRefreshToken("invalid-token"))
+                .willThrow(new JwtTokenException(JwtErrorCode.INVALID_SIGNATURE));
+
+        assertThatThrownBy(() -> service.refresh(new RefreshTokenUseCase.Command("invalid-token")))
+                .isInstanceOf(JwtTokenException.class)
+                .satisfies(ex -> assertThat(((JwtTokenException) ex).getErrorCode())
+                        .isEqualTo(JwtErrorCode.INVALID_SIGNATURE));
     }
 }

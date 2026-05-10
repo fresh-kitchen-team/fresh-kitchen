@@ -27,18 +27,26 @@ public class RefreshTokenService implements RefreshTokenUseCase {
     public AuthTokenResult refresh(Command command) {
         Long userId = jwtTokenProvider.validateRefreshToken(command.refreshToken());
 
-        String stored = refreshTokenRepository.findByUserId(userId)
-                .orElseThrow(() -> new JwtTokenException(JwtErrorCode.INVALID_REFRESH_TOKEN));
+        String newAccessToken = jwtTokenProvider.generateAccessToken(userId, Role.USER);
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(userId);
 
-        if (!stored.equals(command.refreshToken())) {
+        long casResult = refreshTokenRepository.compareAndSwap(
+                userId,
+                command.refreshToken(),
+                newRefreshToken,
+                Duration.ofDays(refreshExpirationDays)
+        );
+
+        if (casResult == -1) {
+            // 값 불일치 → 토큰 탈취 가능성, 전체 세션 무효화
             refreshTokenRepository.deleteByUserId(userId);
             throw new JwtTokenException(JwtErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        String newAccessToken = jwtTokenProvider.generateAccessToken(userId, Role.USER);
-        String newRefreshToken = jwtTokenProvider.generateRefreshToken(userId);
-
-        refreshTokenRepository.save(userId, newRefreshToken, Duration.ofDays(refreshExpirationDays));
+        if (casResult == 0) {
+            // key 없음 → 만료 또는 이미 로그아웃된 세션 (동시 요청 포함)
+            throw new JwtTokenException(JwtErrorCode.INVALID_REFRESH_TOKEN);
+        }
 
         return new AuthTokenResult(newAccessToken, newRefreshToken, false);
     }

@@ -15,7 +15,7 @@ services:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT:-6379}
-      - REDIS_PASSWORD=${REDIS_PASSWORD:}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
     ports:
       - "8080:8080"
     restart: unless-stopped
