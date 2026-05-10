@@ -10,11 +10,13 @@ import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
 import com.example.freshkitchen.infrastructure.oauth.KakaoTokenVerifier;
 import com.example.freshkitchen.infrastructure.oauth.KakaoTokenVerifier.KakaoUserInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class KakaoLoginService implements KakaoLoginUseCase {
@@ -35,6 +37,7 @@ public class KakaoLoginService implements KakaoLoginUseCase {
             try {
                 user = userRepository.save(User.create(new User.CreateCommand(userInfo.sub(), Provider.KAKAO)));
             } catch (DataIntegrityViolationException e) {
+                log.warn("동시 회원가입 충돌 감지, 기존 유저 재조회. sub={}", userInfo.sub());
                 user = userRepository.findByProviderAndProviderUserId(Provider.KAKAO, userInfo.sub())
                         .orElseThrow(() -> e);
                 isNew = false;

@@ -10,10 +10,12 @@ import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
 import com.example.freshkitchen.infrastructure.oauth.GoogleTokenVerifier;
 import com.example.freshkitchen.infrastructure.oauth.GoogleTokenVerifier.GoogleUserInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.dao.DataIntegrityViolationException;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GoogleLoginService implements GoogleLoginUseCase {
@@ -34,6 +36,7 @@ public class GoogleLoginService implements GoogleLoginUseCase {
             try {
                 user = userRepository.save(User.create(new User.CreateCommand(userInfo.sub(), Provider.GOOGLE)));
             } catch (DataIntegrityViolationException e) {
+                log.warn("동시 회원가입 충돌 감지, 기존 유저 재조회. sub={}", userInfo.sub());
                 user = userRepository.findByProviderAndProviderUserId(Provider.GOOGLE, userInfo.sub())
                         .orElseThrow(() -> e);
                 isNew = false;

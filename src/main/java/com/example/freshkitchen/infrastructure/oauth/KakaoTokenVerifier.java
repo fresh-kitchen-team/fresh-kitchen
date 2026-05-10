@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@Slf4j
 @Component
 public class KakaoTokenVerifier {
 
@@ -144,6 +146,7 @@ public class KakaoTokenVerifier {
             keyCache = Map.copyOf(newKeys);
             lastRefreshed = Instant.now();
         } catch (Exception e) {
+            log.error("Kakao JWKS 갱신 실패", e);
             throw new OAuthException(OAuthErrorCode.OAUTH_PROVIDER_UNAVAILABLE, e);
         }
     }

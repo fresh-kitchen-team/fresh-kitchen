@@ -12,6 +12,7 @@ import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
 import com.example.freshkitchen.infrastructure.oauth.KakaoTokenVerifier;
 import com.example.freshkitchen.infrastructure.oauth.KakaoTokenVerifier.KakaoUserInfo;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -77,6 +78,31 @@ class KakaoLoginServiceTest {
         assertThat(result.refreshToken()).isEqualTo("new-refresh-token");
         assertThat(result.newUser()).isTrue();
         verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void login_returnsExistingUser_whenRaceConditionOnSave() {
+        KakaoUserInfo userInfo = new KakaoUserInfo("race-sub", "race@kakao.com");
+        given(kakaoTokenVerifier.verify("race-token")).willReturn(userInfo);
+        given(userRepository.findByProviderAndProviderUserId(Provider.KAKAO, "race-sub"))
+                .willReturn(Optional.empty());
+        given(userRepository.save(any(User.class)))
+                .willThrow(new DataIntegrityViolationException("duplicate"));
+
+        User existingUser = User.create(new User.CreateCommand("race-sub", Provider.KAKAO));
+        ReflectionTestUtils.setField(existingUser, "id", 3L);
+
+        given(userRepository.findByProviderAndProviderUserId(Provider.KAKAO, "race-sub"))
+                .willReturn(Optional.empty())
+                .willReturn(Optional.of(existingUser));
+        given(jwtTokenProvider.generateAccessToken(3L, Role.USER)).willReturn("race-access");
+        given(jwtTokenProvider.generateRefreshToken(3L)).willReturn("race-refresh");
+
+        AuthTokenResult result = service.login(new KakaoLoginUseCase.Command("race-token"));
+
+        assertThat(result.accessToken()).isEqualTo("race-access");
+        assertThat(result.refreshToken()).isEqualTo("race-refresh");
+        assertThat(result.newUser()).isFalse();
     }
 
     @Test
