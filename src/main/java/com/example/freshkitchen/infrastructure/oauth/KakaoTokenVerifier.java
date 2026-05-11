@@ -31,6 +31,7 @@ public class KakaoTokenVerifier {
     private static final String JWKS_URI = "https://kauth.kakao.com/.well-known/jwks.json";
     private static final String ISSUER = "https://kauth.kakao.com";
     private static final Duration MIN_REFRESH_INTERVAL = Duration.ofMinutes(5);
+    private static final Duration KEY_MISS_REFRESH_COOLDOWN = Duration.ofSeconds(30);
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(3);
     private static final Duration READ_TIMEOUT = Duration.ofSeconds(5);
 
@@ -40,6 +41,7 @@ public class KakaoTokenVerifier {
     private final Object refreshLock = new Object();
     private volatile Map<String, RSAPublicKey> keyCache = Map.of();
     private volatile Instant lastRefreshed = Instant.EPOCH;
+    private volatile Instant lastKeyMissRefresh = Instant.EPOCH;
 
     public KakaoTokenVerifier(
             @Value("${oauth.kakao.client-id}") String clientId,
@@ -125,10 +127,16 @@ public class KakaoTokenVerifier {
                 return cached;
             }
 
-            if (Duration.between(lastRefreshed, Instant.now()).compareTo(MIN_REFRESH_INTERVAL) < 0 && !keyCache.isEmpty()) {
+            boolean scheduledRefreshDue = Duration.between(lastRefreshed, Instant.now())
+                    .compareTo(MIN_REFRESH_INTERVAL) >= 0;
+            boolean forcedRefreshAllowed = Duration.between(lastKeyMissRefresh, Instant.now())
+                    .compareTo(KEY_MISS_REFRESH_COOLDOWN) >= 0;
+
+            if (!scheduledRefreshDue && !forcedRefreshAllowed && !keyCache.isEmpty()) {
                 throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN);
             }
 
+            lastKeyMissRefresh = Instant.now();
             refreshKeys();
 
             RSAPublicKey key = keyCache.get(kid);
