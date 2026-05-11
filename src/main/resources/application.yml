@@ -57,7 +57,7 @@ logging:
 
 ai:
   server:
-    base-url: ${AI_SERVER_URL}
+    base-url: ${AI_SERVER_BASE_URL}
     token: ${AI_SERVER_TOKEN}
     connect-timeout-ms: 3000
     read-timeout-ms: 30000
