@@ -27,7 +27,7 @@ public class RefreshTokenService implements RefreshTokenUseCase {
     public AuthTokenResult refresh(Command command) {
         Long userId = jwtTokenProvider.validateRefreshToken(command.refreshToken());
 
-        String newAccessToken = jwtTokenProvider.generateAccessToken(userId, Role.USER);
+        // newRefreshToken은 CAS의 인자이므로 먼저 생성; newAccessToken은 CAS 성공 후에만 생성
         String newRefreshToken = jwtTokenProvider.generateRefreshToken(userId);
 
         long casResult = refreshTokenRepository.compareAndSwap(
@@ -48,6 +48,7 @@ public class RefreshTokenService implements RefreshTokenUseCase {
             throw new JwtTokenException(JwtErrorCode.INVALID_REFRESH_TOKEN);
         }
 
+        String newAccessToken = jwtTokenProvider.generateAccessToken(userId, Role.USER);
         return new AuthTokenResult(newAccessToken, newRefreshToken, false);
     }
 }
