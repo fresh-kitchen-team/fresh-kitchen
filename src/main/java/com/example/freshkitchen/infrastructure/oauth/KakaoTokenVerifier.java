@@ -95,10 +95,19 @@ public class KakaoTokenVerifier {
 
     private String extractKid(String idTokenString) {
         try {
-            String header = idTokenString.split("\\.")[0];
-            byte[] decoded = Base64.getUrlDecoder().decode(header);
+            String[] parts = idTokenString.split("\\.");
+            if (parts.length < 2) {
+                throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN);
+            }
+            byte[] decoded = Base64.getUrlDecoder().decode(parts[0]);
             JsonNode headerNode = objectMapper.readTree(decoded);
-            return headerNode.get("kid").asText();
+            JsonNode kidNode = headerNode.get("kid");
+            if (kidNode == null || kidNode.isNull()) {
+                throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN);
+            }
+            return kidNode.asText();
+        } catch (OAuthException e) {
+            throw e;
         } catch (Exception e) {
             throw new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN, e);
         }
