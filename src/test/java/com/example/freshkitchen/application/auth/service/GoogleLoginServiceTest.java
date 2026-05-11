@@ -62,6 +62,7 @@ class GoogleLoginServiceTest {
         assertThat(result.refreshToken()).isEqualTo("refresh-token");
         assertThat(result.newUser()).isFalse();
         verify(userRepository, never()).save(any());
+        verify(refreshTokenRepository).save(1L, "refresh-token", java.time.Duration.ofDays(14L));
     }
 
     @Test
@@ -85,6 +86,7 @@ class GoogleLoginServiceTest {
         assertThat(result.refreshToken()).isEqualTo("new-refresh-token");
         assertThat(result.newUser()).isTrue();
         verify(userRepository).save(any(User.class));
+        verify(refreshTokenRepository).save(2L, "new-refresh-token", java.time.Duration.ofDays(14L));
     }
 
     @Test

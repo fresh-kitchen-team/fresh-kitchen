@@ -17,28 +17,10 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.example.freshkitchen.support.StandaloneRedisTestContainerSupport;
+
 @SpringBootTest(classes = {RedisConfig.class, RefreshTokenRepository.class})
-class RefreshTokenRepositoryIntegrationTest {
-
-    @SuppressWarnings("resource")
-    private static final GenericContainer<?> REDIS =
-            new GenericContainer<>("redis:7.2-alpine").withExposedPorts(6379);
-
-    @DynamicPropertySource
-    static void redisProperties(DynamicPropertyRegistry registry) {
-        startRedisIfNeeded();
-        registry.add("spring.data.redis.host", REDIS::getHost);
-        registry.add("spring.data.redis.port", () -> REDIS.getMappedPort(6379));
-    }
-
-    private static synchronized void startRedisIfNeeded() {
-        if (!REDIS.isRunning()) {
-            if (!DockerClientFactory.instance().isDockerAvailable()) {
-                throw new TestAbortedException("Docker is not available");
-            }
-            REDIS.start();
-        }
-    }
+class RefreshTokenRepositoryIntegrationTest extends StandaloneRedisTestContainerSupport {
 
     @Autowired
     private RefreshTokenRepository repository;
