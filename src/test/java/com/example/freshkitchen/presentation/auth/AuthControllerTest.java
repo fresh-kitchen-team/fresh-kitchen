@@ -79,6 +79,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.code").value("AUTH-401-7"))
                 .andExpect(jsonPath("$.message").value("invalid id token"));
+        verifyNoInteractions(kakaoLoginUseCase, refreshTokenUseCase);
     }
 
     @Test
@@ -95,7 +96,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/google"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verifyNoInteractions(googleLoginUseCase);
+        verifyNoInteractions(googleLoginUseCase, kakaoLoginUseCase, refreshTokenUseCase);
     }
 
     @Test
@@ -110,7 +111,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/google"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verifyNoInteractions(googleLoginUseCase);
+        verifyNoInteractions(googleLoginUseCase, kakaoLoginUseCase, refreshTokenUseCase);
     }
 
     @Test
@@ -128,6 +129,8 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.code").value("AUTH-401-7"))
                 .andExpect(jsonPath("$.message").value("invalid id token"));
+
+        verifyNoInteractions(googleLoginUseCase, refreshTokenUseCase);
     }
 
     @Test
@@ -144,7 +147,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/kakao"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verifyNoInteractions(googleLoginUseCase, kakaoLoginUseCase);
+        verifyNoInteractions(googleLoginUseCase, kakaoLoginUseCase, refreshTokenUseCase);
     }
 
     @Test
@@ -159,7 +162,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/kakao"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verifyNoInteractions(googleLoginUseCase, kakaoLoginUseCase);
+        verifyNoInteractions(googleLoginUseCase, kakaoLoginUseCase, refreshTokenUseCase);
     }
 
 }
