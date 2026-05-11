@@ -93,7 +93,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/google"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verifyNoInteractions(googleLoginUseCase);
+        verifyNoInteractions(googleLoginUseCase, kakaoLoginUseCase);
     }
 
     @Test
@@ -108,7 +108,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/google"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verifyNoInteractions(googleLoginUseCase);
+        verifyNoInteractions(googleLoginUseCase, kakaoLoginUseCase);
     }
 
     @Test
@@ -124,6 +124,6 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
                 .andExpect(jsonPath("$.message").isNotEmpty());
 
-        verifyNoInteractions(googleLoginUseCase);
+        verifyNoInteractions(googleLoginUseCase, kakaoLoginUseCase);
     }
 }

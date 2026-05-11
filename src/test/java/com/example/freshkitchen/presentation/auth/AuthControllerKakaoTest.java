@@ -93,7 +93,7 @@ class AuthControllerKakaoTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/kakao"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verifyNoInteractions(kakaoLoginUseCase);
+        verifyNoInteractions(kakaoLoginUseCase, googleLoginUseCase);
     }
 
     @Test
@@ -108,7 +108,7 @@ class AuthControllerKakaoTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/kakao"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verifyNoInteractions(kakaoLoginUseCase);
+        verifyNoInteractions(kakaoLoginUseCase, googleLoginUseCase);
     }
 
     @Test
@@ -124,6 +124,6 @@ class AuthControllerKakaoTest {
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
                 .andExpect(jsonPath("$.message").isNotEmpty());
 
-        verifyNoInteractions(kakaoLoginUseCase);
+        verifyNoInteractions(kakaoLoginUseCase, googleLoginUseCase);
     }
 }
