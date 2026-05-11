@@ -210,10 +210,19 @@
 |------|-------------|------|---------|------|
 | `AUTHENTICATION_REQUIRED` | `401` | `AUTH-401-0` | `authentication required` | `Authorization` 헤더가 없거나 `Bearer` 접두사가 없는 요청이 보호된 엔드포인트에 접근 |
 
-### 7.2 JwtErrorCode
 
-인증 토큰 처리 실패는 `JwtTokenException` 및 아래 `JwtErrorCode`로 분류한다.
 
+### 7.2 OAuthErrorCode
+
+OAuth 인증 과정에서 발생하는 예외를 `OAuthException` 및 아래 `OAuthErrorCode`로 분류한다.
+
+| Enum | HTTP Status | Code | Message | 의미 |
+|------|-------------|------|---------|------|
+| `INVALID_ID_TOKEN` | `401` | `AUTH-401-7` | `invalid id token` | OAuth provider가 발급한 ID Token 검증 실패 (서명, 만료, audience 불일치 등) |
+| `PROVIDER_NOT_SUPPORTED` | `400` | `AUTH-400-1` | `oauth provider not supported` | 지원하지 않는 OAuth provider 요청 |
+
+### 7.3 JwtErrorCode
+---
 | Enum | HTTP Status | Code | Message | 의미 |
 |------|-------------|------|---------|------|
 | `EXPIRED_TOKEN` | `401` | `AUTH-401-1` | `expired token` | 토큰 만료 (`exp` + 30초 clock skew 경과) |
@@ -223,7 +232,6 @@
 | `EMPTY_CLAIMS` | `401` | `AUTH-401-5` | `token claims are empty` | 토큰 문자열이 `null`이거나 비어있음 |
 | `NOT_YET_VALID_TOKEN` | `401` | `AUTH-401-6` | `token is not yet valid` | 토큰이 아직 활성화되지 않음 (`nbf`가 현재 시각보다 30초를 초과해 미래인 경우; 최대 30초 clock skew 허용) |
 
----
 
 ## 8. 예외 사용 규칙
 

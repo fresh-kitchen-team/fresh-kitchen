@@ -100,11 +100,7 @@ public class ChatService {
 
         ChatRoom saved = chatRoomRepository.save(chatRoom);
 
-        return ChatRoomResponse.builder()
-                .roomId(saved.getId())
-                .title(saved.getTitle())
-                .createdAt(saved.getCreatedAt())
-                .build();
+        return new ChatRoomResponse(saved.getId(), saved.getTitle(), saved.getCreatedAt());
     }
 
     public Flux<String> ragChat(String question, String type, String conversationId) {
@@ -204,10 +200,10 @@ public class ChatService {
         try {
             aiResponseJson = this.chatClient.prompt()
                     .system(systemPrompt)
-                    .user(request.getMessage())
+                    .user(request.message())
                     .advisors(retrievalAugmentationAdvisor)
                     .advisors(a -> a.param(VectorStoreDocumentRetriever.FILTER_EXPRESSION,
-                            "type == '%s'".formatted(request.getType())))
+                            "type == '%s'".formatted(request.type())))
                     .call()
                     .content();
         } catch (ChatException e) {
@@ -224,26 +220,21 @@ public class ChatService {
         try {
             ChatMessageResponse.AiPayloadResponse parsed = objectMapper.readValue(cleanJson, ChatMessageResponse.AiPayloadResponse.class);
 
-            Set<String> missingIngredients = parsed.getRecipes().stream()
-                    .flatMap(recipe -> recipe.getIngredients().stream())
+            Set<String> missingIngredients = parsed.recipes().stream()
+                    .flatMap(recipe -> recipe.ingredients().stream())
                     .map(ingredient -> ingredient.replaceAll("\\s*[\\d/.]+\\s*(g|kg|ml|l|개|컵|큰술|작은술|줌|마리|장|포기|모|대|쪽|알|봉|캔|팩)?.*$", "").trim())
                     .filter(ingredient -> !ingredient.isBlank())
                     .filter(ingredient -> !ownedIngredientNames.contains(ingredient.toLowerCase()))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
-            aiPayload = ChatMessageResponse.AiPayloadResponse.builder()
-                    .recipes(parsed.getRecipes())
-                    .tips(parsed.getTips())
-                    .missingIngredients(new ArrayList<>(missingIngredients))
-                    .build();
+            aiPayload = new ChatMessageResponse.AiPayloadResponse(
+                    parsed.recipes(),
+                    parsed.tips(),
+                    new ArrayList<>(missingIngredients));
 
         } catch (Exception e) {
             log.error("AI 응답 파싱 실패: {}", cleanJson);
-            aiPayload = ChatMessageResponse.AiPayloadResponse.builder()
-                    .recipes(List.of())
-                    .tips(List.of())
-                    .missingIngredients(List.of())
-                    .build();
+            aiPayload = new ChatMessageResponse.AiPayloadResponse(List.of(), List.of(), List.of());
         }
 
         String finalJson;
@@ -267,24 +258,17 @@ public class ChatService {
 
         ChatMessage saved = messageRepository.save(chatMessage);
 
-        // ✅ [추가] 첫 메시지일 때 제목 자동 생성
         long messageCount = messageRepository.countByChatRoomId(roomId);
         if (messageCount == 1) {
-            String autoTitle = generateRoomTitle(request.getMessage());
+            String autoTitle = generateRoomTitle(request.message());
             chatRoom.updateTitle(autoTitle);
             chatRoomRepository.save(chatRoom);
         }
 
-        return ChatMessageResponse.builder()
-                .title(chatRoom.getTitle())
-                .aiMessage(ChatMessageResponse.AiMessageResponse.builder()
-                        .messageId(saved.getId())
-                        .sender("AI")
-                        .text(finalJson)
-                        .aiPayload(aiPayload)
-                        .createdAt(saved.getCreatedAt().toString())
-                        .build())
-                .build();
+        return new ChatMessageResponse(
+                chatRoom.getTitle(),
+                new ChatMessageResponse.AiMessageResponse(
+                        saved.getId(), "AI", finalJson, aiPayload, saved.getCreatedAt().toString()));
     }
 
     @Transactional(readOnly = true)
@@ -311,19 +295,12 @@ public class ChatService {
                 .map(this::toChatMessageGroup)
                 .collect(Collectors.toList());
 
-        return ChatRoomListResponse.builder()
-                .today(today)
-                .last7Days(last7Days)
-                .last30Days(last30Days)
-                .build();
+        return new ChatRoomListResponse(today, last7Days, last30Days);
     }
 
     private ChatRoomListResponse.ChatMessageGroup toChatMessageGroup(ChatRoom room) {
-        return ChatRoomListResponse.ChatMessageGroup.builder()
-                .roomId(room.getId())
-                .title(room.getTitle())
-                .updatedAt(room.getUpdatedAt().toString())
-                .build();
+        return new ChatRoomListResponse.ChatMessageGroup(
+                room.getId(), room.getTitle(), room.getUpdatedAt().toString(), null, null);
     }
 
     @Transactional(readOnly = true)
@@ -332,20 +309,12 @@ public class ChatService {
                 .orElseThrow(() -> new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND));
 
         List<ChatRoomListResponse.ChatMessageGroup> messages = chatRoom.getMessages().stream()
-                .map(m -> ChatRoomListResponse.ChatMessageGroup.builder()
-                        .roomId(chatRoom.getId())
-                        .title(chatRoom.getTitle())
-                        .sender(m.getSender().name())
-                        .content(m.getContent())
-                        .updatedAt(m.getCreatedAt().toString())
-                        .build())
+                .map(m -> new ChatRoomListResponse.ChatMessageGroup(
+                        chatRoom.getId(), chatRoom.getTitle(), m.getCreatedAt().toString(),
+                        m.getSender().name(), m.getContent()))
                 .collect(Collectors.toList());
 
-        return ChatRoomListResponse.builder()
-                .today(messages)
-                .last7Days(List.of())
-                .last30Days(List.of())
-                .build();
+        return new ChatRoomListResponse(messages, List.of(), List.of());
     }
 
     @Transactional
@@ -353,12 +322,8 @@ public class ChatService {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND));
 
-        chatRoom.updateTitle(request.getTitle());
+        chatRoom.updateTitle(request.title());
 
-        return ChatRoomResponse.builder()
-                .roomId(chatRoom.getId())
-                .title(chatRoom.getTitle())
-                .createdAt(chatRoom.getCreatedAt())
-                .build();
+        return new ChatRoomResponse(chatRoom.getId(), chatRoom.getTitle(), chatRoom.getCreatedAt());
     }
 }
