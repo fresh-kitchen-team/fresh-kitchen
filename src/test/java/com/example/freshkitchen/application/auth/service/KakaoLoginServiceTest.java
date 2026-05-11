@@ -95,8 +95,6 @@ class KakaoLoginServiceTest {
     void login_returnsExistingUser_whenRaceConditionOnSave() {
         KakaoUserInfo userInfo = new KakaoUserInfo("race-sub", "race@kakao.com");
         given(kakaoTokenVerifier.verify("race-token")).willReturn(userInfo);
-        given(userRepository.findByProviderAndProviderUserId(Provider.KAKAO, "race-sub"))
-                .willReturn(Optional.empty());
         given(userRepository.save(any(User.class)))
                 .willThrow(new DataIntegrityViolationException("duplicate"));
 

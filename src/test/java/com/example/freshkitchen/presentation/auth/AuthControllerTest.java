@@ -112,4 +112,54 @@ class AuthControllerTest {
 
         verifyNoInteractions(googleLoginUseCase);
     }
+
+    @Test
+    void kakaoLogin_returns401_whenIdTokenIsInvalid() throws Exception {
+        KakaoLoginUseCase.Command command = new KakaoLoginUseCase.Command("invalid-token");
+        given(kakaoLoginUseCase.login(command))
+                .willThrow(new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN));
+
+        mockMvc.perform(post("/api/v1/auth/kakao")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                { "idToken": "invalid-token" }
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.code").value("AUTH-401-7"))
+                .andExpect(jsonPath("$.message").value("invalid id token"));
+    }
+
+    @Test
+    void kakaoLogin_returnsBadRequest_whenIdTokenIsBlank() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/kakao")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                { "idToken": "" }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.message").isNotEmpty())
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/kakao"))
+                .andExpect(jsonPath("$.timestamp").exists());
+
+        verifyNoInteractions(googleLoginUseCase, kakaoLoginUseCase);
+    }
+
+    @Test
+    void kakaoLogin_returnsBadRequest_whenIdTokenIsMissing() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/kakao")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.message").isNotEmpty())
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/kakao"))
+                .andExpect(jsonPath("$.timestamp").exists());
+
+        verifyNoInteractions(googleLoginUseCase, kakaoLoginUseCase);
+    }
+
 }
