@@ -40,7 +40,7 @@ public class GoogleLoginService implements GoogleLoginUseCase {
 
         if (isNew) {
             try {
-                user = userRepository.save(User.create(new User.CreateCommand(userInfo.sub(), Provider.GOOGLE)));
+                user = userRepository.saveAndFlush(User.create(new User.CreateCommand(userInfo.sub(), Provider.GOOGLE)));
             } catch (DataIntegrityViolationException e) {
                 user = userRepository.findByProviderAndProviderUserId(Provider.GOOGLE, userInfo.sub())
                         .orElseThrow(() -> e);

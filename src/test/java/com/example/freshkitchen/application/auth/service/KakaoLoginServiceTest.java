@@ -63,7 +63,7 @@ class KakaoLoginServiceTest {
         assertThat(result.accessToken()).isEqualTo("access-token");
         assertThat(result.refreshToken()).isEqualTo("refresh-token");
         assertThat(result.newUser()).isFalse();
-        verify(userRepository, never()).save(any());
+        verify(userRepository, never()).saveAndFlush(any());
         verify(refreshTokenRepository).save(1L, "refresh-token", Duration.ofDays(14L));
     }
 
@@ -76,7 +76,7 @@ class KakaoLoginServiceTest {
 
         User savedUser = User.create(new User.CreateCommand("new-kakao-sub", Provider.KAKAO));
         ReflectionTestUtils.setField(savedUser, "id", 2L);
-        given(userRepository.save(any(User.class))).willReturn(savedUser);
+        given(userRepository.saveAndFlush(any(User.class))).willReturn(savedUser);
         given(jwtTokenProvider.generateAccessToken(savedUser.getId(), Role.USER))
                 .willReturn("new-access-token");
         given(jwtTokenProvider.generateRefreshToken(savedUser.getId()))
@@ -87,7 +87,7 @@ class KakaoLoginServiceTest {
         assertThat(result.accessToken()).isEqualTo("new-access-token");
         assertThat(result.refreshToken()).isEqualTo("new-refresh-token");
         assertThat(result.newUser()).isTrue();
-        verify(userRepository).save(any(User.class));
+        verify(userRepository).saveAndFlush(any(User.class));
         verify(refreshTokenRepository).save(2L, "new-refresh-token", Duration.ofDays(14L));
     }
 
@@ -95,7 +95,7 @@ class KakaoLoginServiceTest {
     void login_returnsExistingUser_whenRaceConditionOnSave() {
         KakaoUserInfo userInfo = new KakaoUserInfo("race-sub", "race@kakao.com");
         given(kakaoTokenVerifier.verify("race-token")).willReturn(userInfo);
-        given(userRepository.save(any(User.class)))
+        given(userRepository.saveAndFlush(any(User.class)))
                 .willThrow(new DataIntegrityViolationException("duplicate"));
 
         User existingUser = User.create(new User.CreateCommand("race-sub", Provider.KAKAO));

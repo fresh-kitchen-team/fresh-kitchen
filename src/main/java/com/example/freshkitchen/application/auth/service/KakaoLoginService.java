@@ -42,9 +42,9 @@ public class KakaoLoginService implements KakaoLoginUseCase {
 
         if (isNew) {
             try {
-                user = userRepository.save(User.create(new User.CreateCommand(userInfo.sub(), Provider.KAKAO)));
+                user = userRepository.saveAndFlush(User.create(new User.CreateCommand(userInfo.sub(), Provider.KAKAO)));
             } catch (DataIntegrityViolationException e) {
-                log.warn("동시 회원가입 충돌 감지, 기존 유저 재조회 로직 실행");
+                log.warn("동시 회원가입 충돌 감지, 기존 유저 재조회 로직 실행. providerUserId={}", userInfo.sub(), e);
                 user = userRepository.findByProviderAndProviderUserId(Provider.KAKAO, userInfo.sub())
                         .orElseThrow(() -> e);
                 isNew = false;

@@ -60,6 +60,11 @@ public class RefreshTokenRepository {
         return result != null ? result : 0L;
     }
 
+    /**
+     * Redis에 저장된 값을 그대로 반환합니다.
+     * <p><b>반환값은 원문 토큰이 아니라 SHA-256 해시값입니다.</b>
+     * 원문 토큰과 직접 비교하지 마세요 — 토큰 검증은 {@link #compareAndSwap}을 사용하세요.
+     */
     public Optional<String> findByUserId(Long userId) {
         return Optional.ofNullable(redisTemplate.opsForValue().get(key(userId)));
     }

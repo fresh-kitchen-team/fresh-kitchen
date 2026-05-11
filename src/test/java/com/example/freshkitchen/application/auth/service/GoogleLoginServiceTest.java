@@ -61,7 +61,7 @@ class GoogleLoginServiceTest {
         assertThat(result.accessToken()).isEqualTo("access-token");
         assertThat(result.refreshToken()).isEqualTo("refresh-token");
         assertThat(result.newUser()).isFalse();
-        verify(userRepository, never()).save(any());
+        verify(userRepository, never()).saveAndFlush(any());
         verify(refreshTokenRepository).save(1L, "refresh-token", java.time.Duration.ofDays(14L));
     }
 
@@ -74,7 +74,7 @@ class GoogleLoginServiceTest {
 
         User savedUser = User.create(new User.CreateCommand("new-google-sub", Provider.GOOGLE));
         ReflectionTestUtils.setField(savedUser, "id", 2L);
-        given(userRepository.save(any(User.class))).willReturn(savedUser);
+        given(userRepository.saveAndFlush(any(User.class))).willReturn(savedUser);
         given(jwtTokenProvider.generateAccessToken(savedUser.getId(), Role.USER))
                 .willReturn("new-access-token");
         given(jwtTokenProvider.generateRefreshToken(savedUser.getId()))
@@ -85,7 +85,7 @@ class GoogleLoginServiceTest {
         assertThat(result.accessToken()).isEqualTo("new-access-token");
         assertThat(result.refreshToken()).isEqualTo("new-refresh-token");
         assertThat(result.newUser()).isTrue();
-        verify(userRepository).save(any(User.class));
+        verify(userRepository).saveAndFlush(any(User.class));
         verify(refreshTokenRepository).save(2L, "new-refresh-token", java.time.Duration.ofDays(14L));
     }
 
