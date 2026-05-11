@@ -10,6 +10,7 @@ import com.example.freshkitchen.application.user.usecase.DeleteUserProfileUseCas
 import com.example.freshkitchen.application.user.usecase.GetUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
 import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
+import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import com.example.freshkitchen.application.user.dto.UserProfileResult;
@@ -55,6 +56,9 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private GoogleLoginUseCase googleLoginUseCase;
+
+    @MockitoBean
+    private KakaoLoginUseCase kakaoLoginUseCase;
 
     @MockitoBean
     private RefreshTokenUseCase refreshTokenUseCase;
@@ -139,6 +143,19 @@ class SecurityFilterChainIntegrationTest {
                 .willReturn(new AuthTokenResult("access-token", "refresh-token", true));
 
         mockMvc.perform(post("/api/v1/auth/google")
+                        .contentType("application/json")
+                        .content("""
+                                { "idToken": "test" }
+                                """))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void kakaoAuthEndpoint_isAccessibleWithoutToken() throws Exception {
+        given(kakaoLoginUseCase.login(any()))
+                .willReturn(new AuthTokenResult("access-token", "refresh-token", true));
+
+        mockMvc.perform(post("/api/v1/auth/kakao")
                         .contentType("application/json")
                         .content("""
                                 { "idToken": "test" }

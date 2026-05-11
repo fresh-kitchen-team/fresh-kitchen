@@ -2,6 +2,7 @@ package com.example.freshkitchen.presentation.auth;
 
 import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
 import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
+import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
 import com.example.freshkitchen.global.exception.handler.GlobalExceptionHandler;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
@@ -21,10 +22,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthControllerRefreshTest {
 
     private final GoogleLoginUseCase googleLoginUseCase = mock(GoogleLoginUseCase.class);
+    private final KakaoLoginUseCase kakaoLoginUseCase = mock(KakaoLoginUseCase.class);
     private final RefreshTokenUseCase refreshTokenUseCase = mock(RefreshTokenUseCase.class);
 
     private final MockMvc mockMvc = MockMvcBuilders
-            .standaloneSetup(new AuthController(googleLoginUseCase, refreshTokenUseCase))
+            .standaloneSetup(new AuthController(googleLoginUseCase, kakaoLoginUseCase, refreshTokenUseCase))
             .setControllerAdvice(new GlobalExceptionHandler())
             .build();
 

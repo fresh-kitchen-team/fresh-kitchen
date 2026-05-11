@@ -2,6 +2,7 @@ package com.example.freshkitchen.presentation.auth;
 
 import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
 import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
+import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
 import com.example.freshkitchen.global.response.ApiResponse;
 import com.example.freshkitchen.presentation.auth.dto.AuthRequest;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final GoogleLoginUseCase googleLoginUseCase;
+    private final KakaoLoginUseCase kakaoLoginUseCase;
     private final RefreshTokenUseCase refreshTokenUseCase;
 
     @Operation(summary = "Google 로그인", description = "Google ID Token으로 로그인/회원가입 후 JWT 발급")
@@ -32,6 +34,17 @@ public class AuthController {
     ) {
         AuthTokenResult result = googleLoginUseCase.login(
                 new GoogleLoginUseCase.Command(request.idToken())
+        );
+        return ApiResponse.success(AuthResponse.Token.from(result));
+    }
+
+    @Operation(summary = "카카오 로그인", description = "Kakao ID Token으로 로그인/회원가입 후 JWT 발급")
+    @PostMapping("/kakao")
+    public ResponseEntity<ApiResponse<AuthResponse.Token>> kakaoLogin(
+            @Valid @RequestBody AuthRequest.KakaoLogin request
+    ) {
+        AuthTokenResult result = kakaoLoginUseCase.login(
+                new KakaoLoginUseCase.Command(request.idToken())
         );
         return ApiResponse.success(AuthResponse.Token.from(result));
     }

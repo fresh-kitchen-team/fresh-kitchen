@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class AuthControllerTest {
+class AuthControllerKakaoTest {
 
     private final GoogleLoginUseCase googleLoginUseCase = mock(GoogleLoginUseCase.class);
     private final KakaoLoginUseCase kakaoLoginUseCase = mock(KakaoLoginUseCase.class);
@@ -31,12 +31,12 @@ class AuthControllerTest {
             .build();
 
     @Test
-    void googleLogin_returnsTokens_whenIdTokenIsValid() throws Exception {
-        GoogleLoginUseCase.Command command = new GoogleLoginUseCase.Command("valid-id-token");
-        given(googleLoginUseCase.login(command))
+    void kakaoLogin_returnsTokens_whenIdTokenIsValid() throws Exception {
+        KakaoLoginUseCase.Command command = new KakaoLoginUseCase.Command("valid-id-token");
+        given(kakaoLoginUseCase.login(command))
                 .willReturn(new AuthTokenResult("access-token", "refresh-token", false));
 
-        mockMvc.perform(post("/api/v1/auth/google")
+        mockMvc.perform(post("/api/v1/auth/kakao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 { "idToken": "valid-id-token" }
@@ -50,12 +50,12 @@ class AuthControllerTest {
     }
 
     @Test
-    void googleLogin_returnsTokensWithNewUserTrue_whenFirstLogin() throws Exception {
-        GoogleLoginUseCase.Command command = new GoogleLoginUseCase.Command("new-user-token");
-        given(googleLoginUseCase.login(command))
+    void kakaoLogin_returnsTokensWithNewUserTrue_whenFirstLogin() throws Exception {
+        KakaoLoginUseCase.Command command = new KakaoLoginUseCase.Command("new-user-token");
+        given(kakaoLoginUseCase.login(command))
                 .willReturn(new AuthTokenResult("access-token", "refresh-token", true));
 
-        mockMvc.perform(post("/api/v1/auth/google")
+        mockMvc.perform(post("/api/v1/auth/kakao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 { "idToken": "new-user-token" }
@@ -65,12 +65,12 @@ class AuthControllerTest {
     }
 
     @Test
-    void googleLogin_returns401_whenIdTokenIsInvalid() throws Exception {
-        GoogleLoginUseCase.Command command = new GoogleLoginUseCase.Command("invalid-token");
-        given(googleLoginUseCase.login(command))
+    void kakaoLogin_returns401_whenIdTokenIsInvalid() throws Exception {
+        KakaoLoginUseCase.Command command = new KakaoLoginUseCase.Command("invalid-token");
+        given(kakaoLoginUseCase.login(command))
                 .willThrow(new OAuthException(OAuthErrorCode.INVALID_ID_TOKEN));
 
-        mockMvc.perform(post("/api/v1/auth/google")
+        mockMvc.perform(post("/api/v1/auth/kakao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 { "idToken": "invalid-token" }
@@ -82,8 +82,8 @@ class AuthControllerTest {
     }
 
     @Test
-    void googleLogin_returnsBadRequest_whenIdTokenIsBlank() throws Exception {
-        mockMvc.perform(post("/api/v1/auth/google")
+    void kakaoLogin_returnsBadRequest_whenIdTokenIsBlank() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/kakao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 { "idToken": "" }
@@ -92,24 +92,40 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
                 .andExpect(jsonPath("$.message").isNotEmpty())
-                .andExpect(jsonPath("$.path").value("/api/v1/auth/google"))
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/kakao"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verifyNoInteractions(googleLoginUseCase);
+        verifyNoInteractions(kakaoLoginUseCase, googleLoginUseCase);
     }
 
     @Test
-    void googleLogin_returnsBadRequest_whenIdTokenIsMissing() throws Exception {
-        mockMvc.perform(post("/api/v1/auth/google")
+    void kakaoLogin_returnsBadRequest_whenIdTokenIsMissing() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/kakao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
                 .andExpect(jsonPath("$.message").isNotEmpty())
-                .andExpect(jsonPath("$.path").value("/api/v1/auth/google"))
+                .andExpect(jsonPath("$.path").value("/api/v1/auth/kakao"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verifyNoInteractions(googleLoginUseCase);
+        verifyNoInteractions(kakaoLoginUseCase, googleLoginUseCase);
+    }
+
+    @Test
+    void kakaoLogin_returnsBadRequest_whenIdTokenIsTooLong() throws Exception {
+        String longToken = "a".repeat(4097);
+        mockMvc.perform(post("/api/v1/auth/kakao")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                { "idToken": "%s" }
+                                """.formatted(longToken)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.message").isNotEmpty());
+
+        verifyNoInteractions(kakaoLoginUseCase, googleLoginUseCase);
     }
 }
