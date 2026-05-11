@@ -1,4 +1,3 @@
-CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE TABLE IF NOT EXISTS public.chat_pgvector (
                                                     id VARCHAR(255) PRIMARY KEY,
