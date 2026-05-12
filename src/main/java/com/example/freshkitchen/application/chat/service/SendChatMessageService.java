@@ -52,7 +52,7 @@ public class SendChatMessageService implements SendChatMessageUseCase {
         // AI context 설정으로 프롬프트 생성
         String prompt = buildPrompt(command.message(), command.userId());
 
-        // 제미나이 호출 (RAG 먼저, 벡터 스토어가 비어있거나 사용할  없는 경우, 단순 채팅으로 대체)
+        // 제미나이 호출 (RAG 먼저, 벡터 스토어가 비어있거나 사용할 수 없는 경우, 단순 채팅으로 대체)
         String aiResponse;
         try {
             aiResponse = geminiChatClient.chat(prompt);
