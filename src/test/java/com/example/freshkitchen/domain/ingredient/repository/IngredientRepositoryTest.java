@@ -12,6 +12,7 @@ import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
+import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.domain.user.entity.User;
 import com.example.freshkitchen.domain.user.enums.Provider;
@@ -132,6 +133,32 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
                 .toList();
 
         assertEquals(List.of(firstIngredient.getId(), secondIngredient.getId()), ingredientIds);
+    }
+
+    @Test
+    void findAllByUserIdAndStatus_returnsOnlyMatchingUserActiveIngredients() {
+        User owner = persistUser("active-owner", Provider.GOOGLE);
+        User otherUser = persistUser("active-other", Provider.KAKAO);
+        Storage ownerStorage = persistStorage(owner, StorageType.FRIDGE, "Owner fridge");
+        Storage otherStorage = persistStorage(otherUser, StorageType.FRIDGE, "Other fridge");
+        Ingredient activeIngredient = persistIngredient(owner, ownerStorage, "Tomato");
+        Ingredient consumedIngredient = persistIngredient(owner, ownerStorage, "Milk");
+        Ingredient discardedIngredient = persistIngredient(owner, ownerStorage, "Onion");
+        persistIngredient(otherUser, otherStorage, "Other tomato");
+
+        consumedIngredient.markConsumed(null);
+        discardedIngredient.markDiscarded(null);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        List<Long> ingredientIds = ingredientRepository
+                .findAllByUserIdAndStatus(owner.getId(), IngredientStatus.ACTIVE)
+                .stream()
+                .map(Ingredient::getId)
+                .toList();
+
+        assertEquals(List.of(activeIngredient.getId()), ingredientIds);
     }
 
     private User persistUser(String providerUserId, Provider provider) {

@@ -218,6 +218,7 @@ OAuth 인증 과정에서 발생하는 예외를 `OAuthException` 및 아래 `OA
 |------|-------------|------|---------|------|
 | `INVALID_ID_TOKEN` | `401` | `AUTH-401-7` | `invalid id token` | OAuth provider가 발급한 ID Token 검증 실패 (서명, 만료, audience 불일치 등) |
 | `PROVIDER_NOT_SUPPORTED` | `400` | `AUTH-400-1` | `oauth provider not supported` | 지원하지 않는 OAuth provider 요청 |
+| `OAUTH_PROVIDER_UNAVAILABLE` | `503` | `AUTH-503-1` | `oauth provider unavailable` | OAuth provider(Google/Kakao)의 공개키 조회 등 외부 통신 실패 (네트워크 오류, 타임아웃 등) |
 
 ### 7.3 JwtErrorCode
 
@@ -231,6 +232,7 @@ OAuth 인증 과정에서 발생하는 예외를 `OAuthException` 및 아래 `OA
 | `UNSUPPORTED_TOKEN` | `401` | `AUTH-401-4` | `unsupported token` | 서명되지 않은 토큰 등 지원하지 않는 형식 |
 | `EMPTY_CLAIMS` | `401` | `AUTH-401-5` | `token claims are empty` | 토큰 문자열이 `null`이거나 비어있음 |
 | `NOT_YET_VALID_TOKEN` | `401` | `AUTH-401-6` | `token is not yet valid` | 토큰이 아직 활성화되지 않음 (`nbf`가 현재 시각보다 30초를 초과해 미래인 경우; 최대 30초 clock skew 허용) |
+| `INVALID_REFRESH_TOKEN` | `401` | `AUTH-401-8` | `invalid or expired refresh token` | 유효하지 않거나 탈취/만료된 리프레시 토큰 |
 
 ---
 

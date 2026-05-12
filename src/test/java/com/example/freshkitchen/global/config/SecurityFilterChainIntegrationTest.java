@@ -6,10 +6,19 @@ import com.example.freshkitchen.global.security.exception.JwtTokenException;
 import com.example.freshkitchen.global.security.exception.SecurityErrorCode;
 import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
 import com.example.freshkitchen.global.security.infrastructure.TokenPayload;
+import com.example.freshkitchen.application.home.usecase.GetHomeSummaryUseCase;
+import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientUseCase;
+import com.example.freshkitchen.application.ingredient.usecase.GetIngredientUseCase;
+import com.example.freshkitchen.application.ingredient.usecase.ListIngredientsUseCase;
+import com.example.freshkitchen.application.ingredient.usecase.ListStoragesUseCase;
+import com.example.freshkitchen.application.ingredient.usecase.ResolveIngredientDefaultsUseCase;
+import com.example.freshkitchen.application.ingredient.usecase.UpdateIngredientUseCase;
 import com.example.freshkitchen.application.user.usecase.DeleteUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.GetUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
 import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
+import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
+import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import com.example.freshkitchen.application.user.dto.UserProfileResult;
 import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
@@ -53,7 +62,34 @@ class SecurityFilterChainIntegrationTest {
     private DeleteUserProfileUseCase deleteUserProfileUseCase;
 
     @MockitoBean
+    private GetHomeSummaryUseCase getHomeSummaryUseCase;
+
+    @MockitoBean
+    private CreateIngredientUseCase createIngredientUseCase;
+
+    @MockitoBean
+    private UpdateIngredientUseCase updateIngredientUseCase;
+
+    @MockitoBean
+    private GetIngredientUseCase getIngredientUseCase;
+
+    @MockitoBean
+    private ListIngredientsUseCase listIngredientsUseCase;
+
+    @MockitoBean
+    private ResolveIngredientDefaultsUseCase resolveIngredientDefaultsUseCase;
+
+    @MockitoBean
+    private ListStoragesUseCase listStoragesUseCase;
+
+    @MockitoBean
     private GoogleLoginUseCase googleLoginUseCase;
+
+    @MockitoBean
+    private KakaoLoginUseCase kakaoLoginUseCase;
+
+    @MockitoBean
+    private RefreshTokenUseCase refreshTokenUseCase;
 
     @MockitoBean
     private AiServerClient aiServerClient;
@@ -138,6 +174,32 @@ class SecurityFilterChainIntegrationTest {
                         .contentType("application/json")
                         .content("""
                                 { "idToken": "test" }
+                                """))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void kakaoAuthEndpoint_isAccessibleWithoutToken() throws Exception {
+        given(kakaoLoginUseCase.login(any()))
+                .willReturn(new AuthTokenResult("access-token", "refresh-token", true));
+
+        mockMvc.perform(post("/api/v1/auth/kakao")
+                        .contentType("application/json")
+                        .content("""
+                                { "idToken": "test" }
+                                """))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void refreshEndpoint_isAccessibleWithoutToken() throws Exception {
+        given(refreshTokenUseCase.refresh(any()))
+                .willReturn(new AuthTokenResult("new-access", "new-refresh", false));
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType("application/json")
+                        .content("""
+                                { "refreshToken": "some-token" }
                                 """))
                 .andExpect(status().isOk());
     }
