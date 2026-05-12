@@ -25,6 +25,7 @@ public class SecurityConfig {
             "/error",
             "/api/v1/auth/google",
             "/api/v1/auth/kakao",
+            "/api/v1/auth/refresh",
     };
 
     private final JwtTokenProvider jwtTokenProvider;

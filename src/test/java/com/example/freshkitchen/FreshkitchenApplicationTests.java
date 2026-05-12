@@ -1,6 +1,6 @@
 package com.example.freshkitchen;
 
-import com.example.freshkitchen.support.PostgreSqlTestContainerSupport;
+import com.example.freshkitchen.support.RedisTestContainerSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -8,9 +8,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 		"ai.server.base-url=http://localhost:8000",
 		"ai.server.token=test-token",
 		"oauth.google.client-id=test-client-id",
-		"oauth.kakao.client-id=test-client-id"
+		"oauth.kakao.client-id=test-kakao-client-id"
 })
-class FreshkitchenApplicationTests extends PostgreSqlTestContainerSupport {
+class FreshkitchenApplicationTests extends RedisTestContainerSupport {
 
 	@Test
 	void contextLoads() {

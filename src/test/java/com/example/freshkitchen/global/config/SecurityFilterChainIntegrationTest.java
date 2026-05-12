@@ -11,6 +11,7 @@ import com.example.freshkitchen.application.user.usecase.GetUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
 import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
+import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import com.example.freshkitchen.application.user.dto.UserProfileResult;
 import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
@@ -58,6 +59,9 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private KakaoLoginUseCase kakaoLoginUseCase;
+
+    @MockitoBean
+    private RefreshTokenUseCase refreshTokenUseCase;
 
     @MockitoBean
     private AiServerClient aiServerClient;
@@ -155,6 +159,19 @@ class SecurityFilterChainIntegrationTest {
                         .contentType("application/json")
                         .content("""
                                 { "idToken": "test" }
+                                """))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void refreshEndpoint_isAccessibleWithoutToken() throws Exception {
+        given(refreshTokenUseCase.refresh(any()))
+                .willReturn(new AuthTokenResult("new-access", "new-refresh", false));
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType("application/json")
+                        .content("""
+                                { "refreshToken": "some-token" }
                                 """))
                 .andExpect(status().isOk());
     }

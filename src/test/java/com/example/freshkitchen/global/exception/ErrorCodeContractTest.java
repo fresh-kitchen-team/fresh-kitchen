@@ -179,6 +179,7 @@ class ErrorCodeContractTest {
         assertContract(JwtErrorCode.UNSUPPORTED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-4", "unsupported token");
         assertContract(JwtErrorCode.EMPTY_CLAIMS, HttpStatus.UNAUTHORIZED, "AUTH-401-5", "token claims are empty");
         assertContract(JwtErrorCode.NOT_YET_VALID_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-6", "token is not yet valid");
+        assertContract(JwtErrorCode.INVALID_REFRESH_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-8", "invalid or expired refresh token");
     }
 
     @Test

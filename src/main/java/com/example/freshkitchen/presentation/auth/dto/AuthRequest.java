@@ -17,4 +17,9 @@ public final class AuthRequest {
             @NotBlank @Size(max = 4096) String idToken
     ) {
     }
+
+    public record RefreshToken(
+            @NotBlank @Size(max = 4096) String refreshToken
+    ) {
+    }
 }

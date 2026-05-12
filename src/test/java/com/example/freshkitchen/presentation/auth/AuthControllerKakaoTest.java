@@ -3,6 +3,7 @@ package com.example.freshkitchen.presentation.auth;
 import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
 import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
+import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
 import com.example.freshkitchen.global.exception.handler.GlobalExceptionHandler;
 import com.example.freshkitchen.global.security.exception.OAuthErrorCode;
 import com.example.freshkitchen.global.security.exception.OAuthException;
@@ -22,9 +23,10 @@ class AuthControllerKakaoTest {
 
     private final GoogleLoginUseCase googleLoginUseCase = mock(GoogleLoginUseCase.class);
     private final KakaoLoginUseCase kakaoLoginUseCase = mock(KakaoLoginUseCase.class);
+    private final RefreshTokenUseCase refreshTokenUseCase = mock(RefreshTokenUseCase.class);
 
     private final MockMvc mockMvc = MockMvcBuilders
-            .standaloneSetup(new AuthController(googleLoginUseCase, kakaoLoginUseCase))
+            .standaloneSetup(new AuthController(googleLoginUseCase, kakaoLoginUseCase, refreshTokenUseCase))
             .setControllerAdvice(new GlobalExceptionHandler())
             .build();
 
@@ -93,7 +95,7 @@ class AuthControllerKakaoTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/kakao"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verifyNoInteractions(kakaoLoginUseCase, googleLoginUseCase);
+        verifyNoInteractions(kakaoLoginUseCase, googleLoginUseCase, refreshTokenUseCase);
     }
 
     @Test
@@ -108,7 +110,7 @@ class AuthControllerKakaoTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/kakao"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verifyNoInteractions(kakaoLoginUseCase, googleLoginUseCase);
+        verifyNoInteractions(kakaoLoginUseCase, googleLoginUseCase, refreshTokenUseCase);
     }
 
     @Test
@@ -124,6 +126,6 @@ class AuthControllerKakaoTest {
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
                 .andExpect(jsonPath("$.message").isNotEmpty());
 
-        verifyNoInteractions(kakaoLoginUseCase, googleLoginUseCase);
+        verifyNoInteractions(kakaoLoginUseCase, googleLoginUseCase, refreshTokenUseCase);
     }
 }

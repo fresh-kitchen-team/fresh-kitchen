@@ -9,12 +9,14 @@ import com.example.freshkitchen.global.security.Role;
 import com.example.freshkitchen.global.security.exception.OAuthErrorCode;
 import com.example.freshkitchen.global.security.exception.OAuthException;
 import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
+import com.example.freshkitchen.infrastructure.auth.RefreshTokenRepository;
 import com.example.freshkitchen.infrastructure.oauth.KakaoTokenVerifier;
 import com.example.freshkitchen.infrastructure.oauth.KakaoTokenVerifier.KakaoUserInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Duration;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,10 +32,17 @@ class KakaoLoginServiceTest {
     private final KakaoTokenVerifier kakaoTokenVerifier = mock(KakaoTokenVerifier.class);
     private final UserRepository userRepository = mock(UserRepository.class);
     private final JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
+    private final RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
 
-    private final KakaoLoginService service = new KakaoLoginService(
-            kakaoTokenVerifier, userRepository, jwtTokenProvider
-    );
+    private final KakaoLoginService service = createService();
+
+    private KakaoLoginService createService() {
+        KakaoLoginService svc = new KakaoLoginService(
+                kakaoTokenVerifier, userRepository, jwtTokenProvider, refreshTokenRepository
+        );
+        ReflectionTestUtils.setField(svc, "refreshExpirationDays", 14L);
+        return svc;
+    }
 
     @Test
     void login_returnsTokens_whenExistingUser() {
@@ -54,7 +63,8 @@ class KakaoLoginServiceTest {
         assertThat(result.accessToken()).isEqualTo("access-token");
         assertThat(result.refreshToken()).isEqualTo("refresh-token");
         assertThat(result.newUser()).isFalse();
-        verify(userRepository, never()).save(any());
+        verify(userRepository, never()).saveAndFlush(any());
+        verify(refreshTokenRepository).save(1L, "refresh-token", Duration.ofDays(14L));
     }
 
     @Test
@@ -66,7 +76,7 @@ class KakaoLoginServiceTest {
 
         User savedUser = User.create(new User.CreateCommand("new-kakao-sub", Provider.KAKAO));
         ReflectionTestUtils.setField(savedUser, "id", 2L);
-        given(userRepository.save(any(User.class))).willReturn(savedUser);
+        given(userRepository.saveAndFlush(any(User.class))).willReturn(savedUser);
         given(jwtTokenProvider.generateAccessToken(savedUser.getId(), Role.USER))
                 .willReturn("new-access-token");
         given(jwtTokenProvider.generateRefreshToken(savedUser.getId()))
@@ -77,16 +87,15 @@ class KakaoLoginServiceTest {
         assertThat(result.accessToken()).isEqualTo("new-access-token");
         assertThat(result.refreshToken()).isEqualTo("new-refresh-token");
         assertThat(result.newUser()).isTrue();
-        verify(userRepository).save(any(User.class));
+        verify(userRepository).saveAndFlush(any(User.class));
+        verify(refreshTokenRepository).save(2L, "new-refresh-token", Duration.ofDays(14L));
     }
 
     @Test
     void login_returnsExistingUser_whenRaceConditionOnSave() {
         KakaoUserInfo userInfo = new KakaoUserInfo("race-sub", "race@kakao.com");
         given(kakaoTokenVerifier.verify("race-token")).willReturn(userInfo);
-        given(userRepository.findByProviderAndProviderUserId(Provider.KAKAO, "race-sub"))
-                .willReturn(Optional.empty());
-        given(userRepository.save(any(User.class)))
+        given(userRepository.saveAndFlush(any(User.class)))
                 .willThrow(new DataIntegrityViolationException("duplicate"));
 
         User existingUser = User.create(new User.CreateCommand("race-sub", Provider.KAKAO));
@@ -103,6 +112,7 @@ class KakaoLoginServiceTest {
         assertThat(result.accessToken()).isEqualTo("race-access");
         assertThat(result.refreshToken()).isEqualTo("race-refresh");
         assertThat(result.newUser()).isFalse();
+        verify(refreshTokenRepository).save(3L, "race-refresh", Duration.ofDays(14L));
     }
 
     @Test
