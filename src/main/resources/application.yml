@@ -21,6 +21,9 @@ spring:
           api-key: ${GEMINI_API_KEY}
           options:
             model: text-embedding-004
+    retry:
+      max-attempts: 3
+      on-client-errors: false # 4xx(429 Rate Limit 포함) 에러는 재시도해도 동일하게 실패하므로 비활성화 (제미나이 챗봇 토큰 아끼기)
     vectorstore:
       pgvector:
         initialize-schema: false

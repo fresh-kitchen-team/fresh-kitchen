@@ -52,18 +52,26 @@ public class SendChatMessageService implements SendChatMessageUseCase {
         // AI context 설정으로 프롬프트 생성
         String prompt = buildPrompt(command.message(), command.userId());
 
-        // 제미나이 호출 (RAG 먼저, 벡터 스토어가 비어있거나 사용할 수 없는 경우, 단순 채팅으로 대체)
+        // 제미나이 호출 (RAG 먼저, 실패 시 단순 채팅으로 대체)
         String aiResponse;
         try {
             aiResponse = geminiChatClient.chat(prompt);
         } catch (Exception e) {
-            log.warn("RAG chat failed, falling back to simple chat for roomId={}: {}",
-                    command.roomId(), e.getMessage());
+            log.warn("RAG chat failed for roomId={} [{}]: {}",
+                    command.roomId(), e.getClass().getSimpleName(), e.getMessage());
+
+            // Rate limit(429) 등 API 수준 에러면 fallback도 동일하게 실패하므로 바로 포기
+            if (isRateLimitOrQuotaError(e)) {
+                log.error("Gemini API quota exceeded for roomId={}, skipping fallback", command.roomId());
+                throw new ChatException(ChatErrorCode.AI_SERVICE_UNAVAILABLE);
+            }
+
             try {
                 aiResponse = geminiChatClient.chatWithoutRag(prompt);
             } catch (Exception fallbackEx) {
-                log.error("Gemini API call failed for roomId={}, userId={}: {}",
-                        command.roomId(), command.userId(), fallbackEx.getMessage(), fallbackEx);
+                log.error("Gemini simple chat also failed for roomId={}, userId={} [{}]: {}",
+                        command.roomId(), command.userId(),
+                        fallbackEx.getClass().getSimpleName(), fallbackEx.getMessage());
                 throw new ChatException(ChatErrorCode.AI_SERVICE_UNAVAILABLE);
             }
         }
@@ -102,5 +110,21 @@ public class SendChatMessageService implements SendChatMessageUseCase {
 
         sb.append("\n\nUser: ").append(userMessage);
         return sb.toString();
+    }
+
+    private boolean isRateLimitOrQuotaError(Exception e) {
+        Throwable current = e;
+        while (current != null) {
+            String msg = current.getMessage();
+            if (msg != null) {
+                String lower = msg.toLowerCase();
+                if (lower.contains("quota") || lower.contains("rate limit")
+                        || lower.contains("429") || lower.contains("resource_exhausted")) {
+                    return true;
+                }
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }
