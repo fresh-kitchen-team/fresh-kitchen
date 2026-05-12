@@ -18,10 +18,14 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestConstructor;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -29,9 +33,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
-@Import(GetHomeSummaryService.class)
+@Import({GetHomeSummaryService.class, GetHomeSummaryServiceTest.FixedClockConfig.class})
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class GetHomeSummaryServiceTest extends PostgreSqlTestContainerSupport {
+
+    private static final LocalDate TODAY = LocalDate.of(2026, 5, 12);
 
     private final GetHomeSummaryUseCase getHomeSummaryUseCase;
 
@@ -44,7 +50,6 @@ class GetHomeSummaryServiceTest extends PostgreSqlTestContainerSupport {
 
     @Test
     void get_countsActiveIngredientsAndBuildsHomePreview() {
-        LocalDate today = LocalDate.now();
         User owner = persistUser("home-owner", Provider.GOOGLE);
         User otherUser = persistUser("home-other", Provider.KAKAO);
         Storage fridge = persistStorage(owner, StorageType.FRIDGE, "Fridge");
@@ -53,14 +58,14 @@ class GetHomeSummaryServiceTest extends PostgreSqlTestContainerSupport {
         Storage otherFridge = persistStorage(otherUser, StorageType.FRIDGE, "Other fridge");
         IngredientCatalog eggCatalog = persistCatalog("Egg", CatalogCategory.DAIRY, StorageType.FRIDGE, "🥚");
 
-        Ingredient expired = persistIngredient(owner, fridge, eggCatalog, "Expired egg", today.minusDays(1));
-        Ingredient nearToday = persistIngredient(owner, fridge, eggCatalog, "Egg", today);
-        Ingredient nearSevenDays = persistIngredient(owner, freezer, null, "Frozen dumpling", today.plusDays(7));
+        Ingredient expired = persistIngredient(owner, fridge, eggCatalog, "Expired egg", TODAY.minusDays(1));
+        Ingredient nearToday = persistIngredient(owner, fridge, eggCatalog, "Egg", TODAY);
+        Ingredient nearSevenDays = persistIngredient(owner, freezer, null, "Frozen dumpling", TODAY.plusDays(7));
         persistIngredient(owner, pantry, null, "Tuna can", null);
-        persistIngredient(owner, fridge, null, "Fresh milk", today.plusDays(8));
-        Ingredient consumed = persistIngredient(owner, fridge, null, "Consumed onion", today.plusDays(1));
-        consumed.markConsumed(today);
-        persistIngredient(otherUser, otherFridge, null, "Other tomato", today.minusDays(1));
+        persistIngredient(owner, fridge, null, "Fresh milk", TODAY.plusDays(8));
+        Ingredient consumed = persistIngredient(owner, fridge, null, "Consumed onion", TODAY.plusDays(1));
+        consumed.markConsumed(TODAY);
+        persistIngredient(otherUser, otherFridge, null, "Other tomato", TODAY.minusDays(1));
 
         entityManager.flush();
         entityManager.clear();
@@ -91,13 +96,12 @@ class GetHomeSummaryServiceTest extends PostgreSqlTestContainerSupport {
 
     @Test
     void get_limitsPreviewItemsToFive() {
-        LocalDate today = LocalDate.now();
         User owner = persistUser("home-limit-owner", Provider.GOOGLE);
         Storage fridge = persistStorage(owner, StorageType.FRIDGE, "Fridge");
 
         for (int index = 0; index < 6; index++) {
-            persistIngredient(owner, fridge, null, "Near " + index, today.plusDays(index));
-            persistIngredient(owner, fridge, null, "Expired " + index, today.minusDays(index + 1L));
+            persistIngredient(owner, fridge, null, "Near " + index, TODAY.plusDays(index));
+            persistIngredient(owner, fridge, null, "Expired " + index, TODAY.minusDays(index + 1L));
         }
 
         entityManager.flush();
@@ -172,5 +176,14 @@ class GetHomeSummaryServiceTest extends PostgreSqlTestContainerSupport {
         ));
         entityManager.persist(catalog);
         return catalog;
+    }
+
+    @TestConfiguration
+    static class FixedClockConfig {
+
+        @Bean
+        Clock clock() {
+            return Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
+        }
     }
 }

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
@@ -33,12 +34,13 @@ public class GetHomeSummaryService implements GetHomeSummaryUseCase {
     );
 
     private final IngredientRepository ingredientRepository;
+    private final Clock clock;
 
     @Override
     public HomeDto.SummaryResponse get(Query query) {
         validate(query);
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock);
         List<HomeIngredientSummary> activeIngredients = ingredientRepository
                 .findAllByUserIdAndStatus(query.userId(), IngredientStatus.ACTIVE)
                 .stream()
