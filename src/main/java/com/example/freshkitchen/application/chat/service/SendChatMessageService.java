@@ -43,23 +43,29 @@ public class SendChatMessageService implements SendChatMessageUseCase {
             throw new ChatException(ChatErrorCode.CHAT_ROOM_NOT_OWNED_BY_USER);
         }
 
-        // Save user message
+        // 유저  메시지 save
         ChatMessage userMessage = ChatMessage.create(
                 command.message(), Sender.USER, null, room, user
         );
         chatMessageRepository.save(userMessage);
 
-        // Build prompt with AI settings context
+        // AI context 설정으로 프롬프트 생성
         String prompt = buildPrompt(command.message(), command.userId());
 
-        // Call Gemini
+        // 제미나이 호출 (RAG 먼저, 벡터 스토어가 비어있거나 사용할  없는 경우, 단순 채팅으로 대체)
         String aiResponse;
         try {
             aiResponse = geminiChatClient.chat(prompt);
         } catch (Exception e) {
-            log.error("Gemini API call failed for roomId={}, userId={}: {}",
-                    command.roomId(), command.userId(), e.getMessage(), e);
-            throw new ChatException(ChatErrorCode.AI_SERVICE_UNAVAILABLE);
+            log.warn("RAG chat failed, falling back to simple chat for roomId={}: {}",
+                    command.roomId(), e.getMessage());
+            try {
+                aiResponse = geminiChatClient.chatWithoutRag(prompt);
+            } catch (Exception fallbackEx) {
+                log.error("Gemini API call failed for roomId={}, userId={}: {}",
+                        command.roomId(), command.userId(), fallbackEx.getMessage(), fallbackEx);
+                throw new ChatException(ChatErrorCode.AI_SERVICE_UNAVAILABLE);
+            }
         }
 
         if (aiResponse == null || aiResponse.isBlank()) {
@@ -67,7 +73,7 @@ public class SendChatMessageService implements SendChatMessageUseCase {
             throw new ChatException(ChatErrorCode.AI_RESPONSE_PARSE_FAILED);
         }
 
-        // Save AI response
+        // AI 리스폰스 Save
         ChatMessage aiMessage = ChatMessage.create(
                 aiResponse, Sender.AI, null, room, user
         );
