@@ -57,7 +57,13 @@ public class SendChatMessageService implements SendChatMessageUseCase {
         try {
             aiResponse = geminiChatClient.chat(prompt);
         } catch (Exception e) {
-            log.error("Gemini API call failed for roomId={}, userId={}", command.roomId(), command.userId(), e);
+            log.error("Gemini API call failed for roomId={}, userId={}: {}",
+                    command.roomId(), command.userId(), e.getMessage(), e);
+            throw new ChatException(ChatErrorCode.AI_SERVICE_UNAVAILABLE);
+        }
+
+        if (aiResponse == null || aiResponse.isBlank()) {
+            log.warn("Empty AI response for roomId={}, userId={}", command.roomId(), command.userId());
             throw new ChatException(ChatErrorCode.AI_RESPONSE_PARSE_FAILED);
         }
 
