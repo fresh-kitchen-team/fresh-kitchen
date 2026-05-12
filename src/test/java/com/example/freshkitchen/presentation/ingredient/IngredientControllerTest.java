@@ -313,6 +313,24 @@ class IngredientControllerTest {
     }
 
     @Test
+    void create_withNonPositiveUserIdHeader_returnsInvalidInput() throws Exception {
+        mockMvc.perform(post("/api/v1/ingredients")
+                        .header("X-User-Id", "0")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "storageId": 2,
+                                  "name": "Tomato",
+                                  "expirySourceType": "POLICY",
+                                  "sourceType": "MANUAL"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.path").value("/api/v1/ingredients"));
+    }
+
+    @Test
     void create_withBlankName_returnsInvalidInput() throws Exception {
         mockMvc.perform(post("/api/v1/ingredients")
                         .header("X-User-Id", "1")
@@ -398,6 +416,21 @@ class IngredientControllerTest {
                                   "name": "%s"
                                 }
                                 """.formatted(tooLongName)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("COMMON-400"))
+                .andExpect(jsonPath("$.path").value("/api/v1/ingredients/10"));
+    }
+
+    @Test
+    void update_withExplicitNullForRequiredPatchField_returnsInvalidInput() throws Exception {
+        mockMvc.perform(patch("/api/v1/ingredients/10")
+                        .header("X-User-Id", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "storageId": null
+                                }
+                                """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("COMMON-400"))
                 .andExpect(jsonPath("$.path").value("/api/v1/ingredients/10"));

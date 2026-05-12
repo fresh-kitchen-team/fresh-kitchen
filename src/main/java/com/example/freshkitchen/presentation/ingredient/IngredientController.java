@@ -10,16 +10,14 @@ import com.example.freshkitchen.application.ingredient.usecase.UpdateIngredientU
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.global.response.ApiResponse;
-import com.example.freshkitchen.presentation.ingredient.dto.IngredientCreateRequest;
-import com.example.freshkitchen.presentation.ingredient.dto.IngredientCreateResponse;
-import com.example.freshkitchen.presentation.ingredient.dto.IngredientUpdateRequest;
+import com.example.freshkitchen.presentation.ingredient.dto.IngredientRequest;
+import com.example.freshkitchen.presentation.ingredient.dto.IngredientResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,7 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Validated
 @RestController
 @RequestMapping("/api/v1/ingredients")
 @RequiredArgsConstructor
@@ -48,12 +45,12 @@ public class IngredientController {
     private final ListStoragesUseCase listStoragesUseCase;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<IngredientCreateResponse>> create(
+    public ResponseEntity<ApiResponse<IngredientResponse.Create>> create(
             @RequestHeader(USER_ID_HEADER) @Positive Long userId,
-            @Valid @RequestBody IngredientCreateRequest request
+            @Valid @RequestBody IngredientRequest.Create request
     ) {
         Long ingredientId = createIngredientUseCase.create(request.toCommand(userId));
-        return ApiResponse.success(HttpStatus.CREATED, new IngredientCreateResponse(ingredientId));
+        return ApiResponse.success(HttpStatus.CREATED, new IngredientResponse.Create(ingredientId));
     }
 
     @PatchMapping("/{ingredientId}")
@@ -62,7 +59,7 @@ public class IngredientController {
             @PathVariable @Positive Long ingredientId,
             @RequestBody JsonNode request
     ) {
-        IngredientUpdateRequest updateRequest = IngredientUpdateRequest.from(request);
+        IngredientRequest.Update updateRequest = IngredientRequest.Update.from(request);
         updateIngredientUseCase.update(updateRequest.toCommand(ingredientId, userId));
         return ApiResponse.success();
     }
