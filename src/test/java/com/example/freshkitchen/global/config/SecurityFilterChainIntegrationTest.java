@@ -13,6 +13,8 @@ import com.example.freshkitchen.application.ingredient.usecase.ListIngredientsUs
 import com.example.freshkitchen.application.ingredient.usecase.ListStoragesUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.ResolveIngredientDefaultsUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.UpdateIngredientUseCase;
+import com.example.freshkitchen.application.image.usecase.ChangeIngredientPrimaryImageUseCase;
+import com.example.freshkitchen.application.image.usecase.UploadIngredientImageUseCase;
 import com.example.freshkitchen.application.user.usecase.DeleteUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.GetUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
@@ -81,6 +83,12 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private ListStoragesUseCase listStoragesUseCase;
+
+    @MockitoBean
+    private UploadIngredientImageUseCase uploadIngredientImageUseCase;
+
+    @MockitoBean
+    private ChangeIngredientPrimaryImageUseCase changeIngredientPrimaryImageUseCase;
 
     @MockitoBean
     private GoogleLoginUseCase googleLoginUseCase;

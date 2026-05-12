@@ -33,3 +33,9 @@ ai:
     token: ${AI_SERVER_TOKEN}
     connect-timeout-ms: ${AI_SERVER_CONNECT_TIMEOUT_MS:3000}
     read-timeout-ms: ${AI_SERVER_READ_TIMEOUT_MS:30000}
+
+image:
+  storage:
+    local:
+      root-dir: ${IMAGE_STORAGE_LOCAL_ROOT_DIR:uploads}
+      public-base-url: ${IMAGE_STORAGE_PUBLIC_BASE_URL:/uploads}

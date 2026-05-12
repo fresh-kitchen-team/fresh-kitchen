@@ -18,6 +18,8 @@ services:
       - REDIS_HOST=${REDIS_HOST:?REDIS_HOST is required}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - IMAGE_STORAGE_LOCAL_ROOT_DIR=${IMAGE_STORAGE_LOCAL_ROOT_DIR:-uploads}
+      - IMAGE_STORAGE_PUBLIC_BASE_URL=${IMAGE_STORAGE_PUBLIC_BASE_URL:-/uploads}
     ports:
       - "8080:8080"
     restart: unless-stopped
