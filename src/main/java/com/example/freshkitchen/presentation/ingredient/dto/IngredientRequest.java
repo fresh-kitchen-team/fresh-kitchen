@@ -119,8 +119,8 @@ public final class IngredientRequest {
         if (value == null || value.isNull()) {
             return null;
         }
-        if (!value.canConvertToLong()) {
-            throw new BusinessValidationException(fieldName + " must be a number");
+        if (!value.isIntegralNumber() || !value.canConvertToLong()) {
+            throw new BusinessValidationException(fieldName + " must be an integer");
         }
         long resolvedValue = value.longValue();
         if (resolvedValue <= 0) {
