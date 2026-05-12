@@ -33,10 +33,14 @@ CREATE TABLE IF NOT EXISTS chat_message (
     content    TEXT         NOT NULL,
     sender     VARCHAR(50)  NOT NULL,
     ai_payload TEXT,
-    room_id    BIGINT,
+    room_id    BIGINT       NOT NULL,
     user_id    BIGINT       NOT NULL,
     created_at TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_chatmessage_room FOREIGN KEY (room_id) REFERENCES chat_room(id),
     CONSTRAINT fk_chatmessage_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+-- Indexes for chat query paths
+CREATE INDEX IF NOT EXISTS idx_chat_room_user_id ON chat_room(user_id);
+CREATE INDEX IF NOT EXISTS idx_chat_message_room_created ON chat_message(room_id, created_at);

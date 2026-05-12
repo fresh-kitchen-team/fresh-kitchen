@@ -33,7 +33,7 @@ public class ChatRoom extends BaseTimeEntity {
     private User user;
 
     private ChatRoom(String title, User user) {
-        this.title = title;
+        this.title = requireNonBlank(title, "title");
         this.user = requireNonNull(user, "user");
     }
 
