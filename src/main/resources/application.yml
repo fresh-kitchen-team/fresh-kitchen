@@ -10,9 +10,8 @@ spring:
     driver-class-name: org.postgresql.Driver
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -29,7 +28,7 @@ spring:
             initialize-schema: never
     google:
       genai:
-        api-key: ${GOOGLE_AI_API_KEY}
+        api-key: ${GEMINI_API_KEY}
         project-id: ${GOOGLE_PROJECT_ID}
         location: us-central1
         chat:
@@ -37,21 +36,11 @@ spring:
             model: gemini-2.5-flash
             temperature: 0.7
         embedding:
-          api-key: ${GOOGLE_AI_API_KEY}
-          options:
-            model: text-embedding-004
-
-  ai:
-    google:
-      genai:
-        api-key: ${GEMINI_API_KEY}
-        chat:
-          options:
-            model: gemini-2.0-flash
-        embedding:
           api-key: ${GEMINI_API_KEY}
           options:
             model: text-embedding-004
+
+
     retry:
       max-attempts: 3
       on-client-errors: false # 4xx(429 Rate Limit 포함) 에러는 재시도해도 동일하게 실패하므로 비활성화 (제미나이 챗봇 토큰 아끼기)
@@ -79,23 +68,23 @@ oauth:
     client-id: ${GOOGLE_CLIENT_ID}
   kakao:
     client-id: ${KAKAO_CLIENT_ID}
-    app-key: ${KAKAO_APP_KEY:}
+    app-key: ${KAKAO_APP_KEY}
 
 ai:
   server:
-    base-url: ${AI_SERVER_URL}
+    base-url: ${AI_SERVER_BASE_URL}
     token: ${AI_SERVER_TOKEN}
     connect-timeout-ms: ${AI_SERVER_CONNECT_TIMEOUT_MS:3000}
     read-timeout-ms: ${AI_SERVER_READ_TIMEOUT_MS:30000}
 
-oauth:
-  google:
-    client-id: ${GOOGLE_OAUTH_CLIENT_ID}
+  oauth:
+    google:
+      client-id: ${GOOGLE_CLIENT_ID}
 
-jwt:
-  secret: ${JWT_SECRET}
-  access-expiration-minutes: 30
-  refresh-expiration-days: 14
+  jwt:
+    secret: ${JWT_SECRET}
+    access-expiration-minutes: 30
+    refresh-expiration-days: 14
 
 logging:
   level:
