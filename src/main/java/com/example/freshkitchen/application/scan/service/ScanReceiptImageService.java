@@ -38,9 +38,15 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
         ReceiptOcrResponse receiptOcr = aiServerClient.extractReceiptIngredients(command.file());
 
         return new ScanDto.ReceiptImageScanResponse(
-                imageAsset.imageAssetId(),
-                imageAsset.imageUrl(),
-                recognizedItems(receiptOcr)
+                ScanDto.ScanType.RECEIPT_IMAGE,
+                new ScanDto.ImageAssetSummary(
+                        imageAsset.imageAssetId(),
+                        imageAsset.kind(),
+                        imageAsset.storageProvider(),
+                        imageAsset.imageUrl()
+                ),
+                recognizedItems(receiptOcr),
+                imageAsset.createdAt()
         );
     }
 

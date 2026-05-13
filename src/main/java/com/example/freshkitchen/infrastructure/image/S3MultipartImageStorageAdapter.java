@@ -6,52 +6,52 @@ import com.example.freshkitchen.global.exception.BusinessValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.Locale;
 import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "image.storage.type", havingValue = "local", matchIfMissing = true)
-public class LocalMultipartImageStorageAdapter implements MultipartImageStoragePort {
+@ConditionalOnProperty(name = "image.storage.type", havingValue = "s3")
+public class S3MultipartImageStorageAdapter implements MultipartImageStoragePort {
 
-    private final LocalImageStorageProperties properties;
+    private final S3Client s3Client;
+    private final S3ImageStorageProperties properties;
 
     @Override
     public StoredImage store(Command command) {
         validate(command);
-        String relativePath = "images/%d/%s/%s%s".formatted(
+        String objectKey = "images/%d/%s/%s%s".formatted(
                 command.userId(),
                 command.kind().name().toLowerCase(Locale.ROOT),
                 UUID.randomUUID(),
                 extension(command.contentType())
         );
-        Path root = Path.of(properties.getRootDir()).toAbsolutePath().normalize();
-        Path target = root.resolve(relativePath).normalize();
-        if (!target.startsWith(root)) {
-            throw new BusinessValidationException("invalid image path");
-        }
 
-        try {
-            Files.createDirectories(target.getParent());
-            Files.write(target, command.content(), StandardOpenOption.CREATE_NEW);
-        } catch (IOException e) {
-            throw new BusinessValidationException("failed to store image file", e);
-        }
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(properties.getBucket())
+                .key(objectKey)
+                .contentType(command.contentType())
+                .build();
+        s3Client.putObject(request, RequestBody.fromBytes(command.content()));
 
-        return new StoredImage(relativePath, StorageProvider.LOCAL, publicImageUrl(relativePath));
+        return new StoredImage(objectKey, StorageProvider.S3, imageUrl(objectKey));
     }
 
-    private String publicImageUrl(String relativePath) {
+    private String imageUrl(String objectKey) {
         String baseUrl = properties.getPublicBaseUrl();
-        if (baseUrl.endsWith("/")) {
-            return baseUrl + relativePath;
+        if (baseUrl != null && !baseUrl.isBlank()) {
+            String normalized = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+            return normalized + "/" + objectKey;
         }
-        return baseUrl + "/" + relativePath;
+        return "https://%s.s3.%s.amazonaws.com/%s".formatted(
+                properties.getBucket(),
+                properties.getRegion(),
+                objectKey
+        );
     }
 
     private static void validate(Command command) {

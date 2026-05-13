@@ -38,10 +38,15 @@ public class ScanIngredientImageService implements ScanIngredientImageUseCase {
         FoodClassificationResponse classification = aiServerClient.classifyFood(command.file());
 
         return new ScanDto.IngredientImageScanResponse(
-                imageAsset.imageAssetId(),
-                imageAsset.imageUrl(),
-                command.imageSource(),
-                recognizedItems(classification)
+                ScanDto.ScanType.INGREDIENT_IMAGE,
+                new ScanDto.ImageAssetSummary(
+                        imageAsset.imageAssetId(),
+                        imageAsset.kind(),
+                        imageAsset.storageProvider(),
+                        imageAsset.imageUrl()
+                ),
+                recognizedItems(classification),
+                imageAsset.createdAt()
         );
     }
 

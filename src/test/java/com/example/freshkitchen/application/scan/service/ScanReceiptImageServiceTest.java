@@ -4,6 +4,7 @@ import com.example.freshkitchen.application.image.usecase.StoreMultipartImageAss
 import com.example.freshkitchen.application.scan.dto.ScanDto;
 import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
+import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import com.example.freshkitchen.infrastructure.ai.dto.ReceiptOcrResponse;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -30,12 +32,19 @@ class ScanReceiptImageServiceTest {
     private final AiServerClient aiServerClient = mock(AiServerClient.class);
     private final ScanReceiptImageService service =
             new ScanReceiptImageService(storeMultipartImageAssetUseCase, aiServerClient);
+    private final OffsetDateTime createdAt = OffsetDateTime.parse("2026-05-01T14:20:30+09:00");
 
     @Test
     void scan_storesReceiptImageAndReturnsOcrIngredients() {
         MockMultipartFile file = new MockMultipartFile("file", "receipt.jpg", "image/jpeg", "image".getBytes());
         when(storeMultipartImageAssetUseCase.store(any(StoreMultipartImageAssetUseCase.Command.class)))
-                .thenReturn(new StoreMultipartImageAssetUseCase.Result(11L, "/uploads/images/1/receipt/receipt.jpg"));
+                .thenReturn(new StoreMultipartImageAssetUseCase.Result(
+                        11L,
+                        ImageKind.RECEIPT,
+                        StorageProvider.S3,
+                        "https://cdn.example.com/images/1/receipt/receipt.jpg",
+                        createdAt
+                ));
         when(aiServerClient.extractReceiptIngredients(file))
                 .thenReturn(new ReceiptOcrResponse(List.of("Egg", "Milk")));
 
@@ -44,10 +53,14 @@ class ScanReceiptImageServiceTest {
         );
 
         assertAll(
-                () -> assertEquals(11L, response.imageAssetId()),
-                () -> assertEquals("/uploads/images/1/receipt/receipt.jpg", response.imageUrl()),
+                () -> assertEquals(ScanDto.ScanType.RECEIPT_IMAGE, response.scanType()),
+                () -> assertEquals(11L, response.imageAsset().imageAssetId()),
+                () -> assertEquals(ImageKind.RECEIPT, response.imageAsset().kind()),
+                () -> assertEquals(StorageProvider.S3, response.imageAsset().storageProvider()),
+                () -> assertEquals("https://cdn.example.com/images/1/receipt/receipt.jpg", response.imageAsset().imageUrl()),
                 () -> assertEquals("Egg", response.recognizedItems().get(0).name()),
-                () -> assertNull(response.recognizedItems().get(0).confidence())
+                () -> assertNull(response.recognizedItems().get(0).confidence()),
+                () -> assertEquals(createdAt, response.createdAt())
         );
         ArgumentCaptor<StoreMultipartImageAssetUseCase.Command> captor =
                 ArgumentCaptor.forClass(StoreMultipartImageAssetUseCase.Command.class);

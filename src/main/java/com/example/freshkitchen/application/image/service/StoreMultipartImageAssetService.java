@@ -51,13 +51,19 @@ public class StoreMultipartImageAssetService implements StoreMultipartImageAsset
                 user,
                 AssetType.USER_UPLOAD,
                 command.kind(),
-                StorageProvider.LOCAL,
+                storedImage.storageProvider(),
                 storedImage.objectKey(),
                 null,
                 null
         ));
         ImageAsset savedImageAsset = imageAssetRepository.save(imageAsset);
-        return new Result(savedImageAsset.getId(), savedImageAsset.getObjectKey());
+        return new Result(
+                savedImageAsset.getId(),
+                savedImageAsset.getKind(),
+                savedImageAsset.getStorageProvider(),
+                storedImage.imageUrl(),
+                savedImageAsset.getCreatedAt()
+        );
     }
 
     private static void validate(Command command) {

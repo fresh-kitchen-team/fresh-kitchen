@@ -1,6 +1,9 @@
 package com.example.freshkitchen.application.image.usecase;
 
 import com.example.freshkitchen.domain.image.enums.ImageKind;
+import com.example.freshkitchen.domain.image.enums.StorageProvider;
+
+import java.time.OffsetDateTime;
 
 public interface StoreMultipartImageAssetUseCase {
 
@@ -17,7 +20,10 @@ public interface StoreMultipartImageAssetUseCase {
 
     record Result(
             Long imageAssetId,
-            String imageUrl
+            ImageKind kind,
+            StorageProvider storageProvider,
+            String imageUrl,
+            OffsetDateTime createdAt
     ) {
     }
 }

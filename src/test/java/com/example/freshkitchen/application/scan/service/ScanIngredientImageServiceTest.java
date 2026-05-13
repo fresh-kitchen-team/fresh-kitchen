@@ -5,6 +5,7 @@ import com.example.freshkitchen.application.scan.dto.ScanDto;
 import com.example.freshkitchen.application.scan.usecase.ScanIngredientImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.ImageSource;
+import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import com.example.freshkitchen.infrastructure.ai.dto.FoodClassificationResponse;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -31,12 +33,19 @@ class ScanIngredientImageServiceTest {
     private final AiServerClient aiServerClient = mock(AiServerClient.class);
     private final ScanIngredientImageService service =
             new ScanIngredientImageService(storeMultipartImageAssetUseCase, aiServerClient);
+    private final OffsetDateTime createdAt = OffsetDateTime.parse("2026-05-01T14:20:30+09:00");
 
     @Test
     void scan_storesIngredientImageAssetAndReturnsFoodClassificationCandidates() {
         MockMultipartFile file = new MockMultipartFile("file", "tomato.jpg", "image/jpeg", "image".getBytes());
         when(storeMultipartImageAssetUseCase.store(any(StoreMultipartImageAssetUseCase.Command.class)))
-                .thenReturn(new StoreMultipartImageAssetUseCase.Result(10L, "/uploads/images/1/ingredient/tomato.jpg"));
+                .thenReturn(new StoreMultipartImageAssetUseCase.Result(
+                        10L,
+                        ImageKind.INGREDIENT,
+                        StorageProvider.S3,
+                        "https://cdn.example.com/images/1/ingredient/tomato.jpg",
+                        createdAt
+                ));
         when(aiServerClient.classifyFood(file))
                 .thenReturn(new FoodClassificationResponse(
                         "Tomato",
@@ -52,11 +61,15 @@ class ScanIngredientImageServiceTest {
         );
 
         assertAll(
-                () -> assertEquals(10L, response.imageAssetId()),
-                () -> assertEquals("/uploads/images/1/ingredient/tomato.jpg", response.imageUrl()),
-                () -> assertEquals(ImageSource.GALLERY, response.imageSource()),
+                () -> assertEquals(ScanDto.ScanType.INGREDIENT_IMAGE, response.scanType()),
+                () -> assertEquals(10L, response.imageAsset().imageAssetId()),
+                () -> assertEquals(ImageKind.INGREDIENT, response.imageAsset().kind()),
+                () -> assertEquals(StorageProvider.S3, response.imageAsset().storageProvider()),
+                () -> assertEquals("https://cdn.example.com/images/1/ingredient/tomato.jpg",
+                        response.imageAsset().imageUrl()),
                 () -> assertEquals("Tomato", response.recognizedItems().get(0).name()),
-                () -> assertEquals(0.93, response.recognizedItems().get(0).confidence())
+                () -> assertEquals(0.93, response.recognizedItems().get(0).confidence()),
+                () -> assertEquals(createdAt, response.createdAt())
         );
         ArgumentCaptor<StoreMultipartImageAssetUseCase.Command> captor =
                 ArgumentCaptor.forClass(StoreMultipartImageAssetUseCase.Command.class);

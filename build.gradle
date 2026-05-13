@@ -51,6 +51,9 @@ dependencies {
 	// PGVector
 	implementation 'com.pgvector:pgvector:0.1.4'
 
+	// AWS S3 image storage
+	implementation 'software.amazon.awssdk:s3:2.29.52'
+
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'

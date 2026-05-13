@@ -36,6 +36,13 @@ ai:
 
 image:
   storage:
+    type: ${IMAGE_STORAGE_TYPE:local}
     local:
       root-dir: ${IMAGE_STORAGE_LOCAL_ROOT_DIR:uploads}
       public-base-url: ${IMAGE_STORAGE_PUBLIC_BASE_URL:/uploads}
+    s3:
+      region: ${AWS_REGION:}
+      bucket: ${AWS_S3_BUCKET:}
+      access-key-id: ${AWS_ACCESS_KEY_ID:}
+      secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
+      public-base-url: ${IMAGE_STORAGE_PUBLIC_BASE_URL:}

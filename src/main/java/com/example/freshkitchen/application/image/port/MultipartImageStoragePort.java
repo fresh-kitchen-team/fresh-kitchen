@@ -1,6 +1,7 @@
 package com.example.freshkitchen.application.image.port;
 
 import com.example.freshkitchen.domain.image.enums.ImageKind;
+import com.example.freshkitchen.domain.image.enums.StorageProvider;
 
 public interface MultipartImageStoragePort {
 
@@ -16,7 +17,9 @@ public interface MultipartImageStoragePort {
     }
 
     record StoredImage(
-            String objectKey
+            String objectKey,
+            StorageProvider storageProvider,
+            String imageUrl
     ) {
     }
 }
