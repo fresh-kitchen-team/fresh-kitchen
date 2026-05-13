@@ -10,9 +10,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+
+import org.springframework.web.bind.MissingRequestHeaderException;
+
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
@@ -30,6 +34,18 @@ public class GlobalExceptionHandler {
         return buildResponse(errorCode, request);
     }
 
+    @ExceptionHandler({
+            MethodArgumentNotValidException.class,
+            HandlerMethodValidationException.class,
+            MissingRequestHeaderException.class
+    })
+    public ResponseEntity<ErrorResponse> handleInvalidWebRequest(
+            Exception exception,
+            HttpServletRequest request
+    ) {
+        return handleInvalidInput(exception, request);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
             IllegalArgumentException exception,
@@ -41,14 +57,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
             MethodArgumentTypeMismatchException exception,
-            HttpServletRequest request
-    ) {
-        return handleInvalidInput(exception, request);
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
-            MethodArgumentNotValidException exception,
             HttpServletRequest request
     ) {
         return handleInvalidInput(exception, request);

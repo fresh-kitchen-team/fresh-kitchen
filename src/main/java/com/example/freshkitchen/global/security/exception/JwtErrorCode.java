@@ -10,7 +10,8 @@ public enum JwtErrorCode implements ErrorCode {
     MALFORMED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-401-3", "malformed token"),
     UNSUPPORTED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-401-4", "unsupported token"),
     EMPTY_CLAIMS(HttpStatus.UNAUTHORIZED, "AUTH-401-5", "token claims are empty"),
-    NOT_YET_VALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-401-6", "token is not yet valid");
+    NOT_YET_VALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-401-6", "token is not yet valid"),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-401-8", "invalid or expired refresh token");
 
     private final HttpStatus status;
     private final String code;

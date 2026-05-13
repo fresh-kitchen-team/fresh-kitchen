@@ -2,6 +2,8 @@ package com.example.freshkitchen.presentation.auth;
 
 import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
 import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
+import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
+import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
 import com.example.freshkitchen.global.exception.handler.GlobalExceptionHandler;
 import com.example.freshkitchen.global.security.exception.OAuthErrorCode;
 import com.example.freshkitchen.global.security.exception.OAuthException;
@@ -20,9 +22,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthControllerTest {
 
     private final GoogleLoginUseCase googleLoginUseCase = mock(GoogleLoginUseCase.class);
+    private final KakaoLoginUseCase kakaoLoginUseCase = mock(KakaoLoginUseCase.class);
+    private final RefreshTokenUseCase refreshTokenUseCase = mock(RefreshTokenUseCase.class);
 
     private final MockMvc mockMvc = MockMvcBuilders
-            .standaloneSetup(new AuthController(googleLoginUseCase))
+            .standaloneSetup(new AuthController(googleLoginUseCase, kakaoLoginUseCase, refreshTokenUseCase))
             .setControllerAdvice(new GlobalExceptionHandler())
             .build();
 
@@ -75,6 +79,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.code").value("AUTH-401-7"))
                 .andExpect(jsonPath("$.message").value("invalid id token"));
+        verifyNoInteractions(kakaoLoginUseCase, refreshTokenUseCase);
     }
 
     @Test
@@ -91,7 +96,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/google"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verifyNoInteractions(googleLoginUseCase);
+        verifyNoInteractions(googleLoginUseCase, kakaoLoginUseCase, refreshTokenUseCase);
     }
 
     @Test
@@ -106,6 +111,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/google"))
                 .andExpect(jsonPath("$.timestamp").exists());
 
-        verifyNoInteractions(googleLoginUseCase);
+        verifyNoInteractions(googleLoginUseCase, kakaoLoginUseCase, refreshTokenUseCase);
     }
+
 }
