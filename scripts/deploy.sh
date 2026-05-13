@@ -13,9 +13,19 @@ export DB_URL=$(aws ssm get-parameter --name "/fresh-kitchen/DB_URL" --with-decr
 export DB_USERNAME=$(aws ssm get-parameter --name "/fresh-kitchen/DB_USERNAME" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export DB_PASSWORD=$(aws ssm get-parameter --name "/fresh-kitchen/DB_PASSWORD" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 
+
 export S3_ACCESS_KEY=$(aws ssm get-parameter --name "S3_ACCESS_KEY" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export S3_SECRET_KEY=$(aws ssm get-parameter --name "S3_SECRET_KEY" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export S3_BUCKET_NAME=$(aws ssm get-parameter --name "S3_BUCKET_NAME" --query Parameter.Value --output text --region $AWS_REGION)
+
+export JWT_SECRET=$(aws ssm get-parameter --name "/fresh-kitchen/JWT_SECRET" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export GOOGLE_CLIENT_ID=$(aws ssm get-parameter --name "/fresh-kitchen/GOOGLE_CLIENT_ID" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export KAKAO_CLIENT_ID=$(aws ssm get-parameter --name "/fresh-kitchen/KAKAO_CLIENT_ID" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export REDIS_HOST=$(aws ssm get-parameter --name "/fresh-kitchen/REDIS_HOST" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export GEMINI_API_KEY=$(aws ssm get-parameter --name "/fresh-kitchen/GEMINI_API_KEY" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export AI_SERVER_BASE_URL=$(aws ssm get-parameter --name "/fresh-kitchen/AI_SERVER_BASE_URL" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export AI_SERVER_TOKEN=$(aws ssm get-parameter --name "/fresh-kitchen/AI_SERVER_TOKEN" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+
 
 echo "------------------ 서버 배포 시작 --------------------------------"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

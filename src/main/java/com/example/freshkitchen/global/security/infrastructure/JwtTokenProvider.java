@@ -23,6 +23,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtTokenProvider {
@@ -83,6 +84,7 @@ public class JwtTokenProvider {
         Date expiration = new Date(now.getTime() + refreshExpirationMillis);
 
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .claim(CLAIM_USER_ID, userId)
                 .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_REFRESH)
                 .issuedAt(now)

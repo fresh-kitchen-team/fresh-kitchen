@@ -1,6 +1,7 @@
 package com.example.freshkitchen.domain.ingredient.repository;
 
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
+import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
@@ -61,6 +62,23 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
                 order by ingredient.id asc
                 """, Ingredient.class)
                 .setParameter("userId", userId)
+                .getResultList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Ingredient> findAllByUserIdAndStatus(Long userId, IngredientStatus status) {
+        return entityManager.createQuery("""
+                select ingredient
+                from Ingredient ingredient
+                join fetch ingredient.storage
+                left join fetch ingredient.catalog
+                where ingredient.user.id = :userId
+                  and ingredient.status = :status
+                order by ingredient.id asc
+                """, Ingredient.class)
+                .setParameter("userId", userId)
+                .setParameter("status", status)
                 .getResultList();
     }
 
