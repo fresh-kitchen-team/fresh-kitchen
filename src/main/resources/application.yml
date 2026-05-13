@@ -4,9 +4,9 @@ spring:
       max-file-size: 100MB
       max-request-size: 100MB
   datasource:
-    url: jdbc:postgresql://localhost:5432/mydb
-    username: user01
-    password: 1111
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -23,15 +23,15 @@ spring:
             initialize-schema: never
     google:
       genai:
-        api-key: AIzaSyCk0APo6MPj964UionbjqMi2h5ChPLdMbw
-        project-id: gen-lang-client-0176409509
+        api-key: ${GOOGLE_AI_API_KEY}
+        project-id: ${GOOGLE_PROJECT_ID}
         location: us-central1
         chat:
           options:
             model: gemini-2.5-flash
             temperature: 0.7
         embedding:
-          api-key: AIzaSyCk0APo6MPj964UionbjqMi2h5ChPLdMbw
+          api-key: ${GOOGLE_AI_API_KEY}
           options:
             model: text-embedding-004
     vectorstore:
@@ -39,22 +39,26 @@ spring:
         initialize-schema: false
         dimensions: 768
         distance-type: cosine_distance
+
 s3:
-  access-key: AKIAIOSFODNN7EXAMPLE
-  secret-key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-  region: ap-northeast-2
-  bucket: my-app-bucket
+  access-key: ${S3_ACCESS_KEY}
+  secret-key: ${S3_SECRET_KEY}
+  region: us-east-1
+  bucket: ${S3_BUCKET_NAME}
+
 ai:
   server:
-    base-url: http://52.55.50.125:8000
-    token: 1ae47ae448e734ac74affae0bc0b5f402f1d1c4ae1b52cd5beceb5a92b57a7d5
+    base-url: ${AI_SERVER_URL}
+    token: ${AI_SERVER_TOKEN}
+    connect-timeout-ms: ${AI_SERVER_CONNECT_TIMEOUT_MS:3000}
+    read-timeout-ms: ${AI_SERVER_READ_TIMEOUT_MS:30000}
 
 oauth:
   google:
-    client-id: "481500254244-t5ram70598u3m967nmnv3a4o2j0toati.apps.googleusercontent.com"
+    client-id: ${GOOGLE_OAUTH_CLIENT_ID}
 
 jwt:
-  secret: G8gAOJ1j3Gw+wL5ewdF5Qem27CL3+tJL2K6qYL72pfkBXJSIixiUmm3BhFppxSV0XrU9v6iYUGmyJ40hxnE6w==
+  secret: ${JWT_SECRET}
   access-expiration-minutes: 30
   refresh-expiration-days: 14
 
