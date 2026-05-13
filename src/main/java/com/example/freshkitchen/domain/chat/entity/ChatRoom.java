@@ -39,4 +39,10 @@ public class ChatRoom extends BaseTimeEntity {
     public void updateTitle(String title) {
         this.title = title;
     }
+    public static ChatRoom create(String title, User user) {
+        return ChatRoom.builder()
+                .title(title)
+                .user(user)
+                .build();
+    }
 }

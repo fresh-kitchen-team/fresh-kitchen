@@ -5,6 +5,7 @@ import com.example.freshkitchen.application.chat.usecase.SendChatMessageUseCase;
 import com.example.freshkitchen.domain.chat.entity.AiSetting;
 import com.example.freshkitchen.domain.chat.entity.ChatMessage;
 import com.example.freshkitchen.domain.chat.entity.ChatRoom;
+import com.example.freshkitchen.domain.chat.enums.Sender;
 import com.example.freshkitchen.domain.chat.exception.ChatErrorCode;
 import com.example.freshkitchen.domain.chat.exception.ChatException;
 import com.example.freshkitchen.domain.chat.repository.AiSettingRepository;

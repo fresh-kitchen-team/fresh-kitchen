@@ -45,4 +45,14 @@ public class ChatMessage extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT")
     private String aiPayload;
 
+
+    public static ChatMessage create(String content, Sender sender, String aiPayload, ChatRoom chatRoom, User user) {
+        return ChatMessage.builder()
+                .content(content)
+                .sender(sender)
+                .aiPayload(aiPayload)
+                .chatRoom(chatRoom)
+                .user(user)
+                .build();
+    }
 }
