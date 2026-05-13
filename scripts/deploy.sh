@@ -12,6 +12,12 @@ echo "▶ Parameter Store에서 환경변수 로드"
 export DB_URL=$(aws ssm get-parameter --name "/fresh-kitchen/DB_URL" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export DB_USERNAME=$(aws ssm get-parameter --name "/fresh-kitchen/DB_USERNAME" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export DB_PASSWORD=$(aws ssm get-parameter --name "/fresh-kitchen/DB_PASSWORD" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+
+
+export S3_ACCESS_KEY=$(aws ssm get-parameter --name "S3_ACCESS_KEY" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export S3_SECRET_KEY=$(aws ssm get-parameter --name "S3_SECRET_KEY" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export S3_BUCKET_NAME=$(aws ssm get-parameter --name "S3_BUCKET_NAME" --query Parameter.Value --output text --region $AWS_REGION)
+
 export JWT_SECRET=$(aws ssm get-parameter --name "/fresh-kitchen/JWT_SECRET" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export GOOGLE_CLIENT_ID=$(aws ssm get-parameter --name "/fresh-kitchen/GOOGLE_CLIENT_ID" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export KAKAO_CLIENT_ID=$(aws ssm get-parameter --name "/fresh-kitchen/KAKAO_CLIENT_ID" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)

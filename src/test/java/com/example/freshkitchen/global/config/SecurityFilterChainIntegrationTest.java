@@ -16,12 +16,13 @@ import com.example.freshkitchen.application.ingredient.usecase.UpdateIngredientU
 import com.example.freshkitchen.application.user.usecase.DeleteUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.GetUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
+
 import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
+
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import com.example.freshkitchen.application.user.dto.UserProfileResult;
-import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -34,11 +35,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -62,6 +61,7 @@ class SecurityFilterChainIntegrationTest {
     private DeleteUserProfileUseCase deleteUserProfileUseCase;
 
     @MockitoBean
+
     private GetHomeSummaryUseCase getHomeSummaryUseCase;
 
     @MockitoBean
@@ -92,6 +92,7 @@ class SecurityFilterChainIntegrationTest {
     private RefreshTokenUseCase refreshTokenUseCase;
 
     @MockitoBean
+>>>>>>> dev
     private AiServerClient aiServerClient;
 
     @Test
@@ -165,7 +166,7 @@ class SecurityFilterChainIntegrationTest {
         verify(getUserProfileUseCase).get(new GetUserProfileUseCase.Query(expectedUserId));
     }
 
-    @Test
+
     void authEndpoint_isAccessibleWithoutToken() throws Exception {
         given(googleLoginUseCase.login(any()))
                 .willReturn(new AuthTokenResult("access-token", "refresh-token", true));
@@ -205,6 +206,7 @@ class SecurityFilterChainIntegrationTest {
     }
 
     @Test
+
     void swaggerEndpoint_isNotBlockedBySecurityFilter() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk());

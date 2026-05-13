@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -15,6 +19,28 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
+
+    repair-on-migrate: true
+  ai:
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: never
+    google:
+      genai:
+        api-key: ${GOOGLE_AI_API_KEY}
+        project-id: ${GOOGLE_PROJECT_ID}
+        location: us-central1
+        chat:
+          options:
+            model: gemini-2.5-flash
+            temperature: 0.7
+        embedding:
+          api-key: ${GOOGLE_AI_API_KEY}
+          options:
+            model: text-embedding-004
+
   ai:
     google:
       genai:
@@ -29,10 +55,20 @@ spring:
     retry:
       max-attempts: 3
       on-client-errors: false # 4xx(429 Rate Limit 포함) 에러는 재시도해도 동일하게 실패하므로 비활성화 (제미나이 챗봇 토큰 아끼기)
+
     vectorstore:
       pgvector:
         initialize-schema: false
         dimensions: 768
+
+        distance-type: cosine_distance
+
+s3:
+  access-key: ${S3_ACCESS_KEY}
+  secret-key: ${S3_SECRET_KEY}
+  region: us-east-1
+  bucket: ${S3_BUCKET_NAME}
+
 jwt:
   secret: ${JWT_SECRET}
   access-expiration-minutes: 30
@@ -47,7 +83,26 @@ oauth:
 
 ai:
   server:
-    base-url: ${AI_SERVER_BASE_URL}
+    base-url: ${AI_SERVER_URL}
     token: ${AI_SERVER_TOKEN}
     connect-timeout-ms: ${AI_SERVER_CONNECT_TIMEOUT_MS:3000}
     read-timeout-ms: ${AI_SERVER_READ_TIMEOUT_MS:30000}
+
+oauth:
+  google:
+    client-id: ${GOOGLE_OAUTH_CLIENT_ID}
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-expiration-minutes: 30
+  refresh-expiration-days: 14
+
+logging:
+  level:
+    root: INFO
+    org:
+      springframework:
+        ai:
+          chat:
+            client:
+              advisor: DEBUG
