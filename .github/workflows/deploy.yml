@@ -54,6 +54,8 @@ jobs:
           KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
           REDIS_HOST: ${{ secrets.REDIS_HOST }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          AI_SERVER_BASE_URL: ${{ secrets.AI_SERVER_BASE_URL }}
+          AI_SERVER_TOKEN: ${{ secrets.AI_SERVER_TOKEN }}
         run: |
           # 이미지 빌드 & Push
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -75,6 +77,8 @@ jobs:
             "KAKAO_CLIENT_ID=$KAKAO_CLIENT_ID" \
             "REDIS_HOST=$REDIS_HOST" \
             "GEMINI_API_KEY=$GEMINI_API_KEY" \
+            "AI_SERVER_BASE_URL=$AI_SERVER_BASE_URL" \
+            "AI_SERVER_TOKEN=$AI_SERVER_TOKEN" \
             > scripts/.env
 
           chmod +x scripts/deploy.sh

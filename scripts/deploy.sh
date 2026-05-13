@@ -17,7 +17,8 @@ export GOOGLE_CLIENT_ID=$(aws ssm get-parameter --name "/fresh-kitchen/GOOGLE_CL
 export KAKAO_CLIENT_ID=$(aws ssm get-parameter --name "/fresh-kitchen/KAKAO_CLIENT_ID" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export REDIS_HOST=$(aws ssm get-parameter --name "/fresh-kitchen/REDIS_HOST" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export GEMINI_API_KEY=$(aws ssm get-parameter --name "/fresh-kitchen/GEMINI_API_KEY" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
-
+export AI_SERVER_BASE_URL=$(aws ssm get-parameter --name "/fresh-kitchen/AI_SERVER_BASE_URL" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export AI_SERVER_TOKEN=$(aws ssm get-parameter --name "/fresh-kitchen/AI_SERVER_TOKEN" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 
 
 echo "------------------ 서버 배포 시작 --------------------------------"
