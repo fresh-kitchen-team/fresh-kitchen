@@ -39,7 +39,11 @@ spring:
         initialize-schema: false
         dimensions: 768
         distance-type: cosine_distance
-
+s3:
+  access-key: AKIAIOSFODNN7EXAMPLE
+  secret-key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+  region: ap-northeast-2
+  bucket: my-app-bucket
 ai:
   server:
     base-url: http://52.55.50.125:8000

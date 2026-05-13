@@ -3,6 +3,7 @@ package com.example.freshkitchen.domain.chat.service;
 
 import com.example.freshkitchen.domain.chat.dto.request.ChatMessageRequest;
 import com.example.freshkitchen.domain.chat.dto.request.UpdateRoomTitleRequest;
+import com.example.freshkitchen.domain.chat.dto.response.ChatHistoryResponse;
 import com.example.freshkitchen.domain.chat.dto.response.ChatMessageResponse;
 import com.example.freshkitchen.domain.chat.dto.response.ChatRoomListResponse;
 import com.example.freshkitchen.domain.chat.dto.response.ChatRoomResponse;
@@ -45,7 +46,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class ChatService {
-
+    private final ObjectMapper objectMapper;
     private final ChatClient chatClient;
     private final RetrievalAugmentationAdvisor retrievalAugmentationAdvisor;
     private final UserRepository userRepository;
@@ -54,10 +55,11 @@ public class ChatService {
     private final AiSettingRepository aiSettingRepository;
     private final IngredientRepository ingredientRepository;
 
-    public ChatService(ChatClient.Builder chatClientBuilder, VectorStore vectorStore,
+    public ChatService(ObjectMapper objectMapper, ChatClient.Builder chatClientBuilder, VectorStore vectorStore,
                        UserRepository userRepository, ChatRoomRepository chatRoomRepository,
                        MessageRepository messageRepository, AiSettingRepository aiSettingRepository,
                        IngredientRepository ingredientRepository) {
+        this.objectMapper = objectMapper;
         this.userRepository = userRepository;
         this.chatRoomRepository = chatRoomRepository;
         this.messageRepository = messageRepository;
@@ -304,17 +306,27 @@ public class ChatService {
     }
 
     @Transactional(readOnly = true)
-    public ChatRoomListResponse getChatHistory(Long roomId) {
+    public ChatHistoryResponse getChatHistory(Long roomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND));
 
-        List<ChatRoomListResponse.ChatMessageGroup> messages = chatRoom.getMessages().stream()
-                .map(m -> new ChatRoomListResponse.ChatMessageGroup(
-                        chatRoom.getId(), chatRoom.getTitle(), m.getCreatedAt().toString(),
-                        m.getSender().name(), m.getContent()))
+        List<ChatHistoryResponse.MessageResponse> messages = chatRoom.getMessages().stream()
+                .map(m -> {
+                    ChatMessageResponse.AiPayloadResponse aiPayload = null;
+                    if (m.getAiPayload() != null && !m.getAiPayload().isBlank()) {
+                        try {
+                            aiPayload = objectMapper.readValue(m.getAiPayload(), ChatMessageResponse.AiPayloadResponse.class);
+                        } catch (Exception e) {
+                            log.error("aiPayload 파싱 실패: {}", m.getAiPayload());
+                            aiPayload = new ChatMessageResponse.AiPayloadResponse(List.of(), List.of(), List.of());
+                        }
+                    }
+                    return new ChatHistoryResponse.MessageResponse(
+                            m.getId(), m.getSender().name(), m.getContent(), aiPayload, m.getCreatedAt().toString());
+                })
                 .collect(Collectors.toList());
 
-        return new ChatRoomListResponse(messages, List.of(), List.of());
+        return new ChatHistoryResponse(chatRoom.getTitle(), messages);
     }
 
     @Transactional

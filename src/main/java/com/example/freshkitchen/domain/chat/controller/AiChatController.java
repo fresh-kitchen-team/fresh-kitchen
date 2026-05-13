@@ -2,6 +2,7 @@ package com.example.freshkitchen.domain.chat.controller;
 
 import com.example.freshkitchen.domain.chat.dto.request.ChatMessageRequest;
 import com.example.freshkitchen.domain.chat.dto.request.UpdateRoomTitleRequest;
+import com.example.freshkitchen.domain.chat.dto.response.ChatHistoryResponse;
 import com.example.freshkitchen.domain.chat.dto.response.ChatMessageResponse;
 import com.example.freshkitchen.domain.chat.dto.response.ChatRoomListResponse;
 import com.example.freshkitchen.domain.chat.dto.response.ChatRoomResponse;
@@ -54,8 +55,8 @@ public class AiChatController {
 
     @Operation(summary = "채팅 기록 상세 조회", description = "특정 채팅방의 상세 메시지 내역을 조회합니다.")
     @GetMapping("/room/{roomId}")
-    public ResponseEntity<ApiResponse<ChatRoomListResponse>> getChatHistory(@PathVariable Long roomId) {
-        ChatRoomListResponse response = chatService.getChatHistory(roomId);
+    public ResponseEntity<ApiResponse<ChatHistoryResponse>> getChatHistory(@PathVariable Long roomId) {
+        ChatHistoryResponse response = chatService.getChatHistory(roomId);
         return ApiResponse.success(response);
     }
 
