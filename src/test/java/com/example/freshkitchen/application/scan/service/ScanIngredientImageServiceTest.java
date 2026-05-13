@@ -13,13 +13,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Method;
 import java.time.OffsetDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -82,5 +85,12 @@ class ScanIngredientImageServiceTest {
                 () -> assertArrayEquals("image".getBytes(), captor.getValue().content())
         );
         verify(aiServerClient).classifyFood(file);
+    }
+
+    @Test
+    void scan_isNotTransactionalSoAiCallRunsOutsideStorageTransaction() throws NoSuchMethodException {
+        Method scan = ScanIngredientImageService.class.getMethod("scan", ScanIngredientImageUseCase.Command.class);
+
+        assertFalse(scan.isAnnotationPresent(Transactional.class));
     }
 }

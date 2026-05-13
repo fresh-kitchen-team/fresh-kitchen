@@ -23,12 +23,12 @@ public class LocalMultipartImageStorageAdapter implements MultipartImageStorageP
 
     @Override
     public StoredImage store(Command command) {
-        validate(command);
+        String contentType = validateAndNormalizeContentType(command);
         String relativePath = "images/%d/%s/%s%s".formatted(
                 command.userId(),
                 command.kind().name().toLowerCase(Locale.ROOT),
                 UUID.randomUUID(),
-                extension(command.contentType())
+                extension(contentType)
         );
         Path root = Path.of(properties.getRootDir()).toAbsolutePath().normalize();
         Path target = root.resolve(relativePath).normalize();
@@ -54,7 +54,7 @@ public class LocalMultipartImageStorageAdapter implements MultipartImageStorageP
         return baseUrl + "/" + relativePath;
     }
 
-    private static void validate(Command command) {
+    private static String validateAndNormalizeContentType(Command command) {
         if (command == null) {
             throw new BusinessValidationException("command must not be null");
         }
@@ -67,6 +67,25 @@ public class LocalMultipartImageStorageAdapter implements MultipartImageStorageP
         if (command.content() == null || command.content().length == 0) {
             throw new BusinessValidationException("file must not be empty");
         }
+        return normalizeContentType(command.contentType());
+    }
+
+    private static String normalizeContentType(String contentType) {
+        if (contentType == null || contentType.isBlank()) {
+            throw new BusinessValidationException("contentType must not be blank");
+        }
+        String normalized = contentType.trim().toLowerCase(Locale.ROOT);
+        if (!isSupportedContentType(normalized)) {
+            throw new BusinessValidationException("contentType must be supported image type");
+        }
+        return normalized;
+    }
+
+    private static boolean isSupportedContentType(String contentType) {
+        return switch (contentType) {
+            case "image/jpeg", "image/png", "image/webp" -> true;
+            default -> false;
+        };
     }
 
     private static String extension(String contentType) {

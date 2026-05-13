@@ -13,7 +13,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Method;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -22,6 +24,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -134,5 +137,12 @@ class ScanReceiptImageServiceTest {
                 () -> assertEquals(ScanDto.ReceiptPurchaseDateSourceType.DEFAULT_TODAY, response.sourceType()),
                 () -> assertEquals(LocalDate.of(2026, 5, 13), response.recognizedItems().get(0).registeredAt())
         );
+    }
+
+    @Test
+    void scan_isNotTransactionalSoAiCallRunsOutsideStorageTransaction() throws NoSuchMethodException {
+        Method scan = ScanReceiptImageService.class.getMethod("scan", ScanReceiptImageUseCase.Command.class);
+
+        assertFalse(scan.isAnnotationPresent(Transactional.class));
     }
 }
