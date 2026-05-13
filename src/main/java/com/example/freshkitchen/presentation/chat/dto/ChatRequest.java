@@ -10,7 +10,7 @@ public class ChatRequest {
     }
 
     public record CreateRoom(
-            String title
+            @NotBlank String title
     ) {
     }
 
