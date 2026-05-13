@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.net.SocketTimeoutException;
 import java.time.Duration;
-import java.util.Objects;
 import java.util.UUID;
 
 @Component
@@ -148,9 +147,17 @@ public class AiServerClient {
     }
 
     private static void validateReceiptOcr(ReceiptOcrResponse response) {
-        if (response == null || response.ingredients() == null || response.ingredients().stream().anyMatch(Objects::isNull)) {
+        if (response == null
+                || response.recognizedItems() == null
+                || response.recognizedItems().stream().anyMatch(AiServerClient::isInvalidReceiptItem)) {
             throw new AiServerException(AiServerErrorCode.AI_RESPONSE_INVALID);
         }
+    }
+
+    private static boolean isInvalidReceiptItem(ReceiptOcrResponse.RecognizedItem item) {
+        return item == null
+                || item.name() == null
+                || item.expirySourceType() == null;
     }
 
     private static void validateFridgeDetection(FridgeDetectionResponse response) {

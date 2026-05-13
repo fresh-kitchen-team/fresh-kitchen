@@ -1,5 +1,6 @@
 package com.example.freshkitchen.presentation.ai;
 
+import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.global.exception.handler.GlobalExceptionHandler;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import com.example.freshkitchen.infrastructure.ai.dto.FoodClassificationResponse;
@@ -10,6 +11,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -60,12 +62,27 @@ class AiAnalysisControllerTest {
     @Test
     void extractReceiptIngredients_returnsIngredients() throws Exception {
         given(aiServerClient.extractReceiptIngredients(any()))
-                .willReturn(new ReceiptOcrResponse(List.of("Egg", "Milk")));
+                .willReturn(new ReceiptOcrResponse(
+                        "Emart",
+                        LocalDate.of(2026, 5, 1),
+                        List.of(new ReceiptOcrResponse.RecognizedItem(
+                                "Egg",
+                                LocalDate.of(2026, 5, 16),
+                                ExpirySourceType.POLICY,
+                                0.87
+                        )),
+                        "Emart\nEgg"
+                ));
 
         mockMvc.perform(multipart("/api/v1/ai/receipt-ocr").file(imageFile()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.ingredients[0]").value("Egg"))
-                .andExpect(jsonPath("$.data.ingredients[1]").value("Milk"));
+                .andExpect(jsonPath("$.data.storeName").value("Emart"))
+                .andExpect(jsonPath("$.data.purchasedAt").value("2026-05-01"))
+                .andExpect(jsonPath("$.data.recognizedItems[0].name").value("Egg"))
+                .andExpect(jsonPath("$.data.recognizedItems[0].estimatedExpiresAt").value("2026-05-16"))
+                .andExpect(jsonPath("$.data.recognizedItems[0].expirySourceType").value("POLICY"))
+                .andExpect(jsonPath("$.data.recognizedItems[0].confidence").value(0.87))
+                .andExpect(jsonPath("$.data.ocrText").value("Emart\nEgg"));
 
         then(aiServerClient).should().extractReceiptIngredients(any());
     }

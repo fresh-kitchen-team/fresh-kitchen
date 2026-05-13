@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -21,6 +23,7 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
 
     private final StoreMultipartImageAssetUseCase storeMultipartImageAssetUseCase;
     private final AiServerClient aiServerClient;
+    private final Clock clock;
 
     @Override
     @Transactional
@@ -36,16 +39,21 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
                 )
         );
         ReceiptOcrResponse receiptOcr = aiServerClient.extractReceiptIngredients(command.file());
+        LocalDate purchasedAt = purchasedAt(receiptOcr);
 
         return new ScanDto.ReceiptImageScanResponse(
                 ScanDto.ScanType.RECEIPT_IMAGE,
+                receiptOcr.storeName(),
+                purchasedAt,
+                sourceType(receiptOcr),
                 new ScanDto.ImageAssetSummary(
                         imageAsset.imageAssetId(),
                         imageAsset.kind(),
                         imageAsset.storageProvider(),
                         imageAsset.imageUrl()
                 ),
-                recognizedItems(receiptOcr),
+                recognizedItems(receiptOcr, purchasedAt),
+                receiptOcr.ocrText(),
                 imageAsset.createdAt()
         );
     }
@@ -59,9 +67,32 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
         }
     }
 
-    private static List<ScanDto.RecognizedItem> recognizedItems(ReceiptOcrResponse receiptOcr) {
-        return receiptOcr.ingredients().stream()
-                .map(name -> new ScanDto.RecognizedItem(name, null))
+    private LocalDate purchasedAt(ReceiptOcrResponse receiptOcr) {
+        if (receiptOcr.purchasedAt() != null) {
+            return receiptOcr.purchasedAt();
+        }
+        return LocalDate.now(clock);
+    }
+
+    private static ScanDto.ReceiptPurchaseDateSourceType sourceType(ReceiptOcrResponse receiptOcr) {
+        if (receiptOcr.purchasedAt() != null) {
+            return ScanDto.ReceiptPurchaseDateSourceType.OCR;
+        }
+        return ScanDto.ReceiptPurchaseDateSourceType.DEFAULT_TODAY;
+    }
+
+    private static List<ScanDto.ReceiptRecognizedItem> recognizedItems(
+            ReceiptOcrResponse receiptOcr,
+            LocalDate purchasedAt
+    ) {
+        return receiptOcr.recognizedItems().stream()
+                .map(item -> new ScanDto.ReceiptRecognizedItem(
+                        item.name(),
+                        purchasedAt,
+                        item.estimatedExpiresAt(),
+                        item.expirySourceType(),
+                        item.confidence()
+                ))
                 .toList();
     }
 
