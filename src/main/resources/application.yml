@@ -4,9 +4,9 @@ spring:
       max-file-size: 100MB
       max-request-size: 100MB
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/mydb
+    username: user01
+    password: 1111
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -14,9 +14,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
-  oauth:
-    google:
-      client-id: ${GOOGLE_CLIENT_ID}
+    repair-on-migrate: true
   ai:
     chat:
       memory:
@@ -25,13 +23,15 @@ spring:
             initialize-schema: never
     google:
       genai:
-        api-key: ${GEMINI_API_KEY}
+        api-key: AIzaSyCk0APo6MPj964UionbjqMi2h5ChPLdMbw
+        project-id: gen-lang-client-0176409509
+        location: us-central1
         chat:
           options:
             model: gemini-2.5-flash
             temperature: 0.7
         embedding:
-          api-key: ${GEMINI_API_KEY}
+          api-key: AIzaSyCk0APo6MPj964UionbjqMi2h5ChPLdMbw
           options:
             model: text-embedding-004
     vectorstore:
@@ -40,8 +40,17 @@ spring:
         dimensions: 768
         distance-type: cosine_distance
 
+ai:
+  server:
+    base-url: http://52.55.50.125:8000
+    token: 1ae47ae448e734ac74affae0bc0b5f402f1d1c4ae1b52cd5beceb5a92b57a7d5
+
+oauth:
+  google:
+    client-id: "481500254244-t5ram70598u3m967nmnv3a4o2j0toati.apps.googleusercontent.com"
+
 jwt:
-  secret: ${JWT_SECRET}
+  secret: G8gAOJ1j3Gw+wL5ewdF5Qem27CL3+tJL2K6qYL72pfkBXJSIixiUmm3BhFppxSV0XrU9v6iYUGmyJ40hxnE6w==
   access-expiration-minutes: 30
   refresh-expiration-days: 14
 
@@ -54,10 +63,3 @@ logging:
           chat:
             client:
               advisor: DEBUG
-
-ai:
-  server:
-    base-url: ${AI_SERVER_BASE_URL}
-    token: ${AI_SERVER_TOKEN}
-    connect-timeout-ms: 3000
-    read-timeout-ms: 30000

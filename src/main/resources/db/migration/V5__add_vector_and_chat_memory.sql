@@ -1,4 +1,6 @@
+CREATE EXTENSION IF NOT EXISTS vector;
 
+-- 기존 내용...
 CREATE TABLE IF NOT EXISTS public.chat_pgvector (
                                                     id VARCHAR(255) PRIMARY KEY,
     content TEXT,

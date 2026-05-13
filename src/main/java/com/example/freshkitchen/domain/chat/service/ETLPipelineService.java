@@ -34,7 +34,10 @@ public class ETLPipelineService {
         } else {
             allDocuments.add(buildDocument(rootNode));
         }
-
+        if (attach == null || attach.isEmpty()) {
+            log.error("벡터 저장 요청 파일이 없거나 비어 있습니다.");
+            throw new IOException("유효하지 않은 입력입니다. 업로드 파일이 필요합니다.");
+        }
         int totalSize = allDocuments.size();
 // 수정: 배치 사이즈를 더 작게 줄입니다 (5~10 권장)
         int batchSize = 10;

@@ -7,12 +7,14 @@ import com.example.freshkitchen.domain.chat.dto.response.ChatRoomListResponse;
 import com.example.freshkitchen.domain.chat.dto.response.ChatRoomResponse;
 import com.example.freshkitchen.domain.chat.service.ChatService;
 import com.example.freshkitchen.global.response.ApiResponse;
+import com.example.freshkitchen.global.security.JwtAuthentication;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "AI 채팅", description = "AI 채팅 세션을 통한 조회 대화 등등")
@@ -29,9 +31,7 @@ public class AiChatController {
     public ResponseEntity<ApiResponse<ChatMessageResponse>> sendMessage(
             @PathVariable Long roomId,
             @Valid @RequestBody ChatMessageRequest request) {
-
-        // CustomUserDetails principal = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = 1L;
+        Long userId = getLoginUserId();
         ChatMessageResponse response = chatService.sendAiMessage(userId, roomId, request);
         return ApiResponse.success(response);
     }
@@ -39,8 +39,7 @@ public class AiChatController {
     @Operation(summary = "AI 채팅방 생성", description = "AI와 1:1 채팅방을 생성합니다.")
     @PostMapping("/room")
     public ResponseEntity<ApiResponse<ChatRoomResponse>> createRoom() {
-        // CustomUserDetails principal = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = 1L;
+        Long userId = getLoginUserId();
         ChatRoomResponse response = chatService.createChatRoom(userId);
         return ApiResponse.success(response);
     }
@@ -48,8 +47,7 @@ public class AiChatController {
     @Operation(summary = "채팅방 목록 조회", description = "사이드바용 채팅방 목록을 날짜별(오늘/7일/30일)로 조회합니다.")
     @GetMapping("/room")
     public ResponseEntity<ApiResponse<ChatRoomListResponse>> getRoomList() {
-        // CustomUserDetails principal = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = 1L;
+        Long userId = getLoginUserId();
         ChatRoomListResponse response = chatService.getRoomList(userId);
         return ApiResponse.success(response);
     }
@@ -68,5 +66,12 @@ public class AiChatController {
             @Valid @RequestBody UpdateRoomTitleRequest request) {
         ChatRoomResponse response = chatService.updateRoomTitle(roomId, request);
         return ApiResponse.success(response);
+    }
+
+    private Long getLoginUserId() {
+        JwtAuthentication authentication = (JwtAuthentication) SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        return authentication.getUserId();
     }
 }
