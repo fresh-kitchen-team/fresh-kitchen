@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:16.3
+    image: pgvector/pgvector:pg16
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
