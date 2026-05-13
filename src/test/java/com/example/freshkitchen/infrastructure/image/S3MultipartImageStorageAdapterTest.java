@@ -3,6 +3,7 @@ package com.example.freshkitchen.infrastructure.image;
 import com.example.freshkitchen.application.image.port.MultipartImageStoragePort;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -11,6 +12,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -28,13 +30,13 @@ class S3MultipartImageStorageAdapterTest {
                 1L,
                 ImageKind.INGREDIENT,
                 "tomato.jpg",
-                "image/jpeg",
+                " IMAGE/WEBP ",
                 "image".getBytes()
         ));
 
         assertAll(
                 () -> assertTrue(storedImage.objectKey().startsWith("images/1/ingredient/")),
-                () -> assertTrue(storedImage.objectKey().endsWith(".jpg")),
+                () -> assertTrue(storedImage.objectKey().endsWith(".webp")),
                 () -> assertEquals(StorageProvider.S3, storedImage.storageProvider()),
                 () -> assertEquals("https://cdn.example.com/" + storedImage.objectKey(), storedImage.imageUrl())
         );
@@ -44,7 +46,32 @@ class S3MultipartImageStorageAdapterTest {
         assertAll(
                 () -> assertEquals("freshkitchen-images", captor.getValue().bucket()),
                 () -> assertEquals(storedImage.objectKey(), captor.getValue().key()),
-                () -> assertEquals("image/jpeg", captor.getValue().contentType())
+                () -> assertEquals("image/webp", captor.getValue().contentType())
+        );
+    }
+
+    @Test
+    void store_rejectsNullContentType() {
+        assertThrows(BusinessValidationException.class, () -> adapter.store(command(null)));
+    }
+
+    @Test
+    void store_rejectsBlankContentType() {
+        assertThrows(BusinessValidationException.class, () -> adapter.store(command(" ")));
+    }
+
+    @Test
+    void store_rejectsUnsupportedContentType() {
+        assertThrows(BusinessValidationException.class, () -> adapter.store(command("image/gif")));
+    }
+
+    private static MultipartImageStoragePort.Command command(String contentType) {
+        return new MultipartImageStoragePort.Command(
+                1L,
+                ImageKind.INGREDIENT,
+                "tomato.jpg",
+                contentType,
+                "image".getBytes()
         );
     }
 

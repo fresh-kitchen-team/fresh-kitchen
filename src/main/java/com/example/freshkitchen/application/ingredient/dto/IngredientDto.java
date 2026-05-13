@@ -1,5 +1,6 @@
 package com.example.freshkitchen.application.ingredient.dto;
 
+import com.example.freshkitchen.application.image.port.ImageAssetUrlResolver;
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.image.entity.ImageAsset;
 import com.example.freshkitchen.domain.image.entity.IngredientImage;
@@ -30,7 +31,7 @@ public final class IngredientDto {
             ImageResponse primaryImage
     ) {
 
-        public static SummaryResponse from(Ingredient ingredient) {
+        public static SummaryResponse from(Ingredient ingredient, ImageAssetUrlResolver imageAssetUrlResolver) {
             return new SummaryResponse(
                     ingredient.getId(),
                     ingredient.getName(),
@@ -41,7 +42,7 @@ public final class IngredientDto {
                     ingredient.getCatalog() != null ? ingredient.getCatalog().getId() : null,
                     ingredient.getCatalog() != null ? ingredient.getCatalog().getEmoji() : null,
                     ingredient.getExpiresAt(),
-                    ImageResponse.primaryFrom(ingredient)
+                    ImageResponse.primaryFrom(ingredient, imageAssetUrlResolver)
             );
         }
     }
@@ -68,7 +69,7 @@ public final class IngredientDto {
             ImageResponse primaryImage
     ) {
 
-        public static DetailResponse from(Ingredient ingredient) {
+        public static DetailResponse from(Ingredient ingredient, ImageAssetUrlResolver imageAssetUrlResolver) {
             return new DetailResponse(
                     ingredient.getId(),
                     ingredient.getUser().getId(),
@@ -88,7 +89,7 @@ public final class IngredientDto {
                     ingredient.getDiscardedAt(),
                     ingredient.getNote(),
                     ingredient.getSourceType(),
-                    ImageResponse.primaryFrom(ingredient)
+                    ImageResponse.primaryFrom(ingredient, imageAssetUrlResolver)
             );
         }
     }
@@ -99,20 +100,26 @@ public final class IngredientDto {
             String imageUrl
     ) {
 
-        private static ImageResponse primaryFrom(Ingredient ingredient) {
+        private static ImageResponse primaryFrom(
+                Ingredient ingredient,
+                ImageAssetUrlResolver imageAssetUrlResolver
+        ) {
             return ingredient.getIngredientImages().stream()
                     .filter(IngredientImage::isPrimary)
                     .findFirst()
-                    .map(ImageResponse::from)
+                    .map(ingredientImage -> from(ingredientImage, imageAssetUrlResolver))
                     .orElse(null);
         }
 
-        private static ImageResponse from(IngredientImage ingredientImage) {
+        private static ImageResponse from(
+                IngredientImage ingredientImage,
+                ImageAssetUrlResolver imageAssetUrlResolver
+        ) {
             ImageAsset imageAsset = ingredientImage.getImageAsset();
             return new ImageResponse(
                     ingredientImage.getId(),
                     imageAsset.getId(),
-                    imageAsset.getObjectKey()
+                    imageAssetUrlResolver.resolve(imageAsset)
             );
         }
     }

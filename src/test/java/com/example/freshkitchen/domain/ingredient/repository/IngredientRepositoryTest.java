@@ -69,6 +69,10 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
         Storage storage = persistStorage(owner, StorageType.FRIDGE, "Main fridge");
         IngredientCatalog catalog = persistCatalog("Milk", CatalogCategory.DAIRY, StorageType.FRIDGE);
         Ingredient ingredient = persistIngredient(owner, storage, catalog, "Milk");
+        ImageAsset primaryImageAsset = persistImageAsset(owner, "images/milk-primary.png");
+        ImageAsset secondaryImageAsset = persistImageAsset(owner, "images/milk-secondary.png");
+        persistIngredientImage(ingredient, primaryImageAsset, true);
+        persistIngredientImage(ingredient, secondaryImageAsset, false);
 
         entityManager.flush();
         entityManager.clear();
@@ -81,6 +85,8 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
         assertTrue(Hibernate.isInitialized(detail.getUser()));
         assertTrue(Hibernate.isInitialized(detail.getStorage()));
         assertTrue(Hibernate.isInitialized(detail.getCatalog()));
+        assertTrue(Hibernate.isInitialized(detail.getIngredientImages()));
+        assertEquals(2, detail.getIngredientImages().size());
         assertTrue(notFoundIngredient.isEmpty());
     }
 
@@ -205,6 +211,17 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
         ));
         entityManager.persist(imageAsset);
         return imageAsset;
+    }
+
+    private IngredientImage persistIngredientImage(Ingredient ingredient, ImageAsset imageAsset, boolean primary) {
+        IngredientImage ingredientImage = IngredientImage.create(new IngredientImage.CreateCommand(
+                ingredient,
+                imageAsset,
+                primary,
+                IngredientImageSourceType.PHOTO
+        ));
+        entityManager.persist(ingredientImage);
+        return ingredientImage;
     }
 
     private IngredientCatalog persistCatalog(String name, CatalogCategory category, StorageType defaultStorageType) {

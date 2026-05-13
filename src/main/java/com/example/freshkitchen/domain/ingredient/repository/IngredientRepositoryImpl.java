@@ -35,7 +35,7 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
     @Transactional(readOnly = true)
     public Optional<Ingredient> findDetailByIdAndUserId(Long ingredientId, Long userId) {
         return entityManager.createQuery("""
-                select ingredient
+                select distinct ingredient
                 from Ingredient ingredient
                 join fetch ingredient.user
                 join fetch ingredient.storage

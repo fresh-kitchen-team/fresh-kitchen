@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,7 +48,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest
-@Import({SecurityConfig.class, SecurityFilterChainIntegrationTest.TestController.class})
+@Import({
+        SecurityConfig.class,
+        SecurityFilterChainIntegrationTest.TestController.class
+})
+@TestPropertySource(properties = "image.storage.local.public-base-url=/assets")
 class SecurityFilterChainIntegrationTest {
 
     @Autowired
@@ -226,6 +231,12 @@ class SecurityFilterChainIntegrationTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    void configuredUploadEndpoint_isAccessibleWithoutToken() throws Exception {
+        mockMvc.perform(get("/assets/images/test.png"))
+                .andExpect(status().isOk());
+    }
+
     @RestController
     static class TestController {
 
@@ -237,6 +248,11 @@ class SecurityFilterChainIntegrationTest {
         @GetMapping("/v3/api-docs")
         String dummySwaggerEndpoint() {
             return "swagger-dummy";
+        }
+
+        @GetMapping("/assets/images/test.png")
+        String dummyUploadEndpoint() {
+            return "upload-dummy";
         }
     }
 }
