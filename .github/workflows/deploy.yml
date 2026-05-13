@@ -50,6 +50,10 @@ jobs:
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           # 이미지 빌드 & Push
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -67,6 +71,10 @@ jobs:
             "DB_USERNAME=$DB_USERNAME" \
             "DB_PASSWORD=$DB_PASSWORD" \
             "JWT_SECRET=$JWT_SECRET" \
+            "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" \
+            "KAKAO_CLIENT_ID=$KAKAO_CLIENT_ID" \
+            "REDIS_HOST=$REDIS_HOST" \
+            "GEMINI_API_KEY=$GEMINI_API_KEY" \
             > scripts/.env
 
           chmod +x scripts/deploy.sh
