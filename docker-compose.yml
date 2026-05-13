@@ -18,6 +18,7 @@ services:
       - REDIS_HOST=${REDIS_HOST:?REDIS_HOST is required}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     ports:
       - "8080:8080"
     restart: unless-stopped
