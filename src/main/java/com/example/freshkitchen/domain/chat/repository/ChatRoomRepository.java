@@ -12,4 +12,5 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     @Query("SELECT r FROM ChatRoom r WHERE r.updatedAt >= :since ORDER BY r.updatedAt DESC")
     List<ChatRoom> findByUpdatedAtAfterOrderByUpdatedAtDesc(OffsetDateTime since);
     List<ChatRoom> findByUserIdOrderByUpdatedAtDesc(Long userId);
+    List<ChatRoom> findAllByUserIdOrderByUpdatedAtDesc(Long userId);
 }
