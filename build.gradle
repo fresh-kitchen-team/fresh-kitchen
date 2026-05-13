@@ -16,10 +16,12 @@ java {
 	}
 }
 
+
 dependencyManagement {
 	imports {
 		mavenBom "org.springframework.ai:spring-ai-bom:1.1.4"
 	}
+
 }
 
 configurations {
@@ -71,10 +73,17 @@ dependencies {
 	// PGVector
 	implementation 'com.pgvector:pgvector:0.1.4'
 
+
 	// AWS S3
 	implementation platform('software.amazon.awssdk:bom:2.25.0')
 	implementation 'software.amazon.awssdk:s3'
 	implementation 'software.amazon.awssdk:sts'
+
+	implementation 'org.springframework.ai:spring-ai-starter-model-google-genai'
+	implementation 'org.springframework.ai:spring-ai-starter-model-google-genai-embedding'
+	implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
+	implementation 'org.springframework.ai:spring-ai-rag'
+
 
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
