@@ -10,10 +10,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.util.Arrays;
 
@@ -69,12 +69,8 @@ public class SecurityConfig {
 
     private String[] publicEndpoints() {
         String[] endpoints = Arrays.copyOf(PUBLIC_ENDPOINTS, PUBLIC_ENDPOINTS.length + 1);
-        endpoints[PUBLIC_ENDPOINTS.length] = localImagePublicEndpointPattern();
+        endpoints[PUBLIC_ENDPOINTS.length] = localImageStorageProperties.publicResourcePattern();
         return endpoints;
-    }
-
-    private String localImagePublicEndpointPattern() {
-        return localImageStorageProperties.publicResourcePattern();
     }
 
     private RequestMatcher[] publicEndpointMatchers() {

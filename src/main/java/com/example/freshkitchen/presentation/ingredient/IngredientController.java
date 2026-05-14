@@ -22,8 +22,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,8 +35,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class IngredientController {
 
-    private static final String USER_ID_HEADER = "X-User-Id";
-
     private final CreateIngredientUseCase createIngredientUseCase;
     private final UpdateIngredientUseCase updateIngredientUseCase;
     private final GetIngredientUseCase getIngredientUseCase;
@@ -46,7 +44,7 @@ public class IngredientController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<IngredientResponse.Create>> create(
-            @RequestHeader(USER_ID_HEADER) @Positive Long userId,
+            @AuthenticationPrincipal Long userId,
             @Valid @RequestBody IngredientRequest.Create request
     ) {
         Long ingredientId = createIngredientUseCase.create(request.toCommand(userId));
@@ -55,7 +53,7 @@ public class IngredientController {
 
     @PatchMapping("/{ingredientId}")
     public ResponseEntity<ApiResponse<Void>> update(
-            @RequestHeader(USER_ID_HEADER) @Positive Long userId,
+            @AuthenticationPrincipal Long userId,
             @PathVariable @Positive Long ingredientId,
             @RequestBody JsonNode request
     ) {
@@ -66,7 +64,7 @@ public class IngredientController {
 
     @GetMapping("/{ingredientId}")
     public ResponseEntity<ApiResponse<IngredientDto.DetailResponse>> get(
-            @RequestHeader(USER_ID_HEADER) @Positive Long userId,
+            @AuthenticationPrincipal Long userId,
             @PathVariable @Positive Long ingredientId
     ) {
         return ApiResponse.success(
@@ -76,7 +74,7 @@ public class IngredientController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<IngredientDto.SummaryResponse>>> list(
-            @RequestHeader(USER_ID_HEADER) @Positive Long userId
+            @AuthenticationPrincipal Long userId
     ) {
         return ApiResponse.success(
                 listIngredientsUseCase.list(new ListIngredientsUseCase.Query(userId))
@@ -98,7 +96,7 @@ public class IngredientController {
 
     @GetMapping("/storages")
     public ResponseEntity<ApiResponse<List<IngredientDto.StorageSummaryResponse>>> storages(
-            @RequestHeader(USER_ID_HEADER) @Positive Long userId
+            @AuthenticationPrincipal Long userId
     ) {
         return ApiResponse.success(
                 listStoragesUseCase.list(new ListStoragesUseCase.Query(userId))

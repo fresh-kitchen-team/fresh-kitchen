@@ -19,6 +19,38 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
+    repair-on-migrate: true
+  ai:
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: never
+    google:
+      genai:
+        api-key: ${GEMINI_API_KEY}
+        chat:
+          options:
+            model: gemini-2.0-flash
+        embedding:
+          api-key: ${GEMINI_API_KEY}
+          options:
+            model: text-embedding-004
+    retry:
+      max-attempts: 3
+      on-client-errors: false
+    vectorstore:
+      pgvector:
+        initialize-schema: false
+        dimensions: 768
+        distance-type: cosine_distance
+
+s3:
+  access-key: ${S3_ACCESS_KEY}
+  secret-key: ${S3_SECRET_KEY}
+  region: ${AWS_REGION:ap-northeast-2}
+  bucket: ${S3_BUCKET_NAME}
+
 jwt:
   secret: ${JWT_SECRET}
   access-expiration-minutes: 30
@@ -50,3 +82,13 @@ image:
       access-key-id: ${AWS_ACCESS_KEY_ID:}
       secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
       public-base-url: ${IMAGE_STORAGE_S3_PUBLIC_BASE_URL:}
+
+logging:
+  level:
+    root: INFO
+    org:
+      springframework:
+        ai:
+          chat:
+            client:
+              advisor: DEBUG
