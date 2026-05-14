@@ -18,6 +18,7 @@ import org.springframework.web.client.RestClient;
 
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -77,13 +78,42 @@ class AiServerClientTest {
         server.expect(once(), requestTo("https://ai.example.com/internal/v1/receipt-ocr"))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("""
-                        {"ingredients": ["Egg", "Milk"]}
+                        {
+                          "purchasedAt": "2026-05-01",
+                          "ingredients": ["두부", "계란", "김치"]
+                        }
                         """, MediaType.APPLICATION_JSON));
 
         ReceiptOcrResponse response = client.extractReceiptIngredients(imageFile());
 
-        assertEquals("Egg", response.ingredients().get(0));
-        assertEquals("Milk", response.ingredients().get(1));
+        assertEquals(LocalDate.of(2026, 5, 1), response.purchasedAt());
+        assertEquals("두부", response.ingredients().get(0));
+        assertEquals("계란", response.ingredients().get(1));
+        assertEquals("김치", response.ingredients().get(2));
+        server.verify();
+    }
+
+    @Test
+    void extractReceiptIngredients_allowsNullPurchasedAtAndNullIngredientItem() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiServerClient client = new AiServerClient(builder.build(), "service-token");
+
+        server.expect(once(), requestTo("https://ai.example.com/internal/v1/receipt-ocr"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("""
+                        {
+                          "purchasedAt": null,
+                          "ingredients": ["두부", null, "김치"]
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        ReceiptOcrResponse response = client.extractReceiptIngredients(imageFile());
+
+        assertNull(response.purchasedAt());
+        assertEquals("두부", response.ingredients().get(0));
+        assertNull(response.ingredients().get(1));
+        assertEquals("김치", response.ingredients().get(2));
         server.verify();
     }
 
@@ -134,14 +164,14 @@ class AiServerClientTest {
     }
 
     @Test
-    void extractReceiptIngredients_mapsNullIngredientItemToAiResponseInvalid() {
+    void extractReceiptIngredients_mapsNullIngredientsToAiResponseInvalid() {
         RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         AiServerClient client = new AiServerClient(builder.build(), "service-token");
 
         server.expect(once(), requestTo("https://ai.example.com/internal/v1/receipt-ocr"))
                 .andRespond(withSuccess("""
-                        {"ingredients": [null]}
+                        {"purchasedAt": "2026-05-01", "ingredients": null}
                         """, MediaType.APPLICATION_JSON));
 
         AiServerException exception = assertThrows(
@@ -343,6 +373,30 @@ class AiServerClientTest {
 
         assertEquals(CommonErrorCode.INVALID_INPUT, exception.getErrorCode());
         assertSame(cause, exception.getCause());
+    }
+
+    @Test
+    void classifyFood_rejectsBlankOriginalFilename() {
+        AiServerClient client = new AiServerClient(RestClient.builder().build(), "service-token");
+
+        BusinessValidationException exception = assertThrows(
+                BusinessValidationException.class,
+                () -> client.classifyFood(" ", "image".getBytes())
+        );
+
+        assertEquals(CommonErrorCode.INVALID_INPUT, exception.getErrorCode());
+    }
+
+    @Test
+    void extractReceiptIngredients_rejectsNullOriginalFilename() {
+        AiServerClient client = new AiServerClient(RestClient.builder().build(), "service-token");
+
+        BusinessValidationException exception = assertThrows(
+                BusinessValidationException.class,
+                () -> client.extractReceiptIngredients(null, "image".getBytes())
+        );
+
+        assertEquals(CommonErrorCode.INVALID_INPUT, exception.getErrorCode());
     }
 
     private static MockMultipartFile imageFile() {

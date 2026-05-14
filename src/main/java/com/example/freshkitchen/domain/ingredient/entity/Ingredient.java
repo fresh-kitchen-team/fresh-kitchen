@@ -25,6 +25,7 @@ import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
@@ -87,6 +88,7 @@ public class Ingredient extends BaseTimeEntity {
     private Long version;
 
     @OneToMany(mappedBy = "ingredient", fetch = FetchType.LAZY)
+    @BatchSize(size = 50)
     private Set<IngredientImage> ingredientImages = new LinkedHashSet<>();
 
     private Ingredient(

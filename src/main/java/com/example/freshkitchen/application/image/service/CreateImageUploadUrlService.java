@@ -2,6 +2,7 @@ package com.example.freshkitchen.application.image.service;
 
 import com.example.freshkitchen.application.image.port.ImageStoragePort;
 import com.example.freshkitchen.application.image.usecase.CreateImageUploadUrlUseCase;
+import com.example.freshkitchen.domain.image.enums.ImageContentType;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
 import lombok.RequiredArgsConstructor;
@@ -25,11 +26,11 @@ public class CreateImageUploadUrlService implements CreateImageUploadUrlUseCase 
     @Override
     public Result create(Command command) {
         validate(command);
-        String contentType = normalizeContentType(command.contentType());
-        String objectKey = createObjectKey(command.userId(), command.kind(), extension(contentType));
+        ImageContentType contentType = ImageContentType.from(command.contentType());
+        String objectKey = createObjectKey(command.userId(), command.kind(), contentType.extension());
         ImageStoragePort.UploadUrl uploadUrl = imageStoragePort.createUploadUrl(new ImageStoragePort.Command(
                 objectKey,
-                contentType
+                contentType.value()
         ));
         return new Result(
                 uploadUrl.objectKey(),
@@ -62,21 +63,6 @@ public class CreateImageUploadUrlService implements CreateImageUploadUrlUseCase 
                 UUID.randomUUID(),
                 extension
         );
-    }
-
-    private static String normalizeContentType(String contentType) {
-        String normalizedContentType = contentType.trim().toLowerCase(Locale.ROOT);
-        extension(normalizedContentType);
-        return normalizedContentType;
-    }
-
-    private static String extension(String contentType) {
-        return switch (contentType) {
-            case "image/jpeg" -> ".jpg";
-            case "image/png" -> ".png";
-            case "image/webp" -> ".webp";
-            default -> throw new BusinessValidationException("contentType must be supported image type");
-        };
     }
 
     private static boolean isBlank(String value) {

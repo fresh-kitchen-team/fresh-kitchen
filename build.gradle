@@ -16,12 +16,10 @@ java {
 	}
 }
 
-
 dependencyManagement {
 	imports {
 		mavenBom "org.springframework.ai:spring-ai-bom:1.1.4"
 	}
-
 }
 
 configurations {
@@ -36,75 +34,52 @@ repositories {
 }
 
 dependencies {
-	// Spring Boot 기본
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-	// Redis
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 	// Google ID Token verification
 	implementation 'com.google.api-client:google-api-client:2.7.2'
 
-	// Redis
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	// JWT
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
-	// Flyway
 	implementation 'org.flywaydb:flyway-database-postgresql'
 
 	// Swagger (Springdoc OpenAPI)
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 
-	// Spring AI - Gemini
+	// Spring AI - Gemini, PgVector, RAG
 	implementation 'org.springframework.ai:spring-ai-starter-model-google-genai'
 	implementation 'org.springframework.ai:spring-ai-starter-model-google-genai-embedding'
-
-	// Spring AI - PgVector
 	implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
-
-	// Spring AI - RAG
 	implementation 'org.springframework.ai:spring-ai-rag'
 
 	// PGVector
 	implementation 'com.pgvector:pgvector:0.1.4'
-
 
 	// AWS S3
 	implementation platform('software.amazon.awssdk:bom:2.25.0')
 	implementation 'software.amazon.awssdk:s3'
 	implementation 'software.amazon.awssdk:sts'
 
-	implementation 'org.springframework.ai:spring-ai-starter-model-google-genai'
-	implementation 'org.springframework.ai:spring-ai-starter-model-google-genai-embedding'
-	implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
-	implementation 'org.springframework.ai:spring-ai-rag'
-
-
-	// Lombok
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'
 
-	// DevTools
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-
-	// PostgreSQL
 	runtimeOnly 'org.postgresql:postgresql'
 	runtimeOnly 'org.flywaydb:flyway-database-postgresql'
-	// Test
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation platform('org.testcontainers:testcontainers-bom:1.21.4')
 	testImplementation 'org.testcontainers:junit-jupiter'
 	testImplementation 'org.testcontainers:postgresql'
-	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	testImplementation 'org.springframework.security:spring-security-test'
 }
 
 tasks.named('test') {

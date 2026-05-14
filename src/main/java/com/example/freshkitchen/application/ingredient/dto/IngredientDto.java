@@ -1,6 +1,9 @@
 package com.example.freshkitchen.application.ingredient.dto;
 
+import com.example.freshkitchen.application.image.port.ImageAssetUrlResolver;
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
+import com.example.freshkitchen.domain.image.entity.ImageAsset;
+import com.example.freshkitchen.domain.image.entity.IngredientImage;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
@@ -23,10 +26,12 @@ public final class IngredientDto {
             String storageName,
             StorageType storageType,
             Long catalogId,
-            LocalDate expiresAt
+            String emoji,
+            LocalDate expiresAt,
+            ImageResponse primaryImage
     ) {
 
-        public static SummaryResponse from(Ingredient ingredient) {
+        public static SummaryResponse from(Ingredient ingredient, ImageAssetUrlResolver imageAssetUrlResolver) {
             return new SummaryResponse(
                     ingredient.getId(),
                     ingredient.getName(),
@@ -35,7 +40,9 @@ public final class IngredientDto {
                     ingredient.getStorage().getName(),
                     ingredient.getStorage().getStorageType(),
                     ingredient.getCatalog() != null ? ingredient.getCatalog().getId() : null,
-                    ingredient.getExpiresAt()
+                    ingredient.getCatalog() != null ? ingredient.getCatalog().getEmoji() : null,
+                    ingredient.getExpiresAt(),
+                    ImageResponse.primaryFrom(ingredient, imageAssetUrlResolver)
             );
         }
     }
@@ -49,6 +56,7 @@ public final class IngredientDto {
             Long catalogId,
             String catalogName,
             CatalogCategory catalogCategory,
+            String emoji,
             String name,
             LocalDate registeredAt,
             LocalDate expiresAt,
@@ -57,10 +65,11 @@ public final class IngredientDto {
             LocalDate consumedAt,
             LocalDate discardedAt,
             String note,
-            IngredientSourceType sourceType
+            IngredientSourceType sourceType,
+            ImageResponse primaryImage
     ) {
 
-        public static DetailResponse from(Ingredient ingredient) {
+        public static DetailResponse from(Ingredient ingredient, ImageAssetUrlResolver imageAssetUrlResolver) {
             return new DetailResponse(
                     ingredient.getId(),
                     ingredient.getUser().getId(),
@@ -70,6 +79,7 @@ public final class IngredientDto {
                     ingredient.getCatalog() != null ? ingredient.getCatalog().getId() : null,
                     ingredient.getCatalog() != null ? ingredient.getCatalog().getName() : null,
                     ingredient.getCatalog() != null ? ingredient.getCatalog().getCategory() : null,
+                    ingredient.getCatalog() != null ? ingredient.getCatalog().getEmoji() : null,
                     ingredient.getName(),
                     ingredient.getRegisteredAt(),
                     ingredient.getExpiresAt(),
@@ -78,7 +88,38 @@ public final class IngredientDto {
                     ingredient.getConsumedAt(),
                     ingredient.getDiscardedAt(),
                     ingredient.getNote(),
-                    ingredient.getSourceType()
+                    ingredient.getSourceType(),
+                    ImageResponse.primaryFrom(ingredient, imageAssetUrlResolver)
+            );
+        }
+    }
+
+    public record ImageResponse(
+            Long ingredientImageId,
+            Long imageAssetId,
+            String imageUrl
+    ) {
+
+        private static ImageResponse primaryFrom(
+                Ingredient ingredient,
+                ImageAssetUrlResolver imageAssetUrlResolver
+        ) {
+            return ingredient.getIngredientImages().stream()
+                    .filter(IngredientImage::isPrimary)
+                    .findFirst()
+                    .map(ingredientImage -> from(ingredientImage, imageAssetUrlResolver))
+                    .orElse(null);
+        }
+
+        private static ImageResponse from(
+                IngredientImage ingredientImage,
+                ImageAssetUrlResolver imageAssetUrlResolver
+        ) {
+            ImageAsset imageAsset = ingredientImage.getImageAsset();
+            return new ImageResponse(
+                    ingredientImage.getId(),
+                    imageAsset.getId(),
+                    imageAssetUrlResolver.resolve(imageAsset)
             );
         }
     }

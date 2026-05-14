@@ -49,8 +49,8 @@ public class IngredientCatalog extends BaseTimeEntity {
     @Column(name = "default_storage_type", nullable = false, length = 20)
     private StorageType defaultStorageType;
 
-    @Column(name = "icon_url", columnDefinition = "TEXT")
-    private String iconUrl;
+    @Column(name = "emoji", columnDefinition = "TEXT")
+    private String emoji;
 
     @OneToMany(mappedBy = "catalog", fetch = FetchType.LAZY)
     private Set<Ingredient> ingredients = new LinkedHashSet<>();
@@ -63,13 +63,13 @@ public class IngredientCatalog extends BaseTimeEntity {
             String name,
             CatalogCategory category,
             StorageType defaultStorageType,
-            String iconUrl
+            String emoji
     ) {
         this.defaultImageAsset = defaultImageAsset;
         this.name = requireNonBlank(name, "name");
         this.category = requireNonNull(category, "category");
         this.defaultStorageType = requireNonNull(defaultStorageType, "defaultStorageType");
-        this.iconUrl = iconUrl;
+        this.emoji = emoji;
     }
 
     public static IngredientCatalog create(CreateCommand command) {
@@ -79,7 +79,7 @@ public class IngredientCatalog extends BaseTimeEntity {
                 command.name(),
                 command.category(),
                 command.defaultStorageType(),
-                command.iconUrl()
+                command.emoji()
         );
     }
 
@@ -98,8 +98,8 @@ public class IngredientCatalog extends BaseTimeEntity {
         if (command.defaultStorageType() != null) {
             this.defaultStorageType = requireNonNull(command.defaultStorageType(), "defaultStorageType");
         }
-        if (command.iconUrlSet()) {
-            this.iconUrl = command.iconUrl();
+        if (command.emojiSet()) {
+            this.emoji = command.emoji();
         }
     }
 
@@ -108,7 +108,7 @@ public class IngredientCatalog extends BaseTimeEntity {
             String name,
             CatalogCategory category,
             StorageType defaultStorageType,
-            String iconUrl
+            String emoji
     ) {
     }
 
@@ -118,8 +118,8 @@ public class IngredientCatalog extends BaseTimeEntity {
             String name,
             CatalogCategory category,
             StorageType defaultStorageType,
-            String iconUrl,
-            boolean iconUrlSet
+            String emoji,
+            boolean emojiSet
     ) {
     }
 }

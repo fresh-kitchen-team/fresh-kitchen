@@ -165,14 +165,14 @@ class GetHomeSummaryServiceTest extends PostgreSqlTestContainerSupport {
             String name,
             CatalogCategory category,
             StorageType defaultStorageType,
-            String iconUrl
+            String emoji
     ) {
         IngredientCatalog catalog = IngredientCatalog.create(new IngredientCatalog.CreateCommand(
                 null,
                 name,
                 category,
                 defaultStorageType,
-                iconUrl
+                emoji
         ));
         entityManager.persist(catalog);
         return catalog;

@@ -8,6 +8,7 @@ import com.example.freshkitchen.infrastructure.ai.exception.AiServerErrorCode;
 import com.example.freshkitchen.infrastructure.ai.exception.AiServerException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.net.SocketTimeoutException;
 import java.time.Duration;
-import java.util.Objects;
 import java.util.UUID;
 
 @Component
@@ -50,8 +50,28 @@ public class AiServerClient {
         return response;
     }
 
+    public FoodClassificationResponse classifyFood(String originalFilename, byte[] content) {
+        FoodClassificationResponse response = postMultipart(
+                FOOD_CLASSIFICATION_PATH,
+                multipartBody(originalFilename, content),
+                FoodClassificationResponse.class
+        );
+        validateFoodClassification(response);
+        return response;
+    }
+
     public ReceiptOcrResponse extractReceiptIngredients(MultipartFile file) {
         ReceiptOcrResponse response = postMultipart(RECEIPT_OCR_PATH, file, ReceiptOcrResponse.class);
+        validateReceiptOcr(response);
+        return response;
+    }
+
+    public ReceiptOcrResponse extractReceiptIngredients(String originalFilename, byte[] content) {
+        ReceiptOcrResponse response = postMultipart(
+                RECEIPT_OCR_PATH,
+                multipartBody(originalFilename, content),
+                ReceiptOcrResponse.class
+        );
         validateReceiptOcr(response);
         return response;
     }
@@ -63,6 +83,10 @@ public class AiServerClient {
     }
 
     private <T> T postMultipart(String path, MultipartFile file, Class<T> responseType) {
+        return postMultipart(path, multipartBody(file), responseType);
+    }
+
+    private <T> T postMultipart(String path, MultiValueMap<String, Object> body, Class<T> responseType) {
         try {
             return restClient.post()
                     .uri(path)
@@ -71,7 +95,7 @@ public class AiServerClient {
                         headers.set("X-Request-Id", UUID.randomUUID().toString());
                     })
                     .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .body(multipartBody(file))
+                    .body(body)
                     .retrieve()
                     .body(responseType);
         } catch (ResourceAccessException exception) {
@@ -99,6 +123,34 @@ public class AiServerClient {
             return body;
         } catch (IllegalStateException exception) {
             throw new BusinessValidationException("file resource must be available", exception);
+        }
+    }
+
+    private MultiValueMap<String, Object> multipartBody(String originalFilename, byte[] content) {
+        if (originalFilename == null || originalFilename.isBlank()) {
+            throw new BusinessValidationException("originalFilename must not be blank");
+        }
+        if (content == null || content.length == 0) {
+            throw new BusinessValidationException("file must not be empty");
+        }
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("file", new NamedByteArrayResource(content, originalFilename.trim()));
+        return body;
+    }
+
+    private static class NamedByteArrayResource extends ByteArrayResource {
+
+        private final String filename;
+
+        private NamedByteArrayResource(byte[] byteArray, String filename) {
+            super(byteArray);
+            this.filename = filename;
+        }
+
+        @Override
+        public String getFilename() {
+            return filename;
         }
     }
 
@@ -148,7 +200,8 @@ public class AiServerClient {
     }
 
     private static void validateReceiptOcr(ReceiptOcrResponse response) {
-        if (response == null || response.ingredients() == null || response.ingredients().stream().anyMatch(Objects::isNull)) {
+        if (response == null
+                || response.ingredients() == null) {
             throw new AiServerException(AiServerErrorCode.AI_RESPONSE_INVALID);
         }
     }

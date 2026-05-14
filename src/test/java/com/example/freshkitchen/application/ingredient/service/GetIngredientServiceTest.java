@@ -2,6 +2,13 @@ package com.example.freshkitchen.application.ingredient.service;
 
 import com.example.freshkitchen.application.ingredient.dto.IngredientDto;
 import com.example.freshkitchen.application.ingredient.usecase.GetIngredientUseCase;
+import com.example.freshkitchen.application.image.port.ImageAssetUrlResolver;
+import com.example.freshkitchen.domain.image.entity.ImageAsset;
+import com.example.freshkitchen.domain.image.entity.IngredientImage;
+import com.example.freshkitchen.domain.image.enums.AssetType;
+import com.example.freshkitchen.domain.image.enums.ImageKind;
+import com.example.freshkitchen.domain.image.enums.IngredientImageSourceType;
+import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
@@ -17,9 +24,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestConstructor;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @DataJpaTest
 @Import(GetIngredientService.class)
@@ -31,6 +41,9 @@ class GetIngredientServiceTest extends PostgreSqlTestContainerSupport {
     @PersistenceContext
     private EntityManager entityManager;
 
+    @MockitoBean
+    private ImageAssetUrlResolver imageAssetUrlResolver;
+
     GetIngredientServiceTest(GetIngredientUseCase getIngredientUseCase) {
         this.getIngredientUseCase = getIngredientUseCase;
     }
@@ -40,6 +53,10 @@ class GetIngredientServiceTest extends PostgreSqlTestContainerSupport {
         User user = persistUser("detail-user", Provider.GOOGLE);
         Storage storage = persistStorage(user, StorageType.FRIDGE, "Main fridge");
         Ingredient ingredient = persistIngredient(user, storage, "Milk");
+        ImageAsset imageAsset = persistImageAsset(user, "images/1/ingredient/milk.jpg");
+        persistIngredientImage(ingredient, imageAsset, true);
+        when(imageAssetUrlResolver.resolve(any(ImageAsset.class)))
+                .thenReturn("https://cdn.example.com/images/1/ingredient/milk.jpg");
 
         entityManager.flush();
         entityManager.clear();
@@ -53,6 +70,7 @@ class GetIngredientServiceTest extends PostgreSqlTestContainerSupport {
         assertEquals("Milk", result.name());
         assertEquals(storage.getId(), result.storageId());
         assertEquals("Main fridge", result.storageName());
+        assertEquals("https://cdn.example.com/images/1/ingredient/milk.jpg", result.primaryImage().imageUrl());
     }
 
     @Test
@@ -96,5 +114,30 @@ class GetIngredientServiceTest extends PostgreSqlTestContainerSupport {
         ));
         entityManager.persist(ingredient);
         return ingredient;
+    }
+
+    private ImageAsset persistImageAsset(User user, String objectKey) {
+        ImageAsset imageAsset = ImageAsset.create(new ImageAsset.CreateCommand(
+                user,
+                AssetType.USER_UPLOAD,
+                ImageKind.INGREDIENT,
+                StorageProvider.LOCAL,
+                objectKey,
+                300,
+                300
+        ));
+        entityManager.persist(imageAsset);
+        return imageAsset;
+    }
+
+    private IngredientImage persistIngredientImage(Ingredient ingredient, ImageAsset imageAsset, boolean primary) {
+        IngredientImage ingredientImage = IngredientImage.create(new IngredientImage.CreateCommand(
+                ingredient,
+                imageAsset,
+                primary,
+                IngredientImageSourceType.PHOTO
+        ));
+        entityManager.persist(ingredientImage);
+        return ingredientImage;
     }
 }
