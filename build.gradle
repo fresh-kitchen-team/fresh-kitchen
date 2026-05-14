@@ -18,7 +18,7 @@ java {
 
 dependencyManagement {
 	imports {
-		mavenBom "org.springframework.ai:spring-ai-bom:1.1.4"
+		mavenBom "org.springframework.ai:spring-ai-bom:1.1.6"
 	}
 }
 
@@ -30,7 +30,6 @@ configurations {
 
 repositories {
 	mavenCentral()
-	maven { url 'https://repo.spring.io/milestone' }
 }
 
 dependencies {
