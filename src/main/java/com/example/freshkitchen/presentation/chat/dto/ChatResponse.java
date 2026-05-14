@@ -2,6 +2,7 @@ package com.example.freshkitchen.presentation.chat.dto;
 
 import com.example.freshkitchen.application.chat.dto.ChatMessageResult;
 import com.example.freshkitchen.application.chat.dto.ChatRoomResult;
+import com.example.freshkitchen.domain.chat.entity.Sender;
 
 import java.time.OffsetDateTime;
 
