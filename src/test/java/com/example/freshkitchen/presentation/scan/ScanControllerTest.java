@@ -4,7 +4,6 @@ import com.example.freshkitchen.application.scan.dto.ScanDto;
 import com.example.freshkitchen.application.scan.usecase.ScanIngredientImageUseCase;
 import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
-import com.example.freshkitchen.domain.image.enums.ImageSource;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.global.exception.handler.GlobalExceptionHandler;
 import com.example.freshkitchen.global.security.JwtAuthentication;
@@ -74,8 +73,7 @@ class ScanControllerTest {
         SecurityContextHolder.getContext().setAuthentication(new JwtAuthentication(1L, Role.USER));
 
         mockMvc.perform(multipart("/api/v1/scan/ingredient-image")
-                        .file(imageFile())
-                        .param("imageSource", "CAMERAX"))
+                        .file(imageFile()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.code").value("COMMON-200"))
@@ -95,8 +93,7 @@ class ScanControllerTest {
         verify(scanIngredientImageUseCase).scan(captor.capture());
         assertAll(
                 () -> assertEquals(1L, captor.getValue().userId()),
-                () -> assertEquals("tomato.jpg", captor.getValue().file().getOriginalFilename()),
-                () -> assertEquals(ImageSource.CAMERAX, captor.getValue().imageSource())
+                () -> assertEquals("tomato.jpg", captor.getValue().file().getOriginalFilename())
         );
     }
 
@@ -135,20 +132,6 @@ class ScanControllerTest {
                 ArgumentCaptor.forClass(ScanReceiptImageUseCase.Command.class);
         verify(scanReceiptImageUseCase).scan(captor.capture());
         assertEquals(1L, captor.getValue().userId());
-    }
-
-    @Test
-    void scanIngredientImage_returnsBadRequestWhenImageSourceIsInvalid() throws Exception {
-        SecurityContextHolder.getContext().setAuthentication(new JwtAuthentication(1L, Role.USER));
-
-        mockMvc.perform(multipart("/api/v1/scan/ingredient-image")
-                        .file(imageFile())
-                        .param("imageSource", "CAMERA"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.code").value("COMMON-400"));
-
-        verifyNoInteractions(scanIngredientImageUseCase);
     }
 
     @Test

@@ -3,7 +3,6 @@ package com.example.freshkitchen.presentation.scan;
 import com.example.freshkitchen.application.scan.dto.ScanDto;
 import com.example.freshkitchen.application.scan.usecase.ScanIngredientImageUseCase;
 import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase;
-import com.example.freshkitchen.domain.image.enums.ImageSource;
 import com.example.freshkitchen.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -27,11 +26,10 @@ public class ScanController {
     @PostMapping(value = "/ingredient-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ScanDto.IngredientImageScanResponse>> scanIngredientImage(
             @AuthenticationPrincipal Long userId,
-            @RequestPart("file") MultipartFile file,
-            @RequestParam ImageSource imageSource
+            @RequestPart("file") MultipartFile file
     ) {
         return ApiResponse.success(scanIngredientImageUseCase.scan(
-                new ScanIngredientImageUseCase.Command(userId, file, imageSource)
+                new ScanIngredientImageUseCase.Command(userId, file)
         ));
     }
 

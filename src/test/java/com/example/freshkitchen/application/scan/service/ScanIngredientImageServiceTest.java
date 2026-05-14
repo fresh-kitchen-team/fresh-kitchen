@@ -4,7 +4,6 @@ import com.example.freshkitchen.application.image.usecase.StoreMultipartImageAss
 import com.example.freshkitchen.application.scan.dto.ScanDto;
 import com.example.freshkitchen.application.scan.usecase.ScanIngredientImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
-import com.example.freshkitchen.domain.image.enums.ImageSource;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
@@ -66,7 +65,7 @@ class ScanIngredientImageServiceTest {
                 ));
 
         ScanDto.IngredientImageScanResponse response = service.scan(
-                new ScanIngredientImageUseCase.Command(1L, file, ImageSource.GALLERY)
+                new ScanIngredientImageUseCase.Command(1L, file)
         );
 
         assertAll(
@@ -106,7 +105,7 @@ class ScanIngredientImageServiceTest {
 
         RuntimeException thrown = assertThrows(
                 RuntimeException.class,
-                () -> service.scan(new ScanIngredientImageUseCase.Command(1L, file, ImageSource.GALLERY))
+                () -> service.scan(new ScanIngredientImageUseCase.Command(1L, file))
         );
 
         assertEquals(failure, thrown);
@@ -120,7 +119,7 @@ class ScanIngredientImageServiceTest {
 
         BusinessValidationException thrown = assertThrows(
                 BusinessValidationException.class,
-                () -> service.scan(new ScanIngredientImageUseCase.Command(null, file, ImageSource.GALLERY))
+                () -> service.scan(new ScanIngredientImageUseCase.Command(null, file))
         );
 
         assertEquals("userId must not be null", thrown.getMessage());

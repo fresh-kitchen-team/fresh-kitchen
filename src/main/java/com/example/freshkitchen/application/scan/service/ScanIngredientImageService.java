@@ -62,9 +62,6 @@ public class ScanIngredientImageService implements ScanIngredientImageUseCase {
         if (command.file() == null || command.file().isEmpty()) {
             throw new BusinessValidationException("file must not be empty");
         }
-        if (command.imageSource() == null) {
-            throw new BusinessValidationException("imageSource must not be null");
-        }
     }
 
     private static List<ScanDto.RecognizedItem> recognizedItems(FoodClassificationResponse classification) {
