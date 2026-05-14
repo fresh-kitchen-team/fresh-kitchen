@@ -94,10 +94,10 @@ public final class ItemRequest {
                     purchaseDateSet,
                     expiryDate,
                     expiryDateSet,
-                    ExpirySourceType.MANUAL,
+                    null,
                     memo,
                     memoSet,
-                    IngredientSourceType.MANUAL
+                    null
             );
         }
     }

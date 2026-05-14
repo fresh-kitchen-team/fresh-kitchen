@@ -242,7 +242,9 @@ class ItemControllerTest {
                 () -> assertTrue(command.expiresAtSet()),
                 () -> assertNull(command.expiresAt()),
                 () -> assertTrue(command.noteSet()),
-                () -> assertNull(command.note())
+                () -> assertNull(command.note()),
+                () -> assertNull(command.expirySourceType()),
+                () -> assertNull(command.sourceType())
         );
     }
 
