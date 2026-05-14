@@ -9,7 +9,9 @@ public enum ChatErrorCode implements ErrorCode {
     CHAT_ROOM_NOT_OWNED_BY_USER(HttpStatus.FORBIDDEN, "CHAT-403-1", "chat room does not belong to user"),
     AI_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "CHAT-503-1", "AI service is currently unavailable"),
     AI_RESPONSE_PARSE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT-500-1", "failed to parse AI response"),
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT-404-2", "user not found");
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT-404-2", "user not found"),
+    GEMINI_QUOTA_EXCEEDED(HttpStatus.NOT_FOUND, "CHAT-404-3", "제미나이 요청 과다합니다.");
+
 
     private final HttpStatus status;
     private final String code;
