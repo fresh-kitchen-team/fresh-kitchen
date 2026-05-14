@@ -1,48 +1,60 @@
 package com.example.freshkitchen.domain.chat.entity;
 
-import com.example.freshkitchen.domain.chat.enums.Sender;
 import com.example.freshkitchen.domain.common.entity.BaseTimeEntity;
 import com.example.freshkitchen.domain.user.entity.User;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 
 @Entity
 @Table(name = "chat_message")
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ChatMessage extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//
-//    private Long roomId;
-
-
-
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sender", nullable = false, length = 50)
+    private Sender sender;
+
+    @Column(name = "ai_payload", columnDefinition = "TEXT")
+    private String aiPayload;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
-    private ChatRoom chatRoom;  // 대문자 R
+    private ChatRoom room;
 
-    @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="user_id",nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Sender sender;  // USER or AI
+    private ChatMessage(String content, Sender sender, String aiPayload, ChatRoom room, User user) {
+        this.content = requireNonBlank(content, "content");
+        this.sender = requireNonNull(sender, "sender");
+        this.aiPayload = aiPayload;
+        this.room = room;
+        this.user = requireNonNull(user, "user");
+    }
 
-    @Column(columnDefinition = "TEXT")
-    private String aiPayload;
-
+    public static ChatMessage create(String content, Sender sender, String aiPayload,
+                                     ChatRoom room, User user) {
+        return new ChatMessage(content, sender, aiPayload, room, user);
+    }
 }

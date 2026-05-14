@@ -210,8 +210,6 @@
 |------|-------------|------|---------|------|
 | `AUTHENTICATION_REQUIRED` | `401` | `AUTH-401-0` | `authentication required` | `Authorization` 헤더가 없거나 `Bearer` 접두사가 없는 요청이 보호된 엔드포인트에 접근 |
 
-
-
 ### 7.2 OAuthErrorCode
 
 OAuth 인증 과정에서 발생하는 예외를 `OAuthException` 및 아래 `OAuthErrorCode`로 분류한다.
@@ -223,7 +221,9 @@ OAuth 인증 과정에서 발생하는 예외를 `OAuthException` 및 아래 `OA
 | `OAUTH_PROVIDER_UNAVAILABLE` | `503` | `AUTH-503-1` | `oauth provider unavailable` | OAuth provider(Google/Kakao)의 공개키 조회 등 외부 통신 실패 (네트워크 오류, 타임아웃 등) |
 
 ### 7.3 JwtErrorCode
----
+
+인증 토큰 처리 실패는 `JwtTokenException` 및 아래 `JwtErrorCode`로 분류한다.
+
 | Enum | HTTP Status | Code | Message | 의미 |
 |------|-------------|------|---------|------|
 | `EXPIRED_TOKEN` | `401` | `AUTH-401-1` | `expired token` | 토큰 만료 (`exp` + 30초 clock skew 경과) |
@@ -234,6 +234,7 @@ OAuth 인증 과정에서 발생하는 예외를 `OAuthException` 및 아래 `OA
 | `NOT_YET_VALID_TOKEN` | `401` | `AUTH-401-6` | `token is not yet valid` | 토큰이 아직 활성화되지 않음 (`nbf`가 현재 시각보다 30초를 초과해 미래인 경우; 최대 30초 clock skew 허용) |
 | `INVALID_REFRESH_TOKEN` | `401` | `AUTH-401-8` | `invalid or expired refresh token` | 유효하지 않거나 탈취/만료된 리프레시 토큰 |
 
+---
 
 ## 8. 예외 사용 규칙
 
