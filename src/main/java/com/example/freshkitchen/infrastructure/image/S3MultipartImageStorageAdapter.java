@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.util.Locale;
@@ -48,6 +49,16 @@ public class S3MultipartImageStorageAdapter implements MultipartImageStoragePort
         );
     }
 
+    @Override
+    public void delete(DeleteCommand command) {
+        validate(command);
+        DeleteObjectRequest request = DeleteObjectRequest.builder()
+                .bucket(properties.getBucket())
+                .key(command.objectKey())
+                .build();
+        s3Client.deleteObject(request);
+    }
+
     private static void validate(Command command) {
         if (command == null) {
             throw new BusinessValidationException("command must not be null");
@@ -60,6 +71,15 @@ public class S3MultipartImageStorageAdapter implements MultipartImageStoragePort
         }
         if (command.content() == null || command.content().length == 0) {
             throw new BusinessValidationException("file must not be empty");
+        }
+    }
+
+    private static void validate(DeleteCommand command) {
+        if (command == null) {
+            throw new BusinessValidationException("command must not be null");
+        }
+        if (command.objectKey() == null || command.objectKey().isBlank()) {
+            throw new BusinessValidationException("objectKey must not be blank");
         }
     }
 }

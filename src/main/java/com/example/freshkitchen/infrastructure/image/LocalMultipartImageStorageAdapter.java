@@ -53,6 +53,22 @@ public class LocalMultipartImageStorageAdapter implements MultipartImageStorageP
         );
     }
 
+    @Override
+    public void delete(DeleteCommand command) {
+        validate(command);
+        Path root = Path.of(properties.getRootDir()).toAbsolutePath().normalize();
+        Path target = root.resolve(command.objectKey()).normalize();
+        if (!target.startsWith(root)) {
+            throw new BusinessValidationException("invalid image path");
+        }
+
+        try {
+            Files.deleteIfExists(target);
+        } catch (IOException e) {
+            throw new BusinessValidationException("failed to delete image file", e);
+        }
+    }
+
     private static void validate(Command command) {
         if (command == null) {
             throw new BusinessValidationException("command must not be null");
@@ -65,6 +81,15 @@ public class LocalMultipartImageStorageAdapter implements MultipartImageStorageP
         }
         if (command.content() == null || command.content().length == 0) {
             throw new BusinessValidationException("file must not be empty");
+        }
+    }
+
+    private static void validate(DeleteCommand command) {
+        if (command == null) {
+            throw new BusinessValidationException("command must not be null");
+        }
+        if (command.objectKey() == null || command.objectKey().isBlank()) {
+            throw new BusinessValidationException("objectKey must not be blank");
         }
     }
 }

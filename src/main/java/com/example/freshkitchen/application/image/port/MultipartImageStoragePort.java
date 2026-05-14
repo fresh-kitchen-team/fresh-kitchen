@@ -7,6 +7,8 @@ public interface MultipartImageStoragePort {
 
     StoredImage store(Command command);
 
+    void delete(DeleteCommand command);
+
     record Command(
             Long userId,
             ImageKind kind,
@@ -20,6 +22,11 @@ public interface MultipartImageStoragePort {
             String objectKey,
             StorageProvider storageProvider,
             String imageUrl
+    ) {
+    }
+
+    record DeleteCommand(
+            String objectKey
     ) {
     }
 }

@@ -9,6 +9,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -65,6 +66,18 @@ class S3MultipartImageStorageAdapterTest {
     @Test
     void store_rejectsUnsupportedContentType() {
         assertThrows(BusinessValidationException.class, () -> adapter.store(command("image/gif")));
+    }
+
+    @Test
+    void delete_deletesS3Object() {
+        adapter.delete(new MultipartImageStoragePort.DeleteCommand("images/1/ingredient/tomato.jpg"));
+
+        ArgumentCaptor<DeleteObjectRequest> captor = ArgumentCaptor.forClass(DeleteObjectRequest.class);
+        verify(s3Client).deleteObject(captor.capture());
+        assertAll(
+                () -> assertEquals("freshkitchen-images", captor.getValue().bucket()),
+                () -> assertEquals("images/1/ingredient/tomato.jpg", captor.getValue().key())
+        );
     }
 
     private static MultipartImageStoragePort.Command command(String contentType) {

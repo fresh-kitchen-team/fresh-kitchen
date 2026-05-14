@@ -77,6 +77,21 @@ class LocalMultipartImageStorageAdapterTest {
         assertThrows(BusinessValidationException.class, () -> adapter.store(command("image/gif")));
     }
 
+    @Test
+    void delete_removesStoredLocalImageFile() throws IOException {
+        LocalImageStorageProperties properties = properties();
+        LocalMultipartImageStorageAdapter adapter = new LocalMultipartImageStorageAdapter(
+                properties,
+                imageStorageUrlFactory(properties)
+        );
+        MultipartImageStoragePort.StoredImage storedImage = adapter.store(command("image/jpeg"));
+        Path storedFile = tempDir.resolve(storedImage.objectKey());
+
+        adapter.delete(new MultipartImageStoragePort.DeleteCommand(storedImage.objectKey()));
+
+        assertTrue(Files.notExists(storedFile));
+    }
+
     private MultipartImageStoragePort.Command command(String contentType) {
         return new MultipartImageStoragePort.Command(
                 1L,

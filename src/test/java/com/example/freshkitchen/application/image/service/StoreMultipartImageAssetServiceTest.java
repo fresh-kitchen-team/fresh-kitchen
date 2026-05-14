@@ -14,14 +14,19 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionOperations;
 
 import java.time.OffsetDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,12 +36,19 @@ class StoreMultipartImageAssetServiceTest {
     private final MultipartImageStoragePort multipartImageStoragePort = mock(MultipartImageStoragePort.class);
     private final ImageAssetRepository imageAssetRepository = mock(ImageAssetRepository.class);
     private final EntityManager entityManager = mock(EntityManager.class);
+    private final TransactionOperations transactionOperations = mock(TransactionOperations.class);
     private final StoreMultipartImageAssetService service =
-            new StoreMultipartImageAssetService(multipartImageStoragePort, imageAssetRepository, entityManager);
+            new StoreMultipartImageAssetService(
+                    multipartImageStoragePort,
+                    imageAssetRepository,
+                    entityManager,
+                    transactionOperations
+            );
     private final OffsetDateTime createdAt = OffsetDateTime.parse("2026-05-01T14:20:30+09:00");
 
     @Test
     void store_savesFileAndCreatesImageAsset() {
+        runInTransaction();
         MockMultipartFile file = new MockMultipartFile("file", "receipt.jpg", "image/jpeg", "image".getBytes());
         when(multipartImageStoragePort.store(any(MultipartImageStoragePort.Command.class)))
                 .thenReturn(new MultipartImageStoragePort.StoredImage(
@@ -80,5 +92,43 @@ class StoreMultipartImageAssetServiceTest {
                 () -> assertEquals("image/jpeg", captor.getValue().contentType()),
                 () -> assertArrayEquals("image".getBytes(), captor.getValue().content())
         );
+        verify(multipartImageStoragePort, never()).delete(any(MultipartImageStoragePort.DeleteCommand.class));
+    }
+
+    @Test
+    void store_deletesStoredImageWhenImageAssetPersistenceFails() {
+        runInTransaction();
+        RuntimeException failure = new RuntimeException("db unavailable");
+        when(multipartImageStoragePort.store(any(MultipartImageStoragePort.Command.class)))
+                .thenReturn(new MultipartImageStoragePort.StoredImage(
+                        "images/1/receipt/receipt.jpg",
+                        StorageProvider.S3,
+                        "https://cdn.example.com/images/1/receipt/receipt.jpg"
+                ));
+        when(entityManager.getReference(User.class, 1L)).thenThrow(failure);
+
+        RuntimeException thrown = assertThrows(
+                RuntimeException.class,
+                () -> service.store(new StoreMultipartImageAssetUseCase.Command(
+                        1L,
+                        ImageKind.RECEIPT,
+                        "receipt.jpg",
+                        "image/jpeg",
+                        "image".getBytes()
+                ))
+        );
+
+        assertEquals(failure, thrown);
+        ArgumentCaptor<MultipartImageStoragePort.DeleteCommand> captor =
+                ArgumentCaptor.forClass(MultipartImageStoragePort.DeleteCommand.class);
+        verify(multipartImageStoragePort).delete(captor.capture());
+        assertEquals("images/1/receipt/receipt.jpg", captor.getValue().objectKey());
+    }
+
+    private void runInTransaction() {
+        when(transactionOperations.execute(any())).thenAnswer(invocation -> {
+            TransactionCallback<?> callback = invocation.getArgument(0);
+            return callback.doInTransaction(mock(TransactionStatus.class));
+        });
     }
 }

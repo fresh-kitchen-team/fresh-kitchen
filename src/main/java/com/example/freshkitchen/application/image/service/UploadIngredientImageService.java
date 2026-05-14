@@ -1,6 +1,7 @@
 package com.example.freshkitchen.application.image.service;
 
 import com.example.freshkitchen.application.image.usecase.AttachIngredientImageUseCase;
+import com.example.freshkitchen.application.image.usecase.DeleteStoredImageAssetUseCase;
 import com.example.freshkitchen.application.image.usecase.StoreMultipartImageAssetUseCase;
 import com.example.freshkitchen.application.image.usecase.UploadIngredientImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
@@ -8,15 +9,14 @@ import com.example.freshkitchen.domain.image.enums.IngredientImageSourceType;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class UploadIngredientImageService implements UploadIngredientImageUseCase {
 
     private final StoreMultipartImageAssetUseCase storeMultipartImageAssetUseCase;
     private final AttachIngredientImageUseCase attachIngredientImageUseCase;
+    private final DeleteStoredImageAssetUseCase deleteStoredImageAssetUseCase;
 
     @Override
     public Result upload(Command command) {
@@ -31,14 +31,31 @@ public class UploadIngredientImageService implements UploadIngredientImageUseCas
                 )
         );
 
-        Long ingredientImageId = attachIngredientImageUseCase.attach(new AttachIngredientImageUseCase.Command(
-                command.userId(),
-                command.ingredientId(),
-                storedImage.imageAssetId(),
-                command.primary(),
-                command.sourceType()
-        ));
+        Long ingredientImageId;
+        try {
+            ingredientImageId = attachIngredientImageUseCase.attach(new AttachIngredientImageUseCase.Command(
+                    command.userId(),
+                    command.ingredientId(),
+                    storedImage.imageAssetId(),
+                    command.primary(),
+                    command.sourceType()
+            ));
+        } catch (RuntimeException e) {
+            deleteStoredImageAsset(command.userId(), storedImage.imageAssetId(), e);
+            throw e;
+        }
         return new Result(ingredientImageId);
+    }
+
+    private void deleteStoredImageAsset(Long userId, Long imageAssetId, RuntimeException original) {
+        try {
+            deleteStoredImageAssetUseCase.deleteIfUnattached(new DeleteStoredImageAssetUseCase.Command(
+                    userId,
+                    imageAssetId
+            ));
+        } catch (RuntimeException cleanupFailure) {
+            original.addSuppressed(cleanupFailure);
+        }
     }
 
     private static void validate(Command command) {
