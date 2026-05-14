@@ -15,10 +15,11 @@ class StorageImageAssetUrlResolverTest {
     void resolve_returnsLocalPublicUrl() {
         LocalImageStorageProperties localProperties = new LocalImageStorageProperties();
         localProperties.setPublicBaseUrl("/uploads/");
-        StorageImageAssetUrlResolver resolver = new StorageImageAssetUrlResolver(
+        ImageStorageUrlFactory imageStorageUrlFactory = new ImageStorageUrlFactory(
                 localProperties,
                 new DefaultListableBeanFactory().getBeanProvider(S3ImageStorageProperties.class)
         );
+        StorageImageAssetUrlResolver resolver = new StorageImageAssetUrlResolver(imageStorageUrlFactory);
 
         String imageUrl = resolver.resolve(imageAsset(StorageProvider.LOCAL, "images/1/ingredient/tomato.jpg"));
 
@@ -32,10 +33,11 @@ class StorageImageAssetUrlResolverTest {
         s3Properties.setPublicBaseUrl("https://cdn.example.com/");
         DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
         beanFactory.registerSingleton("s3ImageStorageProperties", s3Properties);
-        StorageImageAssetUrlResolver resolver = new StorageImageAssetUrlResolver(
+        ImageStorageUrlFactory imageStorageUrlFactory = new ImageStorageUrlFactory(
                 localProperties,
                 beanFactory.getBeanProvider(S3ImageStorageProperties.class)
         );
+        StorageImageAssetUrlResolver resolver = new StorageImageAssetUrlResolver(imageStorageUrlFactory);
 
         String imageUrl = resolver.resolve(imageAsset(StorageProvider.S3, "images/1/ingredient/tomato.jpg"));
 
@@ -50,10 +52,11 @@ class StorageImageAssetUrlResolverTest {
         s3Properties.setBucket("freshkitchen-images");
         DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
         beanFactory.registerSingleton("s3ImageStorageProperties", s3Properties);
-        StorageImageAssetUrlResolver resolver = new StorageImageAssetUrlResolver(
+        ImageStorageUrlFactory imageStorageUrlFactory = new ImageStorageUrlFactory(
                 localProperties,
                 beanFactory.getBeanProvider(S3ImageStorageProperties.class)
         );
+        StorageImageAssetUrlResolver resolver = new StorageImageAssetUrlResolver(imageStorageUrlFactory);
 
         String imageUrl = resolver.resolve(imageAsset(StorageProvider.S3, "images/1/ingredient/tomato.jpg"));
 

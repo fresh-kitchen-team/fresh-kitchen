@@ -4,6 +4,7 @@ import com.example.freshkitchen.application.image.port.MultipartImageStoragePort
 import com.example.freshkitchen.application.image.usecase.StoreMultipartImageAssetUseCase;
 import com.example.freshkitchen.domain.image.entity.ImageAsset;
 import com.example.freshkitchen.domain.image.enums.AssetType;
+import com.example.freshkitchen.domain.image.enums.ImageContentType;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.domain.image.repository.ImageAssetRepository;
@@ -14,19 +15,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Locale;
-import java.util.Set;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class StoreMultipartImageAssetService implements StoreMultipartImageAssetUseCase {
-
-    private static final Set<String> SUPPORTED_CONTENT_TYPES = Set.of(
-            "image/jpeg",
-            "image/png",
-            "image/webp"
-    );
 
     private final MultipartImageStoragePort multipartImageStoragePort;
     private final ImageAssetRepository imageAssetRepository;
@@ -35,7 +27,7 @@ public class StoreMultipartImageAssetService implements StoreMultipartImageAsset
     @Override
     public Result store(Command command) {
         validate(command);
-        String contentType = normalizeContentType(command.contentType());
+        String contentType = ImageContentType.from(command.contentType()).value();
         MultipartImageStoragePort.StoredImage storedImage = multipartImageStoragePort.store(
                 new MultipartImageStoragePort.Command(
                         command.userId(),
@@ -81,14 +73,4 @@ public class StoreMultipartImageAssetService implements StoreMultipartImageAsset
         }
     }
 
-    private static String normalizeContentType(String contentType) {
-        if (contentType == null || contentType.isBlank()) {
-            throw new BusinessValidationException("contentType must not be blank");
-        }
-        String normalized = contentType.trim().toLowerCase(Locale.ROOT);
-        if (!SUPPORTED_CONTENT_TYPES.contains(normalized)) {
-            throw new BusinessValidationException("contentType must be supported image type");
-        }
-        return normalized;
-    }
 }

@@ -6,6 +6,7 @@ import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -22,7 +23,8 @@ class S3MultipartImageStorageAdapterTest {
 
     private final S3Client s3Client = mock(S3Client.class);
     private final S3ImageStorageProperties properties = properties();
-    private final S3MultipartImageStorageAdapter adapter = new S3MultipartImageStorageAdapter(s3Client, properties);
+    private final S3MultipartImageStorageAdapter adapter =
+            new S3MultipartImageStorageAdapter(s3Client, properties, imageStorageUrlFactory(properties));
 
     @Test
     void store_uploadsObjectAndReturnsS3ImageMetadata() {
@@ -83,5 +85,12 @@ class S3MultipartImageStorageAdapterTest {
         properties.setSecretAccessKey("secret-key");
         properties.setPublicBaseUrl("https://cdn.example.com");
         return properties;
+    }
+
+    private static ImageStorageUrlFactory imageStorageUrlFactory(S3ImageStorageProperties s3Properties) {
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+        beanFactory.registerSingleton("s3ImageStorageProperties", s3Properties);
+        return new ImageStorageUrlFactory(new LocalImageStorageProperties(), beanFactory.getBeanProvider(
+                S3ImageStorageProperties.class));
     }
 }

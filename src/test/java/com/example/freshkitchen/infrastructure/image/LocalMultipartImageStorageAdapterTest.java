@@ -6,6 +6,7 @@ import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,7 +25,11 @@ class LocalMultipartImageStorageAdapterTest {
 
     @Test
     void store_normalizesContentTypeAndStoresLocalImage() throws IOException {
-        LocalMultipartImageStorageAdapter adapter = new LocalMultipartImageStorageAdapter(properties());
+        LocalImageStorageProperties properties = properties();
+        LocalMultipartImageStorageAdapter adapter = new LocalMultipartImageStorageAdapter(
+                properties,
+                imageStorageUrlFactory(properties)
+        );
 
         MultipartImageStoragePort.StoredImage storedImage = adapter.store(command(" IMAGE/PNG "));
 
@@ -41,21 +46,33 @@ class LocalMultipartImageStorageAdapterTest {
 
     @Test
     void store_rejectsNullContentType() {
-        LocalMultipartImageStorageAdapter adapter = new LocalMultipartImageStorageAdapter(properties());
+        LocalImageStorageProperties properties = properties();
+        LocalMultipartImageStorageAdapter adapter = new LocalMultipartImageStorageAdapter(
+                properties,
+                imageStorageUrlFactory(properties)
+        );
 
         assertThrows(BusinessValidationException.class, () -> adapter.store(command(null)));
     }
 
     @Test
     void store_rejectsBlankContentType() {
-        LocalMultipartImageStorageAdapter adapter = new LocalMultipartImageStorageAdapter(properties());
+        LocalImageStorageProperties properties = properties();
+        LocalMultipartImageStorageAdapter adapter = new LocalMultipartImageStorageAdapter(
+                properties,
+                imageStorageUrlFactory(properties)
+        );
 
         assertThrows(BusinessValidationException.class, () -> adapter.store(command(" ")));
     }
 
     @Test
     void store_rejectsUnsupportedContentType() {
-        LocalMultipartImageStorageAdapter adapter = new LocalMultipartImageStorageAdapter(properties());
+        LocalImageStorageProperties properties = properties();
+        LocalMultipartImageStorageAdapter adapter = new LocalMultipartImageStorageAdapter(
+                properties,
+                imageStorageUrlFactory(properties)
+        );
 
         assertThrows(BusinessValidationException.class, () -> adapter.store(command("image/gif")));
     }
@@ -75,5 +92,12 @@ class LocalMultipartImageStorageAdapterTest {
         properties.setRootDir(tempDir.toString());
         properties.setPublicBaseUrl("/uploads");
         return properties;
+    }
+
+    private static ImageStorageUrlFactory imageStorageUrlFactory(LocalImageStorageProperties properties) {
+        return new ImageStorageUrlFactory(
+                properties,
+                new DefaultListableBeanFactory().getBeanProvider(S3ImageStorageProperties.class)
+        );
     }
 }
