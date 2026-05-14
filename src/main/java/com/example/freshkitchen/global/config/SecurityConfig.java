@@ -71,10 +71,16 @@ public class SecurityConfig {
 
     private String[] publicEndpoints() {
         String[] endpoints = Arrays.copyOf(PUBLIC_ENDPOINTS, PUBLIC_ENDPOINTS.length + 1);
-        endpoints[PUBLIC_ENDPOINTS.length] = localImagePublicBaseUrl.endsWith("/")
-                ? localImagePublicBaseUrl + "**"
-                : localImagePublicBaseUrl + "/**";
+        endpoints[PUBLIC_ENDPOINTS.length] = localImagePublicEndpointPattern();
         return endpoints;
+    }
+
+    private String localImagePublicEndpointPattern() {
+        String baseUrl = localImagePublicBaseUrl.trim();
+        if (!baseUrl.startsWith("/") || baseUrl.startsWith("//") || baseUrl.contains("://")) {
+            throw new IllegalArgumentException("image.storage.local.public-base-url must be an absolute path");
+        }
+        return baseUrl.endsWith("/") ? baseUrl + "**" : baseUrl + "/**";
     }
 
     private RequestMatcher[] publicEndpointMatchers() {

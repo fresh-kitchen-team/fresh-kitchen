@@ -1,6 +1,7 @@
 package com.example.freshkitchen.infrastructure.image;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.AssertTrue;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -30,5 +31,13 @@ public class LocalImageStorageProperties {
 
     public void setPublicBaseUrl(String publicBaseUrl) {
         this.publicBaseUrl = publicBaseUrl;
+    }
+
+    @AssertTrue(message = "publicBaseUrl must be an absolute path")
+    public boolean isPublicBaseUrlPath() {
+        return publicBaseUrl != null
+                && publicBaseUrl.startsWith("/")
+                && !publicBaseUrl.startsWith("//")
+                && !publicBaseUrl.contains("://");
     }
 }
