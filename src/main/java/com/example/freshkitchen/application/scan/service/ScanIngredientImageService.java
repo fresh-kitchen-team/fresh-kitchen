@@ -53,6 +53,9 @@ public class ScanIngredientImageService implements ScanIngredientImageUseCase {
         if (command == null) {
             throw new BusinessValidationException("command must not be null");
         }
+        if (command.userId() == null) {
+            throw new BusinessValidationException("userId must not be null");
+        }
         if (command.file() == null || command.file().isEmpty()) {
             throw new BusinessValidationException("file must not be empty");
         }

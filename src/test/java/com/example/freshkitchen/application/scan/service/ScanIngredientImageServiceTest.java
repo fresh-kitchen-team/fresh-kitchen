@@ -6,6 +6,7 @@ import com.example.freshkitchen.application.scan.usecase.ScanIngredientImageUseC
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.ImageSource;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import com.example.freshkitchen.infrastructure.ai.dto.FoodClassificationResponse;
 import org.junit.jupiter.api.Test;
@@ -108,6 +109,19 @@ class ScanIngredientImageServiceTest {
         assertEquals(failure, thrown);
         verify(aiServerClient).classifyFood(file);
         verifyNoInteractions(storeMultipartImageAssetUseCase);
+    }
+
+    @Test
+    void scan_doesNotCallAiServerWhenUserIdIsMissing() {
+        MockMultipartFile file = new MockMultipartFile("file", "tomato.jpg", "image/jpeg", "image".getBytes());
+
+        BusinessValidationException thrown = assertThrows(
+                BusinessValidationException.class,
+                () -> service.scan(new ScanIngredientImageUseCase.Command(null, file, ImageSource.GALLERY))
+        );
+
+        assertEquals("userId must not be null", thrown.getMessage());
+        verifyNoInteractions(aiServerClient, storeMultipartImageAssetUseCase);
     }
 
     @Test

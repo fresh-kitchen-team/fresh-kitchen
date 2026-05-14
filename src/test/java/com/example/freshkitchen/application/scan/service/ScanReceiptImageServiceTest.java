@@ -5,6 +5,7 @@ import com.example.freshkitchen.application.scan.dto.ScanDto;
 import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import com.example.freshkitchen.infrastructure.ai.dto.ReceiptOcrResponse;
 import org.junit.jupiter.api.Test;
@@ -134,6 +135,19 @@ class ScanReceiptImageServiceTest {
         assertEquals(failure, thrown);
         verify(aiServerClient).extractReceiptIngredients(file);
         verifyNoInteractions(storeMultipartImageAssetUseCase);
+    }
+
+    @Test
+    void scan_doesNotCallAiServerWhenUserIdIsMissing() {
+        MockMultipartFile file = new MockMultipartFile("file", "receipt.jpg", "image/jpeg", "image".getBytes());
+
+        BusinessValidationException thrown = assertThrows(
+                BusinessValidationException.class,
+                () -> service.scan(new ScanReceiptImageUseCase.Command(null, file))
+        );
+
+        assertEquals("userId must not be null", thrown.getMessage());
+        verifyNoInteractions(aiServerClient, storeMultipartImageAssetUseCase);
     }
 
     @Test
