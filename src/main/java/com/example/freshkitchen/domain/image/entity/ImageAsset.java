@@ -22,6 +22,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -29,6 +30,7 @@ import java.util.Set;
 @Getter
 @Entity
 @Table(name = "image_asset")
+@BatchSize(size = 50)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ImageAsset extends CreatedAtEntity {
 

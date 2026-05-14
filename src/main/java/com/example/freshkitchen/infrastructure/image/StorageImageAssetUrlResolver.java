@@ -1,0 +1,22 @@
+package com.example.freshkitchen.infrastructure.image;
+
+import com.example.freshkitchen.application.image.port.ImageAssetUrlResolver;
+import com.example.freshkitchen.domain.image.entity.ImageAsset;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class StorageImageAssetUrlResolver implements ImageAssetUrlResolver {
+
+    private final ImageStorageUrlFactory imageStorageUrlFactory;
+
+    @Override
+    public String resolve(ImageAsset imageAsset) {
+        if (imageAsset == null) {
+            throw new BusinessValidationException("imageAsset must not be null");
+        }
+        return imageStorageUrlFactory.create(imageAsset.getStorageProvider(), imageAsset.getObjectKey());
+    }
+}

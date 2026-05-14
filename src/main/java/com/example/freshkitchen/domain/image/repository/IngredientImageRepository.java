@@ -15,4 +15,6 @@ public interface IngredientImageRepository extends JpaRepository<IngredientImage
     Optional<IngredientImage> findByIngredientIdAndImageAssetId(Long ingredientId, Long imageAssetId);
 
     boolean existsByIngredientIdAndImageAssetId(Long ingredientId, Long imageAssetId);
+
+    boolean existsByImageAssetId(Long imageAssetId);
 }

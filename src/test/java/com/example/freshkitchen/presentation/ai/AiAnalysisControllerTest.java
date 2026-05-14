@@ -10,6 +10,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -60,12 +61,18 @@ class AiAnalysisControllerTest {
     @Test
     void extractReceiptIngredients_returnsIngredients() throws Exception {
         given(aiServerClient.extractReceiptIngredients(any()))
-                .willReturn(new ReceiptOcrResponse(List.of("Egg", "Milk")));
+                .willReturn(new ReceiptOcrResponse(
+                        LocalDate.of(2026, 5, 1),
+                        List.of("Egg")
+                ));
 
         mockMvc.perform(multipart("/api/v1/ai/receipt-ocr").file(imageFile()))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.purchasedAt").value("2026-05-01"))
                 .andExpect(jsonPath("$.data.ingredients[0]").value("Egg"))
-                .andExpect(jsonPath("$.data.ingredients[1]").value("Milk"));
+                .andExpect(jsonPath("$.data.storeName").doesNotExist())
+                .andExpect(jsonPath("$.data.recognizedItems").doesNotExist())
+                .andExpect(jsonPath("$.data.ocrText").doesNotExist());
 
         then(aiServerClient).should().extractReceiptIngredients(any());
     }

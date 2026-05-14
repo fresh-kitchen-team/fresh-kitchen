@@ -148,10 +148,10 @@ public class GetHomeSummaryService implements GetHomeSummaryUseCase {
 
     private String resolveEmoji(Ingredient ingredient) {
         IngredientCatalog catalog = ingredient.getCatalog();
-        if (catalog == null || catalog.getIconUrl() == null || catalog.getIconUrl().isBlank()) {
+        if (catalog == null || catalog.getEmoji() == null || catalog.getEmoji().isBlank()) {
             return DEFAULT_ITEM_EMOJI;
         }
-        return catalog.getIconUrl();
+        return catalog.getEmoji();
     }
 
     private record StorageDisplay(

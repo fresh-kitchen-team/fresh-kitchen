@@ -171,6 +171,7 @@ class IngredientControllerTest {
                 3L,
                 "Tomato",
                 CatalogCategory.VEGETABLE,
+                "🍅",
                 "Tomato",
                 LocalDate.of(2026, 4, 29),
                 LocalDate.of(2026, 5, 6),
@@ -179,7 +180,8 @@ class IngredientControllerTest {
                 null,
                 null,
                 "salad",
-                IngredientSourceType.MANUAL
+                IngredientSourceType.MANUAL,
+                null
         ));
 
         mockMvc.perform(get("/api/v1/ingredients/10")
@@ -212,7 +214,9 @@ class IngredientControllerTest {
                         "Fridge",
                         StorageType.FRIDGE,
                         3L,
-                        LocalDate.of(2026, 5, 6)
+                        "🍅",
+                        LocalDate.of(2026, 5, 6),
+                        null
                 )
         ));
 

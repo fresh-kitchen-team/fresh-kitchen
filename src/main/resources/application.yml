@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -21,18 +25,25 @@ spring:
         api-key: ${GEMINI_API_KEY}
         chat:
           options:
-            model: gemini-2.0-flash
+            model: gemini-2.5-flash
         embedding:
           api-key: ${GEMINI_API_KEY}
           options:
             model: text-embedding-004
     retry:
       max-attempts: 3
-      on-client-errors: false # 4xx(429 Rate Limit 포함) 에러는 재시도해도 동일하게 실패하므로 비활성화 (제미나이 챗봇 토큰 아끼기)
+      on-client-errors: false
     vectorstore:
       pgvector:
         initialize-schema: false
         dimensions: 768
+        distance-type: cosine_distance
+
+logging:
+  level:
+    root: INFO
+    org.springframework.ai.chat.client.advisor: DEBUG
+
 jwt:
   secret: ${JWT_SECRET}
   access-expiration-minutes: 30
@@ -51,3 +62,16 @@ ai:
     token: ${AI_SERVER_TOKEN}
     connect-timeout-ms: ${AI_SERVER_CONNECT_TIMEOUT_MS:3000}
     read-timeout-ms: ${AI_SERVER_READ_TIMEOUT_MS:30000}
+
+image:
+  storage:
+    type: ${IMAGE_STORAGE_TYPE:local}
+    local:
+      root-dir: ${IMAGE_STORAGE_LOCAL_ROOT_DIR:uploads}
+      public-base-url: ${IMAGE_STORAGE_LOCAL_PUBLIC_BASE_URL:/uploads}
+    s3:
+      region: ${AWS_REGION:us-east-1}
+      bucket: ${AWS_S3_BUCKET:}
+      access-key-id: ${AWS_ACCESS_KEY_ID:}
+      secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
+      public-base-url: ${IMAGE_STORAGE_S3_PUBLIC_BASE_URL:}
