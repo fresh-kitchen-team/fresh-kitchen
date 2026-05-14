@@ -1,17 +1,16 @@
-INSERT INTO ingredient_catalog (id, name, category, default_storage_type, emoji)
+INSERT INTO ingredient_catalog (name, category, default_storage_type, emoji)
 VALUES
-    (1, '토마토', 'VEGETABLE', 'FRIDGE', '🍅'),
-    (2, '계란', 'DAIRY', 'FRIDGE', '🥚'),
-    (3, '우유', 'DAIRY', 'FRIDGE', '🥛'),
-    (4, '양파', 'VEGETABLE', 'PANTRY', '🧅'),
-    (5, '사과', 'FRUIT', 'FRIDGE', '🍎'),
-    (6, '돼지고기', 'MEAT', 'FRIDGE', '🥩'),
-    (7, '닭고기', 'MEAT', 'FRIDGE', '🍗'),
-    (8, '새우', 'SEAFOOD', 'FREEZER', '🍤'),
-    (9, '두부', 'ETC', 'FRIDGE', '◻️'),
-    (10, '김치', 'ETC', 'FRIDGE', '🥬')
-ON CONFLICT (id) DO UPDATE SET
-    name = EXCLUDED.name,
+    ('토마토', 'VEGETABLE', 'FRIDGE', '🍅'),
+    ('계란', 'DAIRY', 'FRIDGE', '🥚'),
+    ('우유', 'DAIRY', 'FRIDGE', '🥛'),
+    ('양파', 'VEGETABLE', 'PANTRY', '🧅'),
+    ('사과', 'FRUIT', 'FRIDGE', '🍎'),
+    ('돼지고기', 'MEAT', 'FRIDGE', '🥩'),
+    ('닭고기', 'MEAT', 'FRIDGE', '🍗'),
+    ('새우', 'SEAFOOD', 'FREEZER', '🍤'),
+    ('두부', 'ETC', 'FRIDGE', '◻️'),
+    ('김치', 'ETC', 'FRIDGE', '🥬')
+ON CONFLICT (name) DO UPDATE SET
     category = EXCLUDED.category,
     default_storage_type = EXCLUDED.default_storage_type,
     emoji = EXCLUDED.emoji,
