@@ -43,6 +43,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -162,6 +164,34 @@ class SecurityFilterChainIntegrationTest {
     @Test
     void userProfileEndpoint_returns401_whenNoTokenProvided() throws Exception {
         mockMvc.perform(get("/api/v1/users/me/profile"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void ingredientImageEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(multipart("/api/v1/ingredients/1/images"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void primaryIngredientImageEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(patch("/api/v1/ingredients/1/images/primary"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void scanIngredientImageEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(multipart("/api/v1/scan/ingredient-image"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void scanReceiptImageEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(multipart("/api/v1/scan/receipt-image"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
     }

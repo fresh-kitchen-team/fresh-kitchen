@@ -1,5 +1,5 @@
 ALTER TABLE image_asset
-    DROP CONSTRAINT ck_image_asset_kind;
+    DROP CONSTRAINT IF EXISTS ck_image_asset_kind;
 
 ALTER TABLE image_asset
     ADD CONSTRAINT ck_image_asset_kind

@@ -41,7 +41,7 @@ public class LocalMultipartImageStorageAdapter implements MultipartImageStorageP
 
         try {
             Files.createDirectories(target.getParent());
-            Files.write(target, command.content(), StandardOpenOption.CREATE_NEW);
+            Files.write(target, command.content(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             throw new BusinessValidationException("failed to store image file", e);
         }
