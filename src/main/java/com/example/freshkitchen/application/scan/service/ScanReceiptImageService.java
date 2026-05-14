@@ -27,17 +27,18 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
     @Override
     public ScanDto.ReceiptImageScanResponse scan(Command command) {
         validate(command);
+        byte[] content = bytes(command.file());
+        ReceiptOcrResponse receiptOcr = aiServerClient.extractReceiptIngredients(command.file());
+        LocalDate purchasedAt = purchasedAt(receiptOcr);
         StoreMultipartImageAssetUseCase.Result imageAsset = storeMultipartImageAssetUseCase.store(
                 new StoreMultipartImageAssetUseCase.Command(
                         command.userId(),
                         ImageKind.RECEIPT,
                         command.file().getOriginalFilename(),
                         command.file().getContentType(),
-                        bytes(command.file())
+                        content
                 )
         );
-        ReceiptOcrResponse receiptOcr = aiServerClient.extractReceiptIngredients(command.file());
-        LocalDate purchasedAt = purchasedAt(receiptOcr);
 
         return new ScanDto.ReceiptImageScanResponse(
                 ScanDto.ScanType.RECEIPT_IMAGE,

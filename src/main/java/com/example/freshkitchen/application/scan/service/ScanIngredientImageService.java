@@ -24,16 +24,17 @@ public class ScanIngredientImageService implements ScanIngredientImageUseCase {
     @Override
     public ScanDto.IngredientImageScanResponse scan(Command command) {
         validate(command);
+        byte[] content = bytes(command.file());
+        FoodClassificationResponse classification = aiServerClient.classifyFood(command.file());
         StoreMultipartImageAssetUseCase.Result imageAsset = storeMultipartImageAssetUseCase.store(
                 new StoreMultipartImageAssetUseCase.Command(
                         command.userId(),
                         ImageKind.INGREDIENT,
                         command.file().getOriginalFilename(),
                         command.file().getContentType(),
-                        bytes(command.file())
+                        content
                 )
         );
-        FoodClassificationResponse classification = aiServerClient.classifyFood(command.file());
 
         return new ScanDto.IngredientImageScanResponse(
                 ScanDto.ScanType.INGREDIENT_IMAGE,

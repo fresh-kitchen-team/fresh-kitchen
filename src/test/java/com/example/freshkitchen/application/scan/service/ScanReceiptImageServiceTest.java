@@ -11,6 +11,7 @@ import com.example.freshkitchen.infrastructure.ai.dto.ReceiptOcrResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,9 +26,12 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -102,6 +106,9 @@ class ScanReceiptImageServiceTest {
         verify(storeMultipartImageAssetUseCase).store(captor.capture());
         assertEquals(ImageKind.RECEIPT, captor.getValue().kind());
         verify(aiServerClient).extractReceiptIngredients(file);
+        InOrder inOrder = inOrder(aiServerClient, storeMultipartImageAssetUseCase);
+        inOrder.verify(aiServerClient).extractReceiptIngredients(file);
+        inOrder.verify(storeMultipartImageAssetUseCase).store(any(StoreMultipartImageAssetUseCase.Command.class));
     }
 
     @Test
@@ -137,6 +144,22 @@ class ScanReceiptImageServiceTest {
                 () -> assertEquals(ScanDto.ReceiptPurchaseDateSourceType.DEFAULT_TODAY, response.sourceType()),
                 () -> assertEquals(LocalDate.of(2026, 5, 13), response.recognizedItems().get(0).registeredAt())
         );
+    }
+
+    @Test
+    void scan_doesNotStoreImageAssetWhenReceiptOcrFails() {
+        MockMultipartFile file = new MockMultipartFile("file", "receipt.jpg", "image/jpeg", "image".getBytes());
+        RuntimeException failure = new RuntimeException("ocr server unavailable");
+        when(aiServerClient.extractReceiptIngredients(file)).thenThrow(failure);
+
+        RuntimeException thrown = assertThrows(
+                RuntimeException.class,
+                () -> service.scan(new ScanReceiptImageUseCase.Command(1L, file))
+        );
+
+        assertEquals(failure, thrown);
+        verify(aiServerClient).extractReceiptIngredients(file);
+        verifyNoInteractions(storeMultipartImageAssetUseCase);
     }
 
     @Test

@@ -11,6 +11,7 @@ import com.example.freshkitchen.infrastructure.ai.dto.FoodClassificationResponse
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +24,12 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -85,6 +89,25 @@ class ScanIngredientImageServiceTest {
                 () -> assertArrayEquals("image".getBytes(), captor.getValue().content())
         );
         verify(aiServerClient).classifyFood(file);
+        InOrder inOrder = inOrder(aiServerClient, storeMultipartImageAssetUseCase);
+        inOrder.verify(aiServerClient).classifyFood(file);
+        inOrder.verify(storeMultipartImageAssetUseCase).store(any(StoreMultipartImageAssetUseCase.Command.class));
+    }
+
+    @Test
+    void scan_doesNotStoreImageAssetWhenFoodClassificationFails() {
+        MockMultipartFile file = new MockMultipartFile("file", "tomato.jpg", "image/jpeg", "image".getBytes());
+        RuntimeException failure = new RuntimeException("ai server unavailable");
+        when(aiServerClient.classifyFood(file)).thenThrow(failure);
+
+        RuntimeException thrown = assertThrows(
+                RuntimeException.class,
+                () -> service.scan(new ScanIngredientImageUseCase.Command(1L, file, ImageSource.GALLERY))
+        );
+
+        assertEquals(failure, thrown);
+        verify(aiServerClient).classifyFood(file);
+        verifyNoInteractions(storeMultipartImageAssetUseCase);
     }
 
     @Test
