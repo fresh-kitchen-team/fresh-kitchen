@@ -129,16 +129,20 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
         Storage otherStorage = persistStorage(otherUser, StorageType.FRIDGE, "Other fridge");
         Ingredient firstIngredient = persistIngredient(owner, ownerStorage, "Tomato");
         Ingredient secondIngredient = persistIngredient(owner, ownerStorage, "Milk");
+        persistIngredientImage(firstIngredient, persistImageAsset(owner, "images/tomato-primary.png"), true);
+        persistIngredientImage(firstIngredient, persistImageAsset(owner, "images/tomato-secondary.png"), false);
         persistIngredient(otherUser, otherStorage, "Onion");
 
         entityManager.flush();
         entityManager.clear();
 
-        List<Long> ingredientIds = ingredientRepository.findAllByUserId(owner.getId()).stream()
+        List<Ingredient> ingredients = ingredientRepository.findAllByUserId(owner.getId());
+        List<Long> ingredientIds = ingredients.stream()
                 .map(Ingredient::getId)
                 .toList();
 
         assertEquals(List.of(firstIngredient.getId(), secondIngredient.getId()), ingredientIds);
+        assertFalse(Hibernate.isInitialized(ingredients.get(0).getIngredientImages()));
     }
 
     @Test
@@ -150,6 +154,8 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
         Ingredient activeIngredient = persistIngredient(owner, ownerStorage, "Tomato");
         Ingredient consumedIngredient = persistIngredient(owner, ownerStorage, "Milk");
         Ingredient discardedIngredient = persistIngredient(owner, ownerStorage, "Onion");
+        persistIngredientImage(activeIngredient, persistImageAsset(owner, "images/tomato-primary.png"), true);
+        persistIngredientImage(activeIngredient, persistImageAsset(owner, "images/tomato-secondary.png"), false);
         persistIngredient(otherUser, otherStorage, "Other tomato");
 
         consumedIngredient.markConsumed(null);
@@ -158,13 +164,14 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
         entityManager.flush();
         entityManager.clear();
 
-        List<Long> ingredientIds = ingredientRepository
-                .findAllByUserIdAndStatus(owner.getId(), IngredientStatus.ACTIVE)
-                .stream()
+        List<Ingredient> ingredients = ingredientRepository
+                .findAllByUserIdAndStatus(owner.getId(), IngredientStatus.ACTIVE);
+        List<Long> ingredientIds = ingredients.stream()
                 .map(Ingredient::getId)
                 .toList();
 
         assertEquals(List.of(activeIngredient.getId()), ingredientIds);
+        assertFalse(Hibernate.isInitialized(ingredients.get(0).getIngredientImages()));
     }
 
     private User persistUser(String providerUserId, Provider provider) {

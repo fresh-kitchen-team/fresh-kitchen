@@ -56,12 +56,10 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
     @Transactional(readOnly = true)
     public List<Ingredient> findAllByUserId(Long userId) {
         return entityManager.createQuery("""
-                select distinct ingredient
+                select ingredient
                 from Ingredient ingredient
                 join fetch ingredient.storage
                 left join fetch ingredient.catalog
-                left join fetch ingredient.ingredientImages ingredientImage
-                left join fetch ingredientImage.imageAsset
                 where ingredient.user.id = :userId
                 order by ingredient.id asc
                 """, Ingredient.class)
@@ -73,12 +71,10 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
     @Transactional(readOnly = true)
     public List<Ingredient> findAllByUserIdAndStatus(Long userId, IngredientStatus status) {
         return entityManager.createQuery("""
-                select distinct ingredient
+                select ingredient
                 from Ingredient ingredient
                 join fetch ingredient.storage
                 left join fetch ingredient.catalog
-                left join fetch ingredient.ingredientImages ingredientImage
-                left join fetch ingredientImage.imageAsset
                 where ingredient.user.id = :userId
                   and ingredient.status = :status
                 order by ingredient.id asc
