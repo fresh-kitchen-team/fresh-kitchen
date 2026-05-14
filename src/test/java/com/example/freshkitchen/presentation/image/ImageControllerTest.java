@@ -8,6 +8,7 @@ import com.example.freshkitchen.global.security.JwtAuthentication;
 import com.example.freshkitchen.global.security.Role;
 import com.example.freshkitchen.presentation.image.dto.ImageRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -44,7 +46,7 @@ class ImageControllerTest {
     void setUp() {
         uploadIngredientImageUseCase = mock(UploadIngredientImageUseCase.class);
         changeIngredientPrimaryImageUseCase = mock(ChangeIngredientPrimaryImageUseCase.class);
-        objectMapper = new ObjectMapper();
+        objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
@@ -93,6 +95,56 @@ class ImageControllerTest {
                 () -> assertEquals(true, command.primary()),
                 () -> assertEquals(IngredientImageSourceType.PHOTO, command.sourceType())
         );
+    }
+
+    @Test
+    void uploadIngredientImage_returnsBadRequestWhenFileIsEmpty() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new JwtAuthentication(1L, Role.USER));
+
+        mockMvc.perform(multipart("/api/v1/ingredients/10/images")
+                        .file(new MockMultipartFile("file", "empty.jpg", "image/jpeg", new byte[0]))
+                        .param("primary", "true")
+                        .param("sourceType", "PHOTO"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON-400"));
+
+        verifyNoInteractions(uploadIngredientImageUseCase);
+    }
+
+    @Test
+    void uploadIngredientImage_returnsBadRequestWhenContentTypeIsUnsupported() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new JwtAuthentication(1L, Role.USER));
+
+        mockMvc.perform(multipart("/api/v1/ingredients/10/images")
+                        .file(new MockMultipartFile("file", "memo.txt", "text/plain", "image".getBytes()))
+                        .param("primary", "true")
+                        .param("sourceType", "PHOTO"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON-400"));
+
+        verifyNoInteractions(uploadIngredientImageUseCase);
+    }
+
+    @Test
+    void uploadIngredientImage_returnsBadRequestWhenFileExceedsMaxSize() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new JwtAuthentication(1L, Role.USER));
+
+        mockMvc.perform(multipart("/api/v1/ingredients/10/images")
+                        .file(new MockMultipartFile(
+                                "file",
+                                "large.jpg",
+                                "image/jpeg",
+                                new byte[(10 * 1024 * 1024) + 1]
+                        ))
+                        .param("primary", "true")
+                        .param("sourceType", "PHOTO"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON-400"));
+
+        verifyNoInteractions(uploadIngredientImageUseCase);
     }
 
     @Test
