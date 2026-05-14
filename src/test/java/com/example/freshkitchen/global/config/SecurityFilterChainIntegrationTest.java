@@ -24,6 +24,7 @@ import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
+import com.example.freshkitchen.infrastructure.image.LocalImageStorageProperties;
 import com.example.freshkitchen.application.user.dto.UserProfileResult;
 import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
 import org.junit.jupiter.api.Test;
@@ -52,6 +53,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 @Import({
         SecurityConfig.class,
+        LocalImageStorageProperties.class,
         SecurityFilterChainIntegrationTest.TestController.class
 })
 @TestPropertySource(properties = "image.storage.local.public-base-url=/assets")

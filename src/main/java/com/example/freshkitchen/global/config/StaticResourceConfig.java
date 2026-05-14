@@ -20,8 +20,7 @@ public class StaticResourceConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        String baseUrl = localImageStorageProperties.getPublicBaseUrl();
-        String pattern = baseUrl.endsWith("/") ? baseUrl + "**" : baseUrl + "/**";
+        String pattern = localImageStorageProperties.publicResourcePattern();
         String location = Path.of(localImageStorageProperties.getRootDir())
                 .toAbsolutePath()
                 .normalize()

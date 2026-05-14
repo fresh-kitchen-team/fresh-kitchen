@@ -34,10 +34,26 @@ public class LocalImageStorageProperties {
     }
 
     @AssertTrue(message = "publicBaseUrl must be an absolute path")
-    public boolean isPublicBaseUrlPath() {
-        return publicBaseUrl != null
-                && publicBaseUrl.startsWith("/")
-                && !publicBaseUrl.startsWith("//")
-                && !publicBaseUrl.contains("://");
+    public boolean hasValidPublicBaseUrlPath() {
+        if (publicBaseUrl == null) {
+            return false;
+        }
+        String normalizedPublicBaseUrl = publicBaseUrl.trim();
+        return !normalizedPublicBaseUrl.isBlank()
+                && !normalizedPublicBaseUrl.equals("/")
+                && normalizedPublicBaseUrl.startsWith("/")
+                && !normalizedPublicBaseUrl.startsWith("//")
+                && !normalizedPublicBaseUrl.contains("://");
+    }
+
+    public String normalizedPublicBaseUrl() {
+        return publicBaseUrl.trim();
+    }
+
+    public String publicResourcePattern() {
+        String normalizedPublicBaseUrl = normalizedPublicBaseUrl();
+        return normalizedPublicBaseUrl.endsWith("/")
+                ? normalizedPublicBaseUrl + "**"
+                : normalizedPublicBaseUrl + "/**";
     }
 }

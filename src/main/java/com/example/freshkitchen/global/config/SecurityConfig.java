@@ -3,9 +3,9 @@ package com.example.freshkitchen.global.config;
 import com.example.freshkitchen.global.security.infrastructure.JwtAuthenticationEntryPoint;
 import com.example.freshkitchen.global.security.infrastructure.JwtAuthenticationFilter;
 import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
+import com.example.freshkitchen.infrastructure.image.LocalImageStorageProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -35,9 +35,7 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
-
-    @Value("${image.storage.local.public-base-url:/uploads}")
-    private String localImagePublicBaseUrl;
+    private final LocalImageStorageProperties localImageStorageProperties;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -76,11 +74,7 @@ public class SecurityConfig {
     }
 
     private String localImagePublicEndpointPattern() {
-        String baseUrl = localImagePublicBaseUrl.trim();
-        if (!baseUrl.startsWith("/") || baseUrl.startsWith("//") || baseUrl.contains("://")) {
-            throw new IllegalArgumentException("image.storage.local.public-base-url must be an absolute path");
-        }
-        return baseUrl.endsWith("/") ? baseUrl + "**" : baseUrl + "/**";
+        return localImageStorageProperties.publicResourcePattern();
     }
 
     private RequestMatcher[] publicEndpointMatchers() {

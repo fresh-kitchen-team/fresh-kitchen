@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -48,6 +49,22 @@ class LocalImageStoragePropertiesTest {
         Set<ConstraintViolation<LocalImageStorageProperties>> violations = validator.validate(properties);
 
         assertFalse(violations.isEmpty());
+    }
+
+    @Test
+    void validation_rejectsRootPublicBaseUrl() {
+        LocalImageStorageProperties properties = properties("/");
+
+        Set<ConstraintViolation<LocalImageStorageProperties>> violations = validator.validate(properties);
+
+        assertFalse(violations.isEmpty());
+    }
+
+    @Test
+    void publicResourcePattern_normalizesTrailingSlash() {
+        LocalImageStorageProperties properties = properties("/uploads/");
+
+        assertEquals("/uploads/**", properties.publicResourcePattern());
     }
 
     private static LocalImageStorageProperties properties(String publicBaseUrl) {
