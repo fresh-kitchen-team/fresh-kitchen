@@ -8,7 +8,6 @@ import com.example.freshkitchen.global.response.ApiResponse;
 import com.example.freshkitchen.presentation.image.dto.ImageRequest;
 import com.example.freshkitchen.presentation.image.dto.ImageResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -37,7 +36,7 @@ public class ImageController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ImageResponse.AttachIngredientImage>> uploadIngredientImage(
             @AuthenticationPrincipal Long userId,
-            @PathVariable @Positive Long ingredientId,
+            @PathVariable Long ingredientId,
             @RequestPart("file") MultipartFile file,
             @RequestParam boolean primary,
             @RequestParam IngredientImageSourceType sourceType
@@ -62,7 +61,7 @@ public class ImageController {
     @PatchMapping("/primary")
     public ResponseEntity<ApiResponse<Void>> changePrimary(
             @AuthenticationPrincipal Long userId,
-            @PathVariable @Positive Long ingredientId,
+            @PathVariable Long ingredientId,
             @Valid @RequestBody ImageRequest.ChangePrimary request
     ) {
         changeIngredientPrimaryImageUseCase.change(new ChangeIngredientPrimaryImageUseCase.Command(

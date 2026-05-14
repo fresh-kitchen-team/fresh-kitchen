@@ -18,10 +18,8 @@ public class S3ImageStorageProperties {
     @NotBlank
     private String bucket;
 
-    @NotBlank
     private String accessKeyId;
 
-    @NotBlank
     private String secretAccessKey;
 
     private String publicBaseUrl;

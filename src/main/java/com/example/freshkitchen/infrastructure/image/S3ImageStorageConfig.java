@@ -5,6 +5,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -20,10 +22,21 @@ public class S3ImageStorageConfig {
     public S3Client s3Client() {
         return S3Client.builder()
                 .region(Region.of(properties.getRegion()))
-                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(
-                        properties.getAccessKeyId(),
-                        properties.getSecretAccessKey()
-                )))
+                .credentialsProvider(credentialsProvider())
                 .build();
+    }
+
+    AwsCredentialsProvider credentialsProvider() {
+        if (isBlank(properties.getAccessKeyId()) || isBlank(properties.getSecretAccessKey())) {
+            return DefaultCredentialsProvider.create();
+        }
+        return StaticCredentialsProvider.create(AwsBasicCredentials.create(
+                properties.getAccessKeyId(),
+                properties.getSecretAccessKey()
+        ));
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }
