@@ -375,6 +375,30 @@ class AiServerClientTest {
         assertSame(cause, exception.getCause());
     }
 
+    @Test
+    void classifyFood_rejectsBlankOriginalFilename() {
+        AiServerClient client = new AiServerClient(RestClient.builder().build(), "service-token");
+
+        BusinessValidationException exception = assertThrows(
+                BusinessValidationException.class,
+                () -> client.classifyFood(" ", "image".getBytes())
+        );
+
+        assertEquals(CommonErrorCode.INVALID_INPUT, exception.getErrorCode());
+    }
+
+    @Test
+    void extractReceiptIngredients_rejectsNullOriginalFilename() {
+        AiServerClient client = new AiServerClient(RestClient.builder().build(), "service-token");
+
+        BusinessValidationException exception = assertThrows(
+                BusinessValidationException.class,
+                () -> client.extractReceiptIngredients(null, "image".getBytes())
+        );
+
+        assertEquals(CommonErrorCode.INVALID_INPUT, exception.getErrorCode());
+    }
+
     private static MockMultipartFile imageFile() {
         return new MockMultipartFile("file", "food.jpg", "image/jpeg", "image".getBytes());
     }

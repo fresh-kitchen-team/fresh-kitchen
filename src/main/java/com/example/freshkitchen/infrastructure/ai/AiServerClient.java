@@ -127,12 +127,15 @@ public class AiServerClient {
     }
 
     private MultiValueMap<String, Object> multipartBody(String originalFilename, byte[] content) {
+        if (originalFilename == null || originalFilename.isBlank()) {
+            throw new BusinessValidationException("originalFilename must not be blank");
+        }
         if (content == null || content.length == 0) {
             throw new BusinessValidationException("file must not be empty");
         }
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", new NamedByteArrayResource(content, originalFilename));
+        body.add("file", new NamedByteArrayResource(content, originalFilename.trim()));
         return body;
     }
 
