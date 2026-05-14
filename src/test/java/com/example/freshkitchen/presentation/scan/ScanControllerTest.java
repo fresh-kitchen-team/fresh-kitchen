@@ -6,7 +6,6 @@ import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.ImageSource;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
-import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.global.exception.handler.GlobalExceptionHandler;
 import com.example.freshkitchen.global.security.JwtAuthentication;
 import com.example.freshkitchen.global.security.Role;
@@ -106,23 +105,12 @@ class ScanControllerTest {
         when(scanReceiptImageUseCase.scan(any(ScanReceiptImageUseCase.Command.class)))
                 .thenReturn(new ScanDto.ReceiptImageScanResponse(
                         ScanDto.ScanType.RECEIPT_IMAGE,
-                        "Emart",
                         LocalDate.of(2026, 5, 1),
                         ScanDto.ReceiptPurchaseDateSourceType.OCR,
-                        new ScanDto.ImageAssetSummary(
-                                11L,
-                                ImageKind.RECEIPT,
-                                StorageProvider.S3,
-                                "https://cdn.example.com/images/1/receipt/receipt.jpg"
-                        ),
                         List.of(new ScanDto.ReceiptRecognizedItem(
                                 "Egg",
-                                LocalDate.of(2026, 5, 1),
-                                LocalDate.of(2026, 5, 16),
-                                ExpirySourceType.POLICY,
-                                0.87
+                                LocalDate.of(2026, 5, 1)
                         )),
-                        "Emart\nEgg 1 pack",
                         createdAt
                 ));
         SecurityContextHolder.getContext().setAuthentication(new JwtAuthentication(1L, Role.USER));
@@ -130,20 +118,17 @@ class ScanControllerTest {
         mockMvc.perform(multipart("/api/v1/scan/receipt-image").file(imageFile()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.scanType").value("RECEIPT_IMAGE"))
-                .andExpect(jsonPath("$.data.storeName").value("Emart"))
                 .andExpect(jsonPath("$.data.purchasedAt").value("2026-05-01"))
-                .andExpect(jsonPath("$.data.sourceType").value("OCR"))
-                .andExpect(jsonPath("$.data.imageAsset.imageAssetId").value(11))
-                .andExpect(jsonPath("$.data.imageAsset.kind").value("RECEIPT"))
-                .andExpect(jsonPath("$.data.imageAsset.storageProvider").value("S3"))
-                .andExpect(jsonPath("$.data.imageAsset.imageUrl")
-                        .value("https://cdn.example.com/images/1/receipt/receipt.jpg"))
+                .andExpect(jsonPath("$.data.purchasedAtSourceType").value("OCR"))
+                .andExpect(jsonPath("$.data.sourceType").doesNotExist())
+                .andExpect(jsonPath("$.data.imageAsset").doesNotExist())
+                .andExpect(jsonPath("$.data.storeName").doesNotExist())
                 .andExpect(jsonPath("$.data.recognizedItems[0].name").value("Egg"))
                 .andExpect(jsonPath("$.data.recognizedItems[0].registeredAt").value("2026-05-01"))
-                .andExpect(jsonPath("$.data.recognizedItems[0].estimatedExpiresAt").value("2026-05-16"))
-                .andExpect(jsonPath("$.data.recognizedItems[0].expirySourceType").value("POLICY"))
-                .andExpect(jsonPath("$.data.recognizedItems[0].confidence").value(0.87))
-                .andExpect(jsonPath("$.data.ocrText").value("Emart\nEgg 1 pack"))
+                .andExpect(jsonPath("$.data.recognizedItems[0].estimatedExpiresAt").doesNotExist())
+                .andExpect(jsonPath("$.data.recognizedItems[0].expirySourceType").doesNotExist())
+                .andExpect(jsonPath("$.data.recognizedItems[0].confidence").doesNotExist())
+                .andExpect(jsonPath("$.data.ocrText").doesNotExist())
                 .andExpect(jsonPath("$.data.createdAt").value("2026-05-01T14:20:30+09:00"));
 
         ArgumentCaptor<ScanReceiptImageUseCase.Command> captor =

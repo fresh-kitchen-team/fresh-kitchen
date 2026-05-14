@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -42,17 +43,9 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
 
         return new ScanDto.ReceiptImageScanResponse(
                 ScanDto.ScanType.RECEIPT_IMAGE,
-                receiptOcr.storeName(),
                 purchasedAt,
                 sourceType(receiptOcr),
-                new ScanDto.ImageAssetSummary(
-                        imageAsset.imageAssetId(),
-                        imageAsset.kind(),
-                        imageAsset.storageProvider(),
-                        imageAsset.imageUrl()
-                ),
                 recognizedItems(receiptOcr, purchasedAt),
-                receiptOcr.ocrText(),
                 imageAsset.createdAt()
         );
     }
@@ -84,14 +77,11 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
             ReceiptOcrResponse receiptOcr,
             LocalDate purchasedAt
     ) {
-        return receiptOcr.recognizedItems().stream()
-                .map(item -> new ScanDto.ReceiptRecognizedItem(
-                        item.name(),
-                        purchasedAt,
-                        item.estimatedExpiresAt(),
-                        item.expirySourceType(),
-                        item.confidence()
-                ))
+        return receiptOcr.ingredients().stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(name -> !name.isEmpty())
+                .map(name -> new ScanDto.ReceiptRecognizedItem(name, purchasedAt))
                 .toList();
     }
 

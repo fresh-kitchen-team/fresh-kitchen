@@ -3,7 +3,6 @@ package com.example.freshkitchen.application.scan.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
-import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -33,11 +32,7 @@ public final class ScanDto {
     public record ReceiptRecognizedItem(
             String name,
             @JsonFormat(shape = JsonFormat.Shape.STRING)
-            LocalDate registeredAt,
-            @JsonFormat(shape = JsonFormat.Shape.STRING)
-            LocalDate estimatedExpiresAt,
-            ExpirySourceType expirySourceType,
-            Double confidence
+            LocalDate registeredAt
     ) {
     }
 
@@ -60,13 +55,10 @@ public final class ScanDto {
 
     public record ReceiptImageScanResponse(
             ScanType scanType,
-            String storeName,
             @JsonFormat(shape = JsonFormat.Shape.STRING)
             LocalDate purchasedAt,
-            ReceiptPurchaseDateSourceType sourceType,
-            ImageAssetSummary imageAsset,
+            ReceiptPurchaseDateSourceType purchasedAtSourceType,
             List<ReceiptRecognizedItem> recognizedItems,
-            String ocrText,
             @JsonFormat(shape = JsonFormat.Shape.STRING)
             OffsetDateTime createdAt
     ) {

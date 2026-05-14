@@ -1,6 +1,5 @@
 package com.example.freshkitchen.presentation.ai;
 
-import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.global.exception.handler.GlobalExceptionHandler;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import com.example.freshkitchen.infrastructure.ai.dto.FoodClassificationResponse;
@@ -63,26 +62,17 @@ class AiAnalysisControllerTest {
     void extractReceiptIngredients_returnsIngredients() throws Exception {
         given(aiServerClient.extractReceiptIngredients(any()))
                 .willReturn(new ReceiptOcrResponse(
-                        "Emart",
                         LocalDate.of(2026, 5, 1),
-                        List.of(new ReceiptOcrResponse.RecognizedItem(
-                                "Egg",
-                                LocalDate.of(2026, 5, 16),
-                                ExpirySourceType.POLICY,
-                                0.87
-                        )),
-                        "Emart\nEgg"
+                        List.of("Egg")
                 ));
 
         mockMvc.perform(multipart("/api/v1/ai/receipt-ocr").file(imageFile()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.storeName").value("Emart"))
                 .andExpect(jsonPath("$.data.purchasedAt").value("2026-05-01"))
-                .andExpect(jsonPath("$.data.recognizedItems[0].name").value("Egg"))
-                .andExpect(jsonPath("$.data.recognizedItems[0].estimatedExpiresAt").value("2026-05-16"))
-                .andExpect(jsonPath("$.data.recognizedItems[0].expirySourceType").value("POLICY"))
-                .andExpect(jsonPath("$.data.recognizedItems[0].confidence").value(0.87))
-                .andExpect(jsonPath("$.data.ocrText").value("Emart\nEgg"));
+                .andExpect(jsonPath("$.data.ingredients[0]").value("Egg"))
+                .andExpect(jsonPath("$.data.storeName").doesNotExist())
+                .andExpect(jsonPath("$.data.recognizedItems").doesNotExist())
+                .andExpect(jsonPath("$.data.ocrText").doesNotExist());
 
         then(aiServerClient).should().extractReceiptIngredients(any());
     }

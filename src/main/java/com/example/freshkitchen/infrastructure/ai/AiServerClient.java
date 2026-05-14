@@ -148,16 +148,9 @@ public class AiServerClient {
 
     private static void validateReceiptOcr(ReceiptOcrResponse response) {
         if (response == null
-                || response.recognizedItems() == null
-                || response.recognizedItems().stream().anyMatch(AiServerClient::isInvalidReceiptItem)) {
+                || response.ingredients() == null) {
             throw new AiServerException(AiServerErrorCode.AI_RESPONSE_INVALID);
         }
-    }
-
-    private static boolean isInvalidReceiptItem(ReceiptOcrResponse.RecognizedItem item) {
-        return item == null
-                || item.name() == null
-                || item.expirySourceType() == null;
     }
 
     private static void validateFridgeDetection(FridgeDetectionResponse response) {

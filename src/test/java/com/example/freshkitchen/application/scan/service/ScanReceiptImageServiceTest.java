@@ -5,7 +5,6 @@ import com.example.freshkitchen.application.scan.dto.ScanDto;
 import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
-import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import com.example.freshkitchen.infrastructure.ai.dto.ReceiptOcrResponse;
 import org.junit.jupiter.api.Test;
@@ -21,6 +20,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -61,23 +61,8 @@ class ScanReceiptImageServiceTest {
                 ));
         when(aiServerClient.extractReceiptIngredients(file))
                 .thenReturn(new ReceiptOcrResponse(
-                        "Emart",
                         LocalDate.of(2026, 5, 1),
-                        List.of(
-                                new ReceiptOcrResponse.RecognizedItem(
-                                        "Egg",
-                                        LocalDate.of(2026, 5, 16),
-                                        ExpirySourceType.POLICY,
-                                        0.87
-                                ),
-                                new ReceiptOcrResponse.RecognizedItem(
-                                        "Milk",
-                                        LocalDate.of(2026, 5, 8),
-                                        ExpirySourceType.POLICY,
-                                        0.84
-                                )
-                        ),
-                        "Emart\nEgg\nMilk"
+                        Arrays.asList("Egg", null, " ", "Milk")
                 ));
 
         ScanDto.ReceiptImageScanResponse response = service.scan(
@@ -86,19 +71,12 @@ class ScanReceiptImageServiceTest {
 
         assertAll(
                 () -> assertEquals(ScanDto.ScanType.RECEIPT_IMAGE, response.scanType()),
-                () -> assertEquals("Emart", response.storeName()),
                 () -> assertEquals(LocalDate.of(2026, 5, 1), response.purchasedAt()),
-                () -> assertEquals(ScanDto.ReceiptPurchaseDateSourceType.OCR, response.sourceType()),
-                () -> assertEquals(11L, response.imageAsset().imageAssetId()),
-                () -> assertEquals(ImageKind.RECEIPT, response.imageAsset().kind()),
-                () -> assertEquals(StorageProvider.S3, response.imageAsset().storageProvider()),
-                () -> assertEquals("https://cdn.example.com/images/1/receipt/receipt.jpg", response.imageAsset().imageUrl()),
+                () -> assertEquals(ScanDto.ReceiptPurchaseDateSourceType.OCR, response.purchasedAtSourceType()),
                 () -> assertEquals("Egg", response.recognizedItems().get(0).name()),
                 () -> assertEquals(LocalDate.of(2026, 5, 1), response.recognizedItems().get(0).registeredAt()),
-                () -> assertEquals(LocalDate.of(2026, 5, 16), response.recognizedItems().get(0).estimatedExpiresAt()),
-                () -> assertEquals(ExpirySourceType.POLICY, response.recognizedItems().get(0).expirySourceType()),
-                () -> assertEquals(0.87, response.recognizedItems().get(0).confidence()),
-                () -> assertEquals("Emart\nEgg\nMilk", response.ocrText()),
+                () -> assertEquals("Milk", response.recognizedItems().get(1).name()),
+                () -> assertEquals(2, response.recognizedItems().size()),
                 () -> assertEquals(createdAt, response.createdAt())
         );
         ArgumentCaptor<StoreMultipartImageAssetUseCase.Command> captor =
@@ -124,15 +102,8 @@ class ScanReceiptImageServiceTest {
                 ));
         when(aiServerClient.extractReceiptIngredients(file))
                 .thenReturn(new ReceiptOcrResponse(
-                        "Emart",
                         null,
-                        List.of(new ReceiptOcrResponse.RecognizedItem(
-                                "Egg",
-                                LocalDate.of(2026, 5, 16),
-                                ExpirySourceType.POLICY,
-                                0.87
-                        )),
-                        "Emart\nEgg"
+                        List.of("Egg")
                 ));
 
         ScanDto.ReceiptImageScanResponse response = service.scan(
@@ -141,7 +112,10 @@ class ScanReceiptImageServiceTest {
 
         assertAll(
                 () -> assertEquals(LocalDate.of(2026, 5, 13), response.purchasedAt()),
-                () -> assertEquals(ScanDto.ReceiptPurchaseDateSourceType.DEFAULT_TODAY, response.sourceType()),
+                () -> assertEquals(
+                        ScanDto.ReceiptPurchaseDateSourceType.DEFAULT_TODAY,
+                        response.purchasedAtSourceType()
+                ),
                 () -> assertEquals(LocalDate.of(2026, 5, 13), response.recognizedItems().get(0).registeredAt())
         );
     }
