@@ -3,6 +3,7 @@ package com.example.freshkitchen.application.ingredient.service;
 import com.example.freshkitchen.application.ingredient.dto.IngredientDto;
 import com.example.freshkitchen.application.ingredient.usecase.ListIngredientsUseCase;
 import com.example.freshkitchen.application.image.port.ImageAssetUrlResolver;
+import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class ListIngredientsService implements ListIngredientsUseCase {
 
     @Override
     public List<IngredientDto.SummaryResponse> list(Query query) {
-        return ingredientRepository.findAllByUserId(query.userId()).stream()
+        return ingredientRepository.findAllByUserIdAndStatus(query.userId(), IngredientStatus.ACTIVE).stream()
                 .map(ingredient -> IngredientDto.SummaryResponse.from(ingredient, imageAssetUrlResolver))
                 .toList();
     }
