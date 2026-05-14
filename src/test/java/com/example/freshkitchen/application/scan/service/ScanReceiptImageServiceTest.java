@@ -25,10 +25,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -60,7 +62,7 @@ class ScanReceiptImageServiceTest {
                         "https://cdn.example.com/images/1/receipt/receipt.jpg",
                         createdAt
                 ));
-        when(aiServerClient.extractReceiptIngredients(file))
+        when(aiServerClient.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class)))
                 .thenReturn(new ReceiptOcrResponse(
                         LocalDate.of(2026, 5, 1),
                         Arrays.asList("Egg", null, " ", "Milk")
@@ -84,9 +86,14 @@ class ScanReceiptImageServiceTest {
                 ArgumentCaptor.forClass(StoreMultipartImageAssetUseCase.Command.class);
         verify(storeMultipartImageAssetUseCase).store(captor.capture());
         assertEquals(ImageKind.RECEIPT, captor.getValue().kind());
-        verify(aiServerClient).extractReceiptIngredients(file);
+        assertEquals("receipt.jpg", captor.getValue().originalFilename());
+        assertEquals("image/jpeg", captor.getValue().contentType());
+        assertArrayEquals("image".getBytes(), captor.getValue().content());
+        ArgumentCaptor<byte[]> contentCaptor = ArgumentCaptor.forClass(byte[].class);
+        verify(aiServerClient).extractReceiptIngredients(eq("receipt.jpg"), contentCaptor.capture());
+        assertArrayEquals("image".getBytes(), contentCaptor.getValue());
         InOrder inOrder = inOrder(aiServerClient, storeMultipartImageAssetUseCase);
-        inOrder.verify(aiServerClient).extractReceiptIngredients(file);
+        inOrder.verify(aiServerClient).extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class));
         inOrder.verify(storeMultipartImageAssetUseCase).store(any(StoreMultipartImageAssetUseCase.Command.class));
     }
 
@@ -101,7 +108,7 @@ class ScanReceiptImageServiceTest {
                         "https://cdn.example.com/images/1/receipt/receipt.jpg",
                         createdAt
                 ));
-        when(aiServerClient.extractReceiptIngredients(file))
+        when(aiServerClient.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class)))
                 .thenReturn(new ReceiptOcrResponse(
                         null,
                         List.of("Egg")
@@ -125,7 +132,7 @@ class ScanReceiptImageServiceTest {
     void scan_doesNotStoreImageAssetWhenReceiptOcrFails() {
         MockMultipartFile file = new MockMultipartFile("file", "receipt.jpg", "image/jpeg", "image".getBytes());
         RuntimeException failure = new RuntimeException("ocr server unavailable");
-        when(aiServerClient.extractReceiptIngredients(file)).thenThrow(failure);
+        when(aiServerClient.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class))).thenThrow(failure);
 
         RuntimeException thrown = assertThrows(
                 RuntimeException.class,
@@ -133,7 +140,7 @@ class ScanReceiptImageServiceTest {
         );
 
         assertEquals(failure, thrown);
-        verify(aiServerClient).extractReceiptIngredients(file);
+        verify(aiServerClient).extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class));
         verifyNoInteractions(storeMultipartImageAssetUseCase);
     }
 

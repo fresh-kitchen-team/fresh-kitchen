@@ -29,7 +29,10 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
     public ScanDto.ReceiptImageScanResponse scan(Command command) {
         validate(command);
         byte[] content = bytes(command.file());
-        ReceiptOcrResponse receiptOcr = aiServerClient.extractReceiptIngredients(command.file());
+        ReceiptOcrResponse receiptOcr = aiServerClient.extractReceiptIngredients(
+                command.file().getOriginalFilename(),
+                content
+        );
         LocalDate purchasedAt = purchasedAt(receiptOcr);
         StoreMultipartImageAssetUseCase.Result imageAsset = storeMultipartImageAssetUseCase.store(
                 new StoreMultipartImageAssetUseCase.Command(

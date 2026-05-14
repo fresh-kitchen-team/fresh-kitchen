@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -54,7 +55,7 @@ class ScanIngredientImageServiceTest {
                         "https://cdn.example.com/images/1/ingredient/tomato.jpg",
                         createdAt
                 ));
-        when(aiServerClient.classifyFood(file))
+        when(aiServerClient.classifyFood(eq("tomato.jpg"), any(byte[].class)))
                 .thenReturn(new FoodClassificationResponse(
                         "Tomato",
                         0.93,
@@ -89,9 +90,11 @@ class ScanIngredientImageServiceTest {
                 () -> assertEquals("image/jpeg", captor.getValue().contentType()),
                 () -> assertArrayEquals("image".getBytes(), captor.getValue().content())
         );
-        verify(aiServerClient).classifyFood(file);
+        ArgumentCaptor<byte[]> contentCaptor = ArgumentCaptor.forClass(byte[].class);
+        verify(aiServerClient).classifyFood(eq("tomato.jpg"), contentCaptor.capture());
+        assertArrayEquals("image".getBytes(), contentCaptor.getValue());
         InOrder inOrder = inOrder(aiServerClient, storeMultipartImageAssetUseCase);
-        inOrder.verify(aiServerClient).classifyFood(file);
+        inOrder.verify(aiServerClient).classifyFood(eq("tomato.jpg"), any(byte[].class));
         inOrder.verify(storeMultipartImageAssetUseCase).store(any(StoreMultipartImageAssetUseCase.Command.class));
     }
 
@@ -99,7 +102,7 @@ class ScanIngredientImageServiceTest {
     void scan_doesNotStoreImageAssetWhenFoodClassificationFails() {
         MockMultipartFile file = new MockMultipartFile("file", "tomato.jpg", "image/jpeg", "image".getBytes());
         RuntimeException failure = new RuntimeException("ai server unavailable");
-        when(aiServerClient.classifyFood(file)).thenThrow(failure);
+        when(aiServerClient.classifyFood(eq("tomato.jpg"), any(byte[].class))).thenThrow(failure);
 
         RuntimeException thrown = assertThrows(
                 RuntimeException.class,
@@ -107,7 +110,7 @@ class ScanIngredientImageServiceTest {
         );
 
         assertEquals(failure, thrown);
-        verify(aiServerClient).classifyFood(file);
+        verify(aiServerClient).classifyFood(eq("tomato.jpg"), any(byte[].class));
         verifyNoInteractions(storeMultipartImageAssetUseCase);
     }
 
