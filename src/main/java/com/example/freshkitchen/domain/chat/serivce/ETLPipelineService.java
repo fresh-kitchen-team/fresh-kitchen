@@ -40,7 +40,7 @@ public class ETLPipelineService {
         }
         int totalSize = allDocuments.size();
 // 수정: 배치 사이즈를 더 작게 줄입니다 (5~10 권장)
-        int batchSize = 10;
+        int batchSize = 4;
 
         for (int i = 0; i < totalSize; i += batchSize) {
             int end = Math.min(i + batchSize, totalSize);
@@ -60,15 +60,19 @@ public class ETLPipelineService {
                         retryCount++;
                         log.warn("429 에러 발생! {}초 후 다시 시도합니다. (시도: {}/3)", retryCount * 30, retryCount);
                         try {
-                            // 에러 발생 시 대기 시간을 더 길게 (30초, 60초...)
                             Thread.sleep(retryCount * 30000);
                         } catch (InterruptedException ie) {
                             Thread.currentThread().interrupt();
                         }
                     } else {
-                        throw e; // 429 외의 에러는 중단
+                        throw e;
                     }
                 }
+            }
+
+// 추가: 3번 다 실패하면 로그 남기기
+            if (!success) {
+                log.error("배치 ({}/{}) 저장 실패 - 3번 재시도 모두 실패", end, totalSize);
             }
 
             // 정상 처리 후에도 짧은 휴식
