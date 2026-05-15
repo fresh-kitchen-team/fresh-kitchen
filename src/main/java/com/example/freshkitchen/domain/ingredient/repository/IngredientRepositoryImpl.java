@@ -127,14 +127,22 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
 
     @Override
     @Transactional
-    public Optional<Ingredient> findByIdWithImagesForUpdate(Long ingredientId) {
+    public Optional<Ingredient> findByIdAndUserIdAndStatusWithImagesForUpdate(
+            Long ingredientId,
+            Long userId,
+            IngredientStatus status
+    ) {
         return entityManager.createQuery("""
                 select distinct ingredient
                 from Ingredient ingredient
                 left join fetch ingredient.ingredientImages ingredientImage
                 where ingredient.id = :ingredientId
+                  and ingredient.user.id = :userId
+                  and ingredient.status = :status
                 """, Ingredient.class)
                 .setParameter("ingredientId", ingredientId)
+                .setParameter("userId", userId)
+                .setParameter("status", status)
                 .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                 .getResultList()
                 .stream()

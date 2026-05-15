@@ -7,6 +7,8 @@ import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
+import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
+import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
 import com.example.freshkitchen.domain.user.entity.User;
 import com.example.freshkitchen.domain.user.enums.Provider;
@@ -19,7 +21,9 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DeleteIngredientServiceTest {
@@ -47,12 +51,28 @@ class DeleteIngredientServiceTest {
                 null,
                 IngredientSourceType.MANUAL
         ));
-        when(ingredientRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(ingredient));
+        when(ingredientRepository.findByIdAndUserIdAndStatus(10L, 1L, IngredientStatus.ACTIVE))
+                .thenReturn(Optional.of(ingredient));
 
         deleteIngredientUseCase.delete(new DeleteIngredientUseCase.Command(10L, 1L));
 
         assertEquals(IngredientStatus.DISCARDED, ingredient.getStatus());
         assertEquals(LocalDate.of(2026, 5, 14), ingredient.getDiscardedAt());
         assertNull(ingredient.getConsumedAt());
+        verify(ingredientRepository).findByIdAndUserIdAndStatus(10L, 1L, IngredientStatus.ACTIVE);
+    }
+
+    @Test
+    void delete_rejectsNonActiveIngredient() {
+        when(ingredientRepository.findByIdAndUserIdAndStatus(10L, 1L, IngredientStatus.ACTIVE))
+                .thenReturn(Optional.empty());
+
+        IngredientException exception = assertThrows(
+                IngredientException.class,
+                () -> deleteIngredientUseCase.delete(new DeleteIngredientUseCase.Command(10L, 1L))
+        );
+
+        assertEquals(IngredientErrorCode.INGREDIENT_NOT_FOUND, exception.getErrorCode());
+        verify(ingredientRepository).findByIdAndUserIdAndStatus(10L, 1L, IngredientStatus.ACTIVE);
     }
 }
