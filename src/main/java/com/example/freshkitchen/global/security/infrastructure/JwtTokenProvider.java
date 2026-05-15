@@ -61,33 +61,23 @@ public class JwtTokenProvider {
     }
 
     public String generateAccessToken(Long userId, Role role) {
-        validateUserId(userId);
-        if (role == null) {
-            throw new BusinessValidationException("role must not be null");
-        }
-        Date now = new Date();
-        Date expiration = new Date(now.getTime() + accessExpirationMillis);
-
-        return Jwts.builder()
-                .claim(CLAIM_USER_ID, userId)
-                .claim(CLAIM_ROLE, role.name())
-                .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_ACCESS)
-                .issuedAt(now)
-                .expiration(expiration)
-                .signWith(secretKey, SIGNATURE_ALGORITHM)
-                .compact();
+        return buildAccessToken(userId, role, accessExpirationMillis);
     }
 
     public String generateDevAccessToken(Long userId, Role role, long expirationMinutes) {
+        if (expirationMinutes <= 0) {
+            throw new BusinessValidationException("expirationMinutes must be positive");
+        }
+        return buildAccessToken(userId, role, Duration.ofMinutes(expirationMinutes).toMillis());
+    }
+
+    private String buildAccessToken(Long userId, Role role, long expirationMillis) {
         validateUserId(userId);
         if (role == null) {
             throw new BusinessValidationException("role must not be null");
         }
-        if (expirationMinutes <= 0) {
-            throw new BusinessValidationException("expirationMinutes must be positive");
-        }
         Date now = new Date();
-        Date expiration = new Date(now.getTime() + Duration.ofMinutes(expirationMinutes).toMillis());
+        Date expiration = new Date(now.getTime() + expirationMillis);
 
         return Jwts.builder()
                 .claim(CLAIM_USER_ID, userId)

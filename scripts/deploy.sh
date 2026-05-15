@@ -27,17 +27,17 @@ export IMAGE_STORAGE_S3_PUBLIC_BASE_URL=$(aws ssm get-parameter --name "/fresh-k
 echo "------------------ 서버 배포 시작 --------------------------------"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# 2. .env 파일 체크 (파일이 없어도 배포가 중단되지 않도록 수정)
+echo "▶ ECR 로그인"
+aws ecr get-login-password --region "$AWS_REGION" \
+  | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+
+# .env는 ECR 로그인 이후에 로드 — AWS_ACCESS_KEY_ID가 포함된 경우 인스턴스 프로파일을 오염시키지 않도록
 if [ -f "$DIR/.env" ]; then
   echo "▶ .env 파일을 로드합니다."
   source "$DIR/.env"
 else
   echo "⚠️ .env 파일이 없지만, 설정된 환경 변수로 계속 진행합니다."
 fi
-
-echo "▶ ECR 로그인"
-aws ecr get-login-password --region "$AWS_REGION" \
-  | docker login --username AWS --password-stdin "$ECR_REGISTRY"
 
 # S3 이미지 저장용 IAM 키 — ECR 로그인 이후에 export하여 인스턴스 프로파일 오염 방지
 export AWS_ACCESS_KEY_ID=$(aws ssm get-parameter --name "/fresh-kitchen/AWS_ACCESS_KEY_ID" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
