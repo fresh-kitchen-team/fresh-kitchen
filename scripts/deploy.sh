@@ -19,6 +19,11 @@ export REDIS_HOST=$(aws ssm get-parameter --name "/fresh-kitchen/REDIS_HOST" --w
 export GEMINI_API_KEY=$(aws ssm get-parameter --name "/fresh-kitchen/GEMINI_API_KEY" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export AI_SERVER_BASE_URL=$(aws ssm get-parameter --name "/fresh-kitchen/AI_SERVER_BASE_URL" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export AI_SERVER_TOKEN=$(aws ssm get-parameter --name "/fresh-kitchen/AI_SERVER_TOKEN" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export IMAGE_STORAGE_TYPE=$(aws ssm get-parameter --name "/fresh-kitchen/IMAGE_STORAGE_TYPE" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export AWS_S3_BUCKET=$(aws ssm get-parameter --name "/fresh-kitchen/AWS_S3_BUCKET" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export AWS_ACCESS_KEY_ID=$(aws ssm get-parameter --name "/fresh-kitchen/AWS_ACCESS_KEY_ID" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export AWS_SECRET_ACCESS_KEY=$(aws ssm get-parameter --name "/fresh-kitchen/AWS_SECRET_ACCESS_KEY" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export IMAGE_STORAGE_S3_PUBLIC_BASE_URL=$(aws ssm get-parameter --name "/fresh-kitchen/IMAGE_STORAGE_S3_PUBLIC_BASE_URL" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 
 
 echo "------------------ 서버 배포 시작 --------------------------------"
