@@ -21,8 +21,6 @@ export AI_SERVER_BASE_URL=$(aws ssm get-parameter --name "/fresh-kitchen/AI_SERV
 export AI_SERVER_TOKEN=$(aws ssm get-parameter --name "/fresh-kitchen/AI_SERVER_TOKEN" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export IMAGE_STORAGE_TYPE=$(aws ssm get-parameter --name "/fresh-kitchen/IMAGE_STORAGE_TYPE" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export AWS_S3_BUCKET=$(aws ssm get-parameter --name "/fresh-kitchen/AWS_S3_BUCKET" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
-export AWS_ACCESS_KEY_ID=$(aws ssm get-parameter --name "/fresh-kitchen/AWS_ACCESS_KEY_ID" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
-export AWS_SECRET_ACCESS_KEY=$(aws ssm get-parameter --name "/fresh-kitchen/AWS_SECRET_ACCESS_KEY" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export IMAGE_STORAGE_S3_PUBLIC_BASE_URL=$(aws ssm get-parameter --name "/fresh-kitchen/IMAGE_STORAGE_S3_PUBLIC_BASE_URL" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 
 
@@ -41,8 +39,11 @@ echo "▶ ECR 로그인"
 aws ecr get-login-password --region "$AWS_REGION" \
   | docker login --username AWS --password-stdin "$ECR_REGISTRY"
 
+# S3 이미지 저장용 IAM 키 — ECR 로그인 이후에 export하여 인스턴스 프로파일 오염 방지
+export AWS_ACCESS_KEY_ID=$(aws ssm get-parameter --name "/fresh-kitchen/AWS_ACCESS_KEY_ID" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export AWS_SECRET_ACCESS_KEY=$(aws ssm get-parameter --name "/fresh-kitchen/AWS_SECRET_ACCESS_KEY" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+
 echo "▶ 기존 컨테이너 종료"
-# docker-compose가 설치되어 있어야 합니다.
 docker-compose -f "$DIR/docker-compose.yml" down || true
 
 echo "▶ 새 컨테이너 실행"
