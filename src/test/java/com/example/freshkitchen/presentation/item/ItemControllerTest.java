@@ -110,7 +110,6 @@ class ItemControllerTest {
                         .content("""
                                 {
                                   "name": "Tomato",
-                                  "catalogId": 3,
                                   "storageId": 2,
                                   "expiryDate": "2026-05-06",
                                   "purchaseDate": "2026-04-29",
@@ -128,7 +127,7 @@ class ItemControllerTest {
         assertAll(
                 () -> assertEquals(1L, createCaptor.getValue().ingredientCommand().userId()),
                 () -> assertEquals(2L, createCaptor.getValue().ingredientCommand().storageId()),
-                () -> assertEquals(3L, createCaptor.getValue().ingredientCommand().catalogId()),
+                () -> assertNull(createCaptor.getValue().ingredientCommand().catalogId()),
                 () -> assertEquals("Tomato", createCaptor.getValue().ingredientCommand().name()),
                 () -> assertEquals(LocalDate.of(2026, 4, 29), createCaptor.getValue().ingredientCommand().registeredAt()),
                 () -> assertEquals(LocalDate.of(2026, 5, 6), createCaptor.getValue().ingredientCommand().expiresAt()),
@@ -149,7 +148,6 @@ class ItemControllerTest {
                         .content("""
                                 {
                                   "name": "Tomato",
-                                  "catalogId": 3,
                                   "storageId": 2
                                 }
                                 """))
@@ -300,7 +298,6 @@ class ItemControllerTest {
                         .content("""
                                 {
                                   "name": "",
-                                  "catalogId": 3,
                                   "storageId": 2
                                 }
                                 """))

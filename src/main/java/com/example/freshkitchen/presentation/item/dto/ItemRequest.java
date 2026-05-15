@@ -23,7 +23,6 @@ public final class ItemRequest {
 
     public record Create(
             @NotBlank @Size(max = NAME_MAX_LENGTH) String name,
-            @NotNull @Positive Long catalogId,
             @NotNull @Positive Long storageId,
             LocalDate expiryDate,
             LocalDate purchaseDate,
@@ -35,7 +34,7 @@ public final class ItemRequest {
             return new CreateIngredientUseCase.Command(
                     userId,
                     storageId,
-                    catalogId,
+                    null,
                     name,
                     purchaseDate != null ? purchaseDate : defaultPurchaseDate,
                     expiryDate,
