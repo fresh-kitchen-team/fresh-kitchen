@@ -10,11 +10,19 @@ public interface IngredientRepositoryCustom {
 
     Optional<Ingredient> findByIdAndUserId(Long ingredientId, Long userId);
 
+    Optional<Ingredient> findByIdAndUserIdAndStatus(Long ingredientId, Long userId, IngredientStatus status);
+
     Optional<Ingredient> findDetailByIdAndUserId(Long ingredientId, Long userId);
+
+    Optional<Ingredient> findDetailByIdAndUserIdAndStatus(Long ingredientId, Long userId, IngredientStatus status);
 
     List<Ingredient> findAllByUserId(Long userId);
 
     List<Ingredient> findAllByUserIdAndStatus(Long userId, IngredientStatus status);
 
-    Optional<Ingredient> findByIdWithImagesForUpdate(Long ingredientId);
+    Optional<Ingredient> findByIdAndUserIdAndStatusWithImagesForUpdate(
+            Long ingredientId,
+            Long userId,
+            IngredientStatus status
+    );
 }

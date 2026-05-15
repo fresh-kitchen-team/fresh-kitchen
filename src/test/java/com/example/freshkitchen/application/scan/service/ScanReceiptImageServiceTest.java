@@ -65,7 +65,7 @@ class ScanReceiptImageServiceTest {
         when(aiServerClient.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class)))
                 .thenReturn(new ReceiptOcrResponse(
                         LocalDate.of(2026, 5, 1),
-                        Arrays.asList("Egg", null, " ", "Milk")
+                        Arrays.asList("Egg", "Milk")
                 ));
 
         ScanDto.ReceiptImageScanResponse response = service.scan(

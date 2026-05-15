@@ -4,10 +4,16 @@ import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
 import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
+import com.example.freshkitchen.application.chat.usecase.CreateChatRoomUseCase;
+import com.example.freshkitchen.application.chat.usecase.GetChatHistoryUseCase;
+import com.example.freshkitchen.application.chat.usecase.GetChatRoomListUseCase;
+import com.example.freshkitchen.application.chat.usecase.SendChatMessageUseCase;
+import com.example.freshkitchen.application.chat.usecase.UpdateChatRoomTitleUseCase;
 import com.example.freshkitchen.application.home.usecase.GetHomeSummaryUseCase;
 import com.example.freshkitchen.application.image.usecase.ChangeIngredientPrimaryImageUseCase;
 import com.example.freshkitchen.application.image.usecase.UploadIngredientImageUseCase;
-import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientUseCase;
+import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientWithImageUseCase;
+import com.example.freshkitchen.application.ingredient.usecase.DeleteIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.GetIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.ListIngredientsUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.ListStoragesUseCase;
@@ -37,6 +43,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Clock;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -77,7 +84,7 @@ class SecurityFilterChainIntegrationTest {
     private GetHomeSummaryUseCase getHomeSummaryUseCase;
 
     @MockitoBean
-    private CreateIngredientUseCase createIngredientUseCase;
+    private CreateIngredientWithImageUseCase createIngredientWithImageUseCase;
 
     @MockitoBean
     private UpdateIngredientUseCase updateIngredientUseCase;
@@ -93,6 +100,9 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private ListStoragesUseCase listStoragesUseCase;
+
+    @MockitoBean
+    private DeleteIngredientUseCase deleteIngredientUseCase;
 
     @MockitoBean
     private UploadIngredientImageUseCase uploadIngredientImageUseCase;
@@ -117,6 +127,24 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private AiServerClient aiServerClient;
+
+    @MockitoBean
+    private Clock clock;
+
+    @MockitoBean
+    private CreateChatRoomUseCase createChatRoomUseCase;
+
+    @MockitoBean
+    private GetChatRoomListUseCase getChatRoomListUseCase;
+
+    @MockitoBean
+    private GetChatHistoryUseCase getChatHistoryUseCase;
+
+    @MockitoBean
+    private SendChatMessageUseCase sendChatMessageUseCase;
+
+    @MockitoBean
+    private UpdateChatRoomTitleUseCase updateChatRoomTitleUseCase;
 
     @Test
     void protectedEndpoint_returns401_whenNoTokenProvided() throws Exception {
@@ -172,6 +200,13 @@ class SecurityFilterChainIntegrationTest {
     @Test
     void ingredientImageEndpoint_returns401_whenNoTokenProvided() throws Exception {
         mockMvc.perform(multipart("/api/v1/ingredients/1/images"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void itemEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(get("/api/v1/items"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
     }

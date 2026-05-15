@@ -3,6 +3,7 @@ package com.example.freshkitchen.application.image.service;
 import com.example.freshkitchen.application.image.usecase.ChangeIngredientPrimaryImageUseCase;
 import com.example.freshkitchen.domain.image.entity.IngredientImage;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
+import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
@@ -10,8 +11,6 @@ import com.example.freshkitchen.global.exception.BusinessValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -23,14 +22,15 @@ public class ChangeIngredientPrimaryImageService implements ChangeIngredientPrim
     @Override
     public void change(Command command) {
         validate(command);
-        Ingredient ingredient = ingredientRepository.findByIdWithImagesForUpdate(command.ingredientId())
+        Ingredient ingredient = ingredientRepository.findByIdAndUserIdAndStatusWithImagesForUpdate(
+                        command.ingredientId(),
+                        command.userId(),
+                        IngredientStatus.ACTIVE
+                )
                 .orElseThrow(() -> new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND));
-        if (!Objects.equals(ingredient.getUser().getId(), command.userId())) {
-            throw new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND);
-        }
 
         IngredientImage targetImage = ingredient.getIngredientImages().stream()
-                .filter(ingredientImage -> Objects.equals(ingredientImage.getId(), command.ingredientImageId()))
+                .filter(ingredientImage -> ingredientImage.getId().equals(command.ingredientImageId()))
                 .findFirst()
                 .orElseThrow(() -> new IngredientException(IngredientErrorCode.INGREDIENT_IMAGE_NOT_BELONG_TO_INGREDIENT));
 

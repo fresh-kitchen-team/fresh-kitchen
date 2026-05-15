@@ -91,7 +91,45 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
     }
 
     @Test
-    void findByIdWithImagesForUpdate_fetchesIngredientImages() {
+    void findByIdAndUserIdAndStatus_excludesDiscardedIngredient() {
+        User owner = persistUser("discarded-owner", Provider.GOOGLE);
+        Storage storage = persistStorage(owner, StorageType.FRIDGE, "Owner fridge");
+        Ingredient ingredient = persistIngredient(owner, storage, "Tomato");
+        ingredient.markDiscarded(null);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Optional<Ingredient> foundIngredient = ingredientRepository.findByIdAndUserIdAndStatus(
+                ingredient.getId(),
+                owner.getId(),
+                IngredientStatus.ACTIVE
+        );
+
+        assertTrue(foundIngredient.isEmpty());
+    }
+
+    @Test
+    void findDetailByIdAndUserIdAndStatus_excludesDiscardedIngredient() {
+        User owner = persistUser("discarded-detail-owner", Provider.GOOGLE);
+        Storage storage = persistStorage(owner, StorageType.FRIDGE, "Main fridge");
+        Ingredient ingredient = persistIngredient(owner, storage, "Milk");
+        ingredient.markDiscarded(null);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Optional<Ingredient> foundIngredient = ingredientRepository.findDetailByIdAndUserIdAndStatus(
+                ingredient.getId(),
+                owner.getId(),
+                IngredientStatus.ACTIVE
+        );
+
+        assertTrue(foundIngredient.isEmpty());
+    }
+
+    @Test
+    void findByIdAndUserIdAndStatusWithImagesForUpdate_fetchesActiveIngredientImages() {
         User user = persistUser("provider-user", Provider.GOOGLE);
         Storage storage = persistStorage(user, StorageType.FRIDGE, "Main fridge");
         Ingredient ingredient = persistIngredient(user, storage, "Milk");
@@ -107,7 +145,11 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
         entityManager.flush();
         entityManager.clear();
 
-        Ingredient foundIngredient = ingredientRepository.findByIdWithImagesForUpdate(ingredient.getId())
+        Ingredient foundIngredient = ingredientRepository.findByIdAndUserIdAndStatusWithImagesForUpdate(
+                        ingredient.getId(),
+                        user.getId(),
+                        IngredientStatus.ACTIVE
+                )
                 .orElseThrow();
 
         assertTrue(Hibernate.isInitialized(foundIngredient.getIngredientImages()));
@@ -117,8 +159,36 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
     }
 
     @Test
-    void findByIdWithImagesForUpdate_returnsEmptyWhenIngredientDoesNotExist() {
-        assertFalse(ingredientRepository.findByIdWithImagesForUpdate(Long.MAX_VALUE).isPresent());
+    void findByIdAndUserIdAndStatusWithImagesForUpdate_returnsEmptyWhenIngredientDoesNotExist() {
+        assertFalse(ingredientRepository.findByIdAndUserIdAndStatusWithImagesForUpdate(
+                Long.MAX_VALUE,
+                Long.MAX_VALUE,
+                IngredientStatus.ACTIVE
+        ).isPresent());
+    }
+
+    @Test
+    void findByIdAndUserIdAndStatusWithImagesForUpdate_excludesNonActiveIngredients() {
+        User user = persistUser("image-status-user", Provider.GOOGLE);
+        Storage storage = persistStorage(user, StorageType.FRIDGE, "Main fridge");
+        Ingredient consumedIngredient = persistIngredient(user, storage, "Milk");
+        Ingredient discardedIngredient = persistIngredient(user, storage, "Onion");
+        consumedIngredient.markConsumed(null);
+        discardedIngredient.markDiscarded(null);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        assertFalse(ingredientRepository.findByIdAndUserIdAndStatusWithImagesForUpdate(
+                consumedIngredient.getId(),
+                user.getId(),
+                IngredientStatus.ACTIVE
+        ).isPresent());
+        assertFalse(ingredientRepository.findByIdAndUserIdAndStatusWithImagesForUpdate(
+                discardedIngredient.getId(),
+                user.getId(),
+                IngredientStatus.ACTIVE
+        ).isPresent());
     }
 
     @Test

@@ -1,4 +1,4 @@
-package com.example.freshkitchen.presentation.ingredient.dto;
+package com.example.freshkitchen.presentation.item.dto;
 
 import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.UpdateIngredientUseCase;
@@ -14,96 +14,89 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
-public final class IngredientRequest {
+public final class ItemRequest {
 
     private static final int NAME_MAX_LENGTH = 100;
 
-    private IngredientRequest() {
+    private ItemRequest() {
     }
 
     public record Create(
-            @NotNull @Positive Long storageId,
-            @Positive Long catalogId,
             @NotBlank @Size(max = NAME_MAX_LENGTH) String name,
-            LocalDate registeredAt,
-            LocalDate expiresAt,
-            @NotNull ExpirySourceType expirySourceType,
-            String note,
-            @NotNull IngredientSourceType sourceType
+            @NotNull @Positive Long storageId,
+            LocalDate expiryDate,
+            LocalDate purchaseDate,
+            String memo,
+            @Positive Long imageAssetId
     ) {
 
-        public CreateIngredientUseCase.Command toCommand(Long userId) {
+        public CreateIngredientUseCase.Command toCommand(Long userId, LocalDate defaultPurchaseDate) {
             return new CreateIngredientUseCase.Command(
                     userId,
                     storageId,
-                    catalogId,
+                    null,
                     name,
-                    registeredAt,
-                    expiresAt,
-                    expirySourceType,
-                    note,
-                    sourceType
+                    purchaseDate != null ? purchaseDate : defaultPurchaseDate,
+                    expiryDate,
+                    ExpirySourceType.MANUAL,
+                    memo,
+                    imageAssetId != null ? IngredientSourceType.PHOTO : IngredientSourceType.MANUAL
             );
         }
     }
 
     public record Update(
-            Long storageId,
+            String name,
             Long catalogId,
             boolean catalogSet,
-            String name,
-            LocalDate registeredAt,
-            boolean registeredAtSet,
-            LocalDate expiresAt,
-            boolean expiresAtSet,
-            ExpirySourceType expirySourceType,
-            String note,
-            boolean noteSet,
-            IngredientSourceType sourceType
+            Long storageId,
+            LocalDate expiryDate,
+            boolean expiryDateSet,
+            LocalDate purchaseDate,
+            boolean purchaseDateSet,
+            String memo,
+            boolean memoSet
     ) {
 
         public static Update from(JsonNode request) {
             if (request == null || !request.isObject()) {
-                throw new BusinessValidationException("ingredient update request must be a JSON object");
+                throw new BusinessValidationException("item update request must be a JSON object");
             }
 
-            rejectExplicitNull(request, "storageId");
             rejectExplicitNull(request, "name");
-            rejectExplicitNull(request, "expirySourceType");
-            rejectExplicitNull(request, "sourceType");
+            rejectExplicitNull(request, "catalogId");
+            rejectExplicitNull(request, "storageId");
 
             return new Update(
-                    readPositiveLong(request, "storageId"),
+                    readBoundedString(request, "name", NAME_MAX_LENGTH),
                     readPositiveLong(request, "catalogId"),
                     request.has("catalogId"),
-                    readBoundedString(request, "name", NAME_MAX_LENGTH),
-                    readDate(request, "registeredAt"),
-                    request.has("registeredAt"),
-                    readDate(request, "expiresAt"),
-                    request.has("expiresAt"),
-                    readEnum(request, "expirySourceType", ExpirySourceType.class),
-                    readString(request, "note"),
-                    request.has("note"),
-                    readEnum(request, "sourceType", IngredientSourceType.class)
+                    readPositiveLong(request, "storageId"),
+                    readDate(request, "expiryDate"),
+                    request.has("expiryDate"),
+                    readDate(request, "purchaseDate"),
+                    request.has("purchaseDate"),
+                    readString(request, "memo"),
+                    request.has("memo")
             );
         }
 
-        public UpdateIngredientUseCase.Command toCommand(Long ingredientId, Long userId) {
+        public UpdateIngredientUseCase.Command toCommand(Long itemId, Long userId) {
             return new UpdateIngredientUseCase.Command(
-                    ingredientId,
+                    itemId,
                     userId,
                     storageId,
                     catalogId,
                     catalogSet,
                     name,
-                    registeredAt,
-                    registeredAtSet,
-                    expiresAt,
-                    expiresAtSet,
-                    expirySourceType,
-                    note,
-                    noteSet,
-                    sourceType
+                    purchaseDate,
+                    purchaseDateSet,
+                    expiryDate,
+                    expiryDateSet,
+                    null,
+                    memo,
+                    memoSet,
+                    null
             );
         }
     }
@@ -160,18 +153,6 @@ public final class IngredientRequest {
             return LocalDate.parse(value);
         } catch (DateTimeParseException exception) {
             throw new BusinessValidationException(fieldName + " must be a valid date", exception);
-        }
-    }
-
-    private static <T extends Enum<T>> T readEnum(JsonNode request, String fieldName, Class<T> type) {
-        String value = readString(request, fieldName);
-        if (value == null) {
-            return null;
-        }
-        try {
-            return Enum.valueOf(type, value);
-        } catch (IllegalArgumentException exception) {
-            throw new BusinessValidationException(fieldName + " contains invalid value", exception);
         }
     }
 }

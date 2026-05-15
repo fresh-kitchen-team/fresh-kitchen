@@ -8,6 +8,7 @@ import com.example.freshkitchen.domain.ingredient.entity.Storage;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
+import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
 import com.example.freshkitchen.domain.ingredient.repository.StorageRepository;
@@ -209,6 +210,50 @@ class UpdateIngredientServiceTest extends PostgreSqlTestContainerSupport {
         entityManager.clear();
 
         assertEquals(1, storageRepository.findAllByUserId(user.getId()).size());
+    }
+
+    @Test
+    void update_rejectsDiscardedIngredient() {
+        User user = persistUser("discarded-update-user", Provider.GOOGLE);
+        Storage storage = persistStorage(user, StorageType.FRIDGE, "Fridge");
+        Ingredient ingredient = Ingredient.create(new Ingredient.CreateCommand(
+                user,
+                storage,
+                null,
+                "Apple",
+                null,
+                null,
+                ExpirySourceType.UNKNOWN,
+                null,
+                IngredientSourceType.MANUAL
+        ));
+        ingredient.markDiscarded(LocalDate.of(2026, 5, 1));
+        entityManager.persist(ingredient);
+
+        IngredientException exception = assertThrows(
+                IngredientException.class,
+                () -> updateIngredientUseCase.update(new UpdateIngredientUseCase.Command(
+                        ingredient.getId(),
+                        user.getId(),
+                        null,
+                        null,
+                        false,
+                        "Green apple",
+                        null,
+                        false,
+                        null,
+                        false,
+                        null,
+                        null,
+                        false,
+                        null
+                ))
+        );
+
+        assertEquals("ingredient not found", exception.getMessage());
+        assertEquals(IngredientStatus.DISCARDED, ingredientRepository.findByIdAndUserId(ingredient.getId(), user.getId())
+                .orElseThrow()
+                .getStatus());
     }
 
     private User persistUser(String providerUserId, Provider provider) {

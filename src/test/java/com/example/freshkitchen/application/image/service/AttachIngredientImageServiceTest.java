@@ -120,6 +120,44 @@ class AttachIngredientImageServiceTest extends PostgreSqlTestContainerSupport {
     }
 
     @Test
+    void attach_rejectsNonActiveIngredient() {
+        User user = persistUser("attach-status-user", Provider.GOOGLE);
+        Ingredient consumedIngredient = persistIngredient(user, "Consumed milk");
+        Ingredient discardedIngredient = persistIngredient(user, "Discarded onion");
+        ImageAsset consumedImageAsset = persistImageAsset(user, AssetType.USER_UPLOAD, "images/consumed.png");
+        ImageAsset discardedImageAsset = persistImageAsset(user, AssetType.USER_UPLOAD, "images/discarded.png");
+        consumedIngredient.markConsumed(null);
+        discardedIngredient.markDiscarded(null);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        IngredientException consumedException = assertThrows(
+                IngredientException.class,
+                () -> attachIngredientImageUseCase.attach(new AttachIngredientImageUseCase.Command(
+                        user.getId(),
+                        consumedIngredient.getId(),
+                        consumedImageAsset.getId(),
+                        true,
+                        IngredientImageSourceType.PHOTO
+                ))
+        );
+        IngredientException discardedException = assertThrows(
+                IngredientException.class,
+                () -> attachIngredientImageUseCase.attach(new AttachIngredientImageUseCase.Command(
+                        user.getId(),
+                        discardedIngredient.getId(),
+                        discardedImageAsset.getId(),
+                        true,
+                        IngredientImageSourceType.PHOTO
+                ))
+        );
+
+        assertEquals(IngredientErrorCode.INGREDIENT_NOT_FOUND, consumedException.getErrorCode());
+        assertEquals(IngredientErrorCode.INGREDIENT_NOT_FOUND, discardedException.getErrorCode());
+    }
+
+    @Test
     void attach_rejectsFirstImageWhenNotPrimary() {
         User user = persistUser("first-image-user", Provider.GOOGLE);
         Ingredient ingredient = persistIngredient(user, "Pepper");
