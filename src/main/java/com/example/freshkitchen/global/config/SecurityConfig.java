@@ -31,6 +31,7 @@ public class SecurityConfig {
             "/api/v1/auth/google",
             "/api/v1/auth/kakao",
             "/api/v1/auth/refresh",
+            "/api/v1/auth/dev-login",
     };
 
     private final JwtTokenProvider jwtTokenProvider;
