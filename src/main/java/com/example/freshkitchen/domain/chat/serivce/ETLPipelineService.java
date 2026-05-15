@@ -75,7 +75,7 @@ public class ETLPipelineService {
 
             // 정상 처리 후에도 짧은 휴식
             try {
-                Thread.sleep(5000);
+                Thread.sleep(50000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -118,7 +118,6 @@ public class ETLPipelineService {
                 String.join(" ", steps)
         );
 
-        log.info("content={}", content);
 
         return Document.builder()
                 .text(content)
