@@ -32,6 +32,9 @@ public class SecurityConfig {
             "/api/v1/auth/kakao",
             "/api/v1/auth/refresh",
             "/add-vector-store"
+
+            "/api/v1/auth/dev-login",
+
     };
 
     private final JwtTokenProvider jwtTokenProvider;

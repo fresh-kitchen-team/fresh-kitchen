@@ -56,6 +56,12 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           AI_SERVER_BASE_URL: ${{ secrets.AI_SERVER_BASE_URL }}
           AI_SERVER_TOKEN: ${{ secrets.AI_SERVER_TOKEN }}
+          IMAGE_STORAGE_TYPE: ${{ secrets.IMAGE_STORAGE_TYPE }}
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          IMAGE_STORAGE_S3_PUBLIC_BASE_URL: ${{ secrets.IMAGE_STORAGE_S3_PUBLIC_BASE_URL }}
         run: |
           # 이미지 빌드 & Push
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -79,6 +85,12 @@ jobs:
             "GEMINI_API_KEY=$GEMINI_API_KEY" \
             "AI_SERVER_BASE_URL=$AI_SERVER_BASE_URL" \
             "AI_SERVER_TOKEN=$AI_SERVER_TOKEN" \
+            "IMAGE_STORAGE_TYPE=$IMAGE_STORAGE_TYPE" \
+            "AWS_S3_BUCKET=$AWS_S3_BUCKET" \
+            "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
+            "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
+            "AWS_REGION=$AWS_REGION" \
+            "IMAGE_STORAGE_S3_PUBLIC_BASE_URL=$IMAGE_STORAGE_S3_PUBLIC_BASE_URL" \
             > scripts/.env
 
           chmod +x scripts/deploy.sh
