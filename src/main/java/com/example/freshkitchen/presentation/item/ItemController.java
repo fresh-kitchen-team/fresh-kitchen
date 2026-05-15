@@ -1,14 +1,12 @@
 package com.example.freshkitchen.presentation.item;
 
-import com.example.freshkitchen.application.image.usecase.AttachIngredientImageUseCase;
 import com.example.freshkitchen.application.ingredient.dto.IngredientDto;
-import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientUseCase;
+import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientWithImageUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.DeleteIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.GetIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.ListStoragesUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.ListIngredientsUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.UpdateIngredientUseCase;
-import com.example.freshkitchen.domain.image.enums.IngredientImageSourceType;
 import com.example.freshkitchen.global.response.ApiResponse;
 import com.example.freshkitchen.presentation.item.dto.ItemRequest;
 import com.example.freshkitchen.presentation.item.dto.ItemResponse;
@@ -37,13 +35,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemController {
 
-    private final CreateIngredientUseCase createIngredientUseCase;
+    private final CreateIngredientWithImageUseCase createIngredientWithImageUseCase;
     private final UpdateIngredientUseCase updateIngredientUseCase;
     private final GetIngredientUseCase getIngredientUseCase;
     private final ListIngredientsUseCase listIngredientsUseCase;
     private final DeleteIngredientUseCase deleteIngredientUseCase;
     private final ListStoragesUseCase listStoragesUseCase;
-    private final AttachIngredientImageUseCase attachIngredientImageUseCase;
     private final Clock clock;
 
     @PostMapping
@@ -51,16 +48,10 @@ public class ItemController {
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody ItemRequest.Create request
     ) {
-        Long itemId = createIngredientUseCase.create(request.toCommand(userId, LocalDate.now(clock)));
-        if (request.imageAssetId() != null) {
-            attachIngredientImageUseCase.attach(new AttachIngredientImageUseCase.Command(
-                    userId,
-                    itemId,
-                    request.imageAssetId(),
-                    true,
-                    IngredientImageSourceType.PHOTO
-            ));
-        }
+        Long itemId = createIngredientWithImageUseCase.create(new CreateIngredientWithImageUseCase.Command(
+                request.toCommand(userId, LocalDate.now(clock)),
+                request.imageAssetId()
+        ));
         return ApiResponse.success(HttpStatus.CREATED, new ItemResponse.Create(itemId));
     }
 

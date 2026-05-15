@@ -10,10 +10,9 @@ import com.example.freshkitchen.application.chat.usecase.GetChatRoomListUseCase;
 import com.example.freshkitchen.application.chat.usecase.SendChatMessageUseCase;
 import com.example.freshkitchen.application.chat.usecase.UpdateChatRoomTitleUseCase;
 import com.example.freshkitchen.application.home.usecase.GetHomeSummaryUseCase;
-import com.example.freshkitchen.application.image.usecase.AttachIngredientImageUseCase;
 import com.example.freshkitchen.application.image.usecase.ChangeIngredientPrimaryImageUseCase;
 import com.example.freshkitchen.application.image.usecase.UploadIngredientImageUseCase;
-import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientUseCase;
+import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientWithImageUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.DeleteIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.GetIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.ListIngredientsUseCase;
@@ -85,7 +84,7 @@ class SecurityFilterChainIntegrationTest {
     private GetHomeSummaryUseCase getHomeSummaryUseCase;
 
     @MockitoBean
-    private CreateIngredientUseCase createIngredientUseCase;
+    private CreateIngredientWithImageUseCase createIngredientWithImageUseCase;
 
     @MockitoBean
     private UpdateIngredientUseCase updateIngredientUseCase;
@@ -104,9 +103,6 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private DeleteIngredientUseCase deleteIngredientUseCase;
-
-    @MockitoBean
-    private AttachIngredientImageUseCase attachIngredientImageUseCase;
 
     @MockitoBean
     private UploadIngredientImageUseCase uploadIngredientImageUseCase;

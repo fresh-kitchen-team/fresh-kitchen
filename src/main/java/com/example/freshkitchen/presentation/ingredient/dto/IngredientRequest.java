@@ -142,6 +142,9 @@ public final class IngredientRequest {
 
     private static String readBoundedString(JsonNode request, String fieldName, int maxLength) {
         String value = readString(request, fieldName);
+        if (value != null && value.isBlank()) {
+            throw new BusinessValidationException(fieldName + " must not be blank");
+        }
         if (value != null && value.length() > maxLength) {
             throw new BusinessValidationException(fieldName + " must be at most " + maxLength + " characters");
         }

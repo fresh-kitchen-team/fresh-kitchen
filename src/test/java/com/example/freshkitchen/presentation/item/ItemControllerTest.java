@@ -1,15 +1,13 @@
 package com.example.freshkitchen.presentation.item;
 
-import com.example.freshkitchen.application.image.usecase.AttachIngredientImageUseCase;
 import com.example.freshkitchen.application.ingredient.dto.IngredientDto;
-import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientUseCase;
+import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientWithImageUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.DeleteIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.GetIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.ListIngredientsUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.ListStoragesUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.UpdateIngredientUseCase;
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
-import com.example.freshkitchen.domain.image.enums.IngredientImageSourceType;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
@@ -61,24 +59,22 @@ class ItemControllerTest {
 
     private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-05-01T00:00:00Z"), ZoneOffset.UTC);
 
-    private CreateIngredientUseCase createIngredientUseCase;
+    private CreateIngredientWithImageUseCase createIngredientWithImageUseCase;
     private UpdateIngredientUseCase updateIngredientUseCase;
     private GetIngredientUseCase getIngredientUseCase;
     private ListIngredientsUseCase listIngredientsUseCase;
     private DeleteIngredientUseCase deleteIngredientUseCase;
     private ListStoragesUseCase listStoragesUseCase;
-    private AttachIngredientImageUseCase attachIngredientImageUseCase;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        createIngredientUseCase = mock(CreateIngredientUseCase.class);
+        createIngredientWithImageUseCase = mock(CreateIngredientWithImageUseCase.class);
         updateIngredientUseCase = mock(UpdateIngredientUseCase.class);
         getIngredientUseCase = mock(GetIngredientUseCase.class);
         listIngredientsUseCase = mock(ListIngredientsUseCase.class);
         deleteIngredientUseCase = mock(DeleteIngredientUseCase.class);
         listStoragesUseCase = mock(ListStoragesUseCase.class);
-        attachIngredientImageUseCase = mock(AttachIngredientImageUseCase.class);
 
         ObjectMapper objectMapper = new ObjectMapper()
                 .registerModule(new JavaTimeModule())
@@ -87,13 +83,12 @@ class ItemControllerTest {
         validator.afterPropertiesSet();
 
         ItemController controller = new ItemController(
-                createIngredientUseCase,
+                createIngredientWithImageUseCase,
                 updateIngredientUseCase,
                 getIngredientUseCase,
                 listIngredientsUseCase,
                 deleteIngredientUseCase,
                 listStoragesUseCase,
-                attachIngredientImageUseCase,
                 CLOCK
         );
 
@@ -107,7 +102,7 @@ class ItemControllerTest {
 
     @Test
     void create_returnsCreatedItemIdAndAttachesScanImage() throws Exception {
-        when(createIngredientUseCase.create(any(CreateIngredientUseCase.Command.class))).thenReturn(10L);
+        when(createIngredientWithImageUseCase.create(any(CreateIngredientWithImageUseCase.Command.class))).thenReturn(10L);
 
         mockMvc.perform(post("/api/v1/items")
                         .principal(auth(1L))
@@ -127,33 +122,26 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$.status").value(201))
                 .andExpect(jsonPath("$.data.id").value(10));
 
-        ArgumentCaptor<CreateIngredientUseCase.Command> createCaptor =
-                ArgumentCaptor.forClass(CreateIngredientUseCase.Command.class);
-        verify(createIngredientUseCase).create(createCaptor.capture());
+        ArgumentCaptor<CreateIngredientWithImageUseCase.Command> createCaptor =
+                ArgumentCaptor.forClass(CreateIngredientWithImageUseCase.Command.class);
+        verify(createIngredientWithImageUseCase).create(createCaptor.capture());
         assertAll(
-                () -> assertEquals(1L, createCaptor.getValue().userId()),
-                () -> assertEquals(2L, createCaptor.getValue().storageId()),
-                () -> assertEquals(3L, createCaptor.getValue().catalogId()),
-                () -> assertEquals("Tomato", createCaptor.getValue().name()),
-                () -> assertEquals(LocalDate.of(2026, 4, 29), createCaptor.getValue().registeredAt()),
-                () -> assertEquals(LocalDate.of(2026, 5, 6), createCaptor.getValue().expiresAt()),
-                () -> assertEquals(ExpirySourceType.MANUAL, createCaptor.getValue().expirySourceType()),
-                () -> assertEquals("salad", createCaptor.getValue().note()),
-                () -> assertEquals(IngredientSourceType.PHOTO, createCaptor.getValue().sourceType())
+                () -> assertEquals(1L, createCaptor.getValue().ingredientCommand().userId()),
+                () -> assertEquals(2L, createCaptor.getValue().ingredientCommand().storageId()),
+                () -> assertEquals(3L, createCaptor.getValue().ingredientCommand().catalogId()),
+                () -> assertEquals("Tomato", createCaptor.getValue().ingredientCommand().name()),
+                () -> assertEquals(LocalDate.of(2026, 4, 29), createCaptor.getValue().ingredientCommand().registeredAt()),
+                () -> assertEquals(LocalDate.of(2026, 5, 6), createCaptor.getValue().ingredientCommand().expiresAt()),
+                () -> assertEquals(ExpirySourceType.MANUAL, createCaptor.getValue().ingredientCommand().expirySourceType()),
+                () -> assertEquals("salad", createCaptor.getValue().ingredientCommand().note()),
+                () -> assertEquals(IngredientSourceType.PHOTO, createCaptor.getValue().ingredientCommand().sourceType()),
+                () -> assertEquals(20L, createCaptor.getValue().imageAssetId())
         );
-
-        verify(attachIngredientImageUseCase).attach(new AttachIngredientImageUseCase.Command(
-                1L,
-                10L,
-                20L,
-                true,
-                IngredientImageSourceType.PHOTO
-        ));
     }
 
     @Test
     void create_defaultsPurchaseDateToToday() throws Exception {
-        when(createIngredientUseCase.create(any(CreateIngredientUseCase.Command.class))).thenReturn(10L);
+        when(createIngredientWithImageUseCase.create(any(CreateIngredientWithImageUseCase.Command.class))).thenReturn(10L);
 
         mockMvc.perform(post("/api/v1/items")
                         .principal(auth(1L))
@@ -167,10 +155,10 @@ class ItemControllerTest {
                                 """))
                 .andExpect(status().isCreated());
 
-        ArgumentCaptor<CreateIngredientUseCase.Command> captor =
-                ArgumentCaptor.forClass(CreateIngredientUseCase.Command.class);
-        verify(createIngredientUseCase).create(captor.capture());
-        assertEquals(LocalDate.of(2026, 5, 1), captor.getValue().registeredAt());
+        ArgumentCaptor<CreateIngredientWithImageUseCase.Command> captor =
+                ArgumentCaptor.forClass(CreateIngredientWithImageUseCase.Command.class);
+        verify(createIngredientWithImageUseCase).create(captor.capture());
+        assertEquals(LocalDate.of(2026, 5, 1), captor.getValue().ingredientCommand().registeredAt());
     }
 
     @Test
@@ -328,6 +316,20 @@ class ItemControllerTest {
                         .content("""
                                 {
                                   "storageId": null
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.path").value("/api/v1/items/10"));
+    }
+
+    @Test
+    void update_withBlankName_returnsInvalidInput() throws Exception {
+        mockMvc.perform(patch("/api/v1/items/10")
+                        .principal(auth(1L))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "   "
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
