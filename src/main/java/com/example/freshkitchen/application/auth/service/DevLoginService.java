@@ -9,12 +9,12 @@ import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
 import com.example.freshkitchen.infrastructure.auth.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 
-@Profile("dev")
+@ConditionalOnProperty(name = "dev.login.enabled", havingValue = "true", matchIfMissing = true)
 @Service
 @RequiredArgsConstructor
 public class DevLoginService implements DevLoginUseCase {

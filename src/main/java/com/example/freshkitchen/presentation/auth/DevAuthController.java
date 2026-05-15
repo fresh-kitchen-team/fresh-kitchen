@@ -9,14 +9,14 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Profile("dev")
+@ConditionalOnProperty(name = "dev.login.enabled", havingValue = "true", matchIfMissing = true)
 @Tag(name = "Dev Auth", description = "개발 환경 전용 로그인 (운영 비활성화)")
 @RestController
 @RequiredArgsConstructor
