@@ -6,6 +6,7 @@ import com.example.freshkitchen.application.image.port.ImageAssetUrlResolver;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
+import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,11 @@ public class GetIngredientService implements GetIngredientUseCase {
 
     @Override
     public IngredientDto.DetailResponse get(Query query) {
-        Ingredient ingredient = ingredientRepository.findDetailByIdAndUserId(query.ingredientId(), query.userId())
+        Ingredient ingredient = ingredientRepository.findDetailByIdAndUserIdAndStatus(
+                        query.ingredientId(),
+                        query.userId(),
+                        IngredientStatus.ACTIVE
+                )
                 .orElseThrow(() -> new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND));
         return IngredientDto.DetailResponse.from(ingredient, imageAssetUrlResolver);
     }

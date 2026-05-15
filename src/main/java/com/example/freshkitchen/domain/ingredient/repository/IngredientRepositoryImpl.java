@@ -33,6 +33,24 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
 
     @Override
     @Transactional(readOnly = true)
+    public Optional<Ingredient> findByIdAndUserIdAndStatus(Long ingredientId, Long userId, IngredientStatus status) {
+        return entityManager.createQuery("""
+                select ingredient
+                from Ingredient ingredient
+                where ingredient.id = :ingredientId
+                  and ingredient.user.id = :userId
+                  and ingredient.status = :status
+                """, Ingredient.class)
+                .setParameter("ingredientId", ingredientId)
+                .setParameter("userId", userId)
+                .setParameter("status", status)
+                .getResultList()
+                .stream()
+                .findFirst();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Optional<Ingredient> findDetailByIdAndUserId(Long ingredientId, Long userId) {
         return entityManager.createQuery("""
                 select distinct ingredient
@@ -47,6 +65,29 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
                 """, Ingredient.class)
                 .setParameter("ingredientId", ingredientId)
                 .setParameter("userId", userId)
+                .getResultList()
+                .stream()
+                .findFirst();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Ingredient> findDetailByIdAndUserIdAndStatus(Long ingredientId, Long userId, IngredientStatus status) {
+        return entityManager.createQuery("""
+                select distinct ingredient
+                from Ingredient ingredient
+                join fetch ingredient.user
+                join fetch ingredient.storage
+                left join fetch ingredient.catalog
+                left join fetch ingredient.ingredientImages ingredientImage
+                left join fetch ingredientImage.imageAsset
+                where ingredient.id = :ingredientId
+                  and ingredient.user.id = :userId
+                  and ingredient.status = :status
+                """, Ingredient.class)
+                .setParameter("ingredientId", ingredientId)
+                .setParameter("userId", userId)
+                .setParameter("status", status)
                 .getResultList()
                 .stream()
                 .findFirst();

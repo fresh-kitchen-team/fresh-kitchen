@@ -91,6 +91,44 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
     }
 
     @Test
+    void findByIdAndUserIdAndStatus_excludesDiscardedIngredient() {
+        User owner = persistUser("discarded-owner", Provider.GOOGLE);
+        Storage storage = persistStorage(owner, StorageType.FRIDGE, "Owner fridge");
+        Ingredient ingredient = persistIngredient(owner, storage, "Tomato");
+        ingredient.markDiscarded(null);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Optional<Ingredient> foundIngredient = ingredientRepository.findByIdAndUserIdAndStatus(
+                ingredient.getId(),
+                owner.getId(),
+                IngredientStatus.ACTIVE
+        );
+
+        assertTrue(foundIngredient.isEmpty());
+    }
+
+    @Test
+    void findDetailByIdAndUserIdAndStatus_excludesDiscardedIngredient() {
+        User owner = persistUser("discarded-detail-owner", Provider.GOOGLE);
+        Storage storage = persistStorage(owner, StorageType.FRIDGE, "Main fridge");
+        Ingredient ingredient = persistIngredient(owner, storage, "Milk");
+        ingredient.markDiscarded(null);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Optional<Ingredient> foundIngredient = ingredientRepository.findDetailByIdAndUserIdAndStatus(
+                ingredient.getId(),
+                owner.getId(),
+                IngredientStatus.ACTIVE
+        );
+
+        assertTrue(foundIngredient.isEmpty());
+    }
+
+    @Test
     void findByIdWithImagesForUpdate_fetchesIngredientImages() {
         User user = persistUser("provider-user", Provider.GOOGLE);
         Storage storage = persistStorage(user, StorageType.FRIDGE, "Main fridge");

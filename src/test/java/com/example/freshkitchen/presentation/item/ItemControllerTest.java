@@ -10,6 +10,8 @@ import com.example.freshkitchen.application.ingredient.usecase.ListStoragesUseCa
 import com.example.freshkitchen.application.ingredient.usecase.UpdateIngredientUseCase;
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.image.enums.IngredientImageSourceType;
+import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
+import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
@@ -216,6 +218,17 @@ class ItemControllerTest {
     }
 
     @Test
+    void get_returnsNotFoundForDiscardedItem() throws Exception {
+        when(getIngredientUseCase.get(any(GetIngredientUseCase.Query.class)))
+                .thenThrow(new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND));
+
+        mockMvc.perform(get("/api/v1/items/10")
+                        .principal(auth(1L)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.path").value("/api/v1/items/10"));
+    }
+
+    @Test
     void update_mapsPartialItemFields() throws Exception {
         mockMvc.perform(patch("/api/v1/items/10")
                         .principal(auth(1L))
@@ -246,6 +259,24 @@ class ItemControllerTest {
                 () -> assertNull(command.expirySourceType()),
                 () -> assertNull(command.sourceType())
         );
+    }
+
+    @Test
+    void update_returnsNotFoundForDiscardedItem() throws Exception {
+        org.mockito.Mockito.doThrow(new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND))
+                .when(updateIngredientUseCase)
+                .update(any(UpdateIngredientUseCase.Command.class));
+
+        mockMvc.perform(patch("/api/v1/items/10")
+                        .principal(auth(1L))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Milk"
+                                }
+                                """))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.path").value("/api/v1/items/10"));
     }
 
     @Test
