@@ -7,6 +7,7 @@ import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
+import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
 import com.example.freshkitchen.domain.ingredient.repository.StorageRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,11 @@ public class UpdateIngredientService implements UpdateIngredientUseCase {
 
     @Override
     public void update(Command command) {
-        Ingredient ingredient = ingredientRepository.findByIdAndUserId(command.ingredientId(), command.userId())
+        Ingredient ingredient = ingredientRepository.findByIdAndUserIdAndStatus(
+                        command.ingredientId(),
+                        command.userId(),
+                        IngredientStatus.ACTIVE
+                )
                 .orElseThrow(() -> new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND));
 
         Storage storage = command.storageId() != null

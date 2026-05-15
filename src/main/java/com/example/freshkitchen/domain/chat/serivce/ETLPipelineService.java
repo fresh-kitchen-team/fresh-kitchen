@@ -39,7 +39,9 @@ public class ETLPipelineService {
         }
         int totalSize = allDocuments.size();
 // 수정: 배치 사이즈를 더 작게 줄입니다 (5~10 권장)
+
         int batchSize = 50;
+
 
         for (int i = 0; i < totalSize; i += batchSize) {
             int end = Math.min(i + batchSize, totalSize);
@@ -56,9 +58,11 @@ public class ETLPipelineService {
                 } catch (Exception e) {
                     if (e.getMessage().contains("429")) {
                         retryCount++;
-                        log.warn("429 에러 발생! {}초 후 다시 시도합니다. (시도: {}/3)", retryCount * 30, retryCount);
+                 log.warn("429 에러 발생! {}초 후 다시 시도합니다. (시도: {}/5)", retryCount * 10, retryCount);
                         try {
+
                             Thread.sleep(retryCount * 10000);
+
                         } catch (InterruptedException ie) {
                             Thread.currentThread().interrupt();
                         }
@@ -75,7 +79,9 @@ public class ETLPipelineService {
 
             // 정상 처리 후에도 짧은 휴식
             try {
+
                 Thread.sleep(30000);
+
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

@@ -13,6 +13,7 @@ import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
+import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
 import com.example.freshkitchen.domain.user.entity.User;
@@ -69,7 +70,11 @@ class ChangeIngredientPrimaryImageServiceTest extends PostgreSqlTestContainerSup
         entityManager.flush();
         entityManager.clear();
 
-        Ingredient persistedIngredient = ingredientRepository.findByIdWithImagesForUpdate(ingredient.getId())
+        Ingredient persistedIngredient = ingredientRepository.findByIdAndUserIdAndStatusWithImagesForUpdate(
+                        ingredient.getId(),
+                        user.getId(),
+                        IngredientStatus.ACTIVE
+                )
                 .orElseThrow();
 
         long primaryCount = persistedIngredient.getIngredientImages().stream()
@@ -135,6 +140,48 @@ class ChangeIngredientPrimaryImageServiceTest extends PostgreSqlTestContainerSup
         );
 
         assertEquals(IngredientErrorCode.INGREDIENT_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    void change_rejectsNonActiveIngredient() {
+        User user = persistUser("primary-status-user", Provider.GOOGLE);
+        Ingredient consumedIngredient = persistIngredient(user, "Consumed milk");
+        Ingredient discardedIngredient = persistIngredient(user, "Discarded onion");
+        IngredientImage consumedPrimary = persistIngredientImage(
+                consumedIngredient,
+                persistImageAsset(user, "images/consumed.png"),
+                true
+        );
+        IngredientImage discardedPrimary = persistIngredientImage(
+                discardedIngredient,
+                persistImageAsset(user, "images/discarded.png"),
+                true
+        );
+        consumedIngredient.markConsumed(null);
+        discardedIngredient.markDiscarded(null);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        IngredientException consumedException = assertThrows(
+                IngredientException.class,
+                () -> changeIngredientPrimaryImageUseCase.change(new ChangeIngredientPrimaryImageUseCase.Command(
+                        user.getId(),
+                        consumedIngredient.getId(),
+                        consumedPrimary.getId()
+                ))
+        );
+        IngredientException discardedException = assertThrows(
+                IngredientException.class,
+                () -> changeIngredientPrimaryImageUseCase.change(new ChangeIngredientPrimaryImageUseCase.Command(
+                        user.getId(),
+                        discardedIngredient.getId(),
+                        discardedPrimary.getId()
+                ))
+        );
+
+        assertEquals(IngredientErrorCode.INGREDIENT_NOT_FOUND, consumedException.getErrorCode());
+        assertEquals(IngredientErrorCode.INGREDIENT_NOT_FOUND, discardedException.getErrorCode());
     }
 
     @Test

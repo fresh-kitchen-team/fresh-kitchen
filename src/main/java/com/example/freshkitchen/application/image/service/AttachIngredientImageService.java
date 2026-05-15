@@ -8,6 +8,7 @@ import com.example.freshkitchen.domain.image.exception.ImageException;
 import com.example.freshkitchen.domain.image.repository.ImageAssetRepository;
 import com.example.freshkitchen.domain.image.repository.IngredientImageRepository;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
+import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
@@ -15,8 +16,6 @@ import com.example.freshkitchen.global.exception.BusinessValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -48,12 +47,12 @@ public class AttachIngredientImageService implements AttachIngredientImageUseCas
     }
 
     private Ingredient findOwnedIngredient(Long ingredientId, Long userId) {
-        Ingredient ingredient = ingredientRepository.findByIdWithImagesForUpdate(ingredientId)
+        return ingredientRepository.findByIdAndUserIdAndStatusWithImagesForUpdate(
+                        ingredientId,
+                        userId,
+                        IngredientStatus.ACTIVE
+                )
                 .orElseThrow(() -> new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND));
-        if (!Objects.equals(ingredient.getUser().getId(), userId)) {
-            throw new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND);
-        }
-        return ingredient;
     }
 
     private static void validate(Command command) {

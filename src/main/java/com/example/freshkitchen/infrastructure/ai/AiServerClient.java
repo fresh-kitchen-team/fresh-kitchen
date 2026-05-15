@@ -201,9 +201,14 @@ public class AiServerClient {
 
     private static void validateReceiptOcr(ReceiptOcrResponse response) {
         if (response == null
-                || response.ingredients() == null) {
+                || response.ingredients() == null
+                || response.ingredients().stream().anyMatch(AiServerClient::isInvalidIngredientName)) {
             throw new AiServerException(AiServerErrorCode.AI_RESPONSE_INVALID);
         }
+    }
+
+    private static boolean isInvalidIngredientName(String name) {
+        return name == null || name.isBlank();
     }
 
     private static void validateFridgeDetection(FridgeDetectionResponse response) {

@@ -94,7 +94,7 @@ class AiServerClientTest {
     }
 
     @Test
-    void extractReceiptIngredients_allowsNullPurchasedAtAndNullIngredientItem() {
+    void extractReceiptIngredients_allowsNullPurchasedAtWithRecognizedIngredientsOnly() {
         RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         AiServerClient client = new AiServerClient(builder.build(), "service-token");
@@ -104,7 +104,7 @@ class AiServerClientTest {
                 .andRespond(withSuccess("""
                         {
                           "purchasedAt": null,
-                          "ingredients": ["두부", null, "김치"]
+                          "ingredients": ["두부", "김치"]
                         }
                         """, MediaType.APPLICATION_JSON));
 
@@ -112,8 +112,7 @@ class AiServerClientTest {
 
         assertNull(response.purchasedAt());
         assertEquals("두부", response.ingredients().get(0));
-        assertNull(response.ingredients().get(1));
-        assertEquals("김치", response.ingredients().get(2));
+        assertEquals("김치", response.ingredients().get(1));
         server.verify();
     }
 
@@ -172,6 +171,46 @@ class AiServerClientTest {
         server.expect(once(), requestTo("https://ai.example.com/internal/v1/receipt-ocr"))
                 .andRespond(withSuccess("""
                         {"purchasedAt": "2026-05-01", "ingredients": null}
+                        """, MediaType.APPLICATION_JSON));
+
+        AiServerException exception = assertThrows(
+                AiServerException.class,
+                () -> client.extractReceiptIngredients(imageFile())
+        );
+
+        assertEquals(AiServerErrorCode.AI_RESPONSE_INVALID, exception.getErrorCode());
+        server.verify();
+    }
+
+    @Test
+    void extractReceiptIngredients_mapsNullIngredientItemToAiResponseInvalid() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiServerClient client = new AiServerClient(builder.build(), "service-token");
+
+        server.expect(once(), requestTo("https://ai.example.com/internal/v1/receipt-ocr"))
+                .andRespond(withSuccess("""
+                        {"purchasedAt": "2026-05-01", "ingredients": ["두부", null, "김치"]}
+                        """, MediaType.APPLICATION_JSON));
+
+        AiServerException exception = assertThrows(
+                AiServerException.class,
+                () -> client.extractReceiptIngredients(imageFile())
+        );
+
+        assertEquals(AiServerErrorCode.AI_RESPONSE_INVALID, exception.getErrorCode());
+        server.verify();
+    }
+
+    @Test
+    void extractReceiptIngredients_mapsBlankIngredientItemToAiResponseInvalid() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiServerClient client = new AiServerClient(builder.build(), "service-token");
+
+        server.expect(once(), requestTo("https://ai.example.com/internal/v1/receipt-ocr"))
+                .andRespond(withSuccess("""
+                        {"purchasedAt": "2026-05-01", "ingredients": ["두부", " "]}
                         """, MediaType.APPLICATION_JSON));
 
         AiServerException exception = assertThrows(

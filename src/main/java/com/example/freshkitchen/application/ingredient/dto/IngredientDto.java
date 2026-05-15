@@ -26,8 +26,11 @@ public final class IngredientDto {
             String storageName,
             StorageType storageType,
             Long catalogId,
+            CatalogCategory catalogCategory,
             String emoji,
             LocalDate expiresAt,
+            LocalDate registeredAt,
+            String note,
             ImageResponse primaryImage
     ) {
 
@@ -40,8 +43,11 @@ public final class IngredientDto {
                     ingredient.getStorage().getName(),
                     ingredient.getStorage().getStorageType(),
                     ingredient.getCatalog() != null ? ingredient.getCatalog().getId() : null,
+                    ingredient.getCatalog() != null ? ingredient.getCatalog().getCategory() : null,
                     ingredient.getCatalog() != null ? ingredient.getCatalog().getEmoji() : null,
                     ingredient.getExpiresAt(),
+                    ingredient.getRegisteredAt(),
+                    ingredient.getNote(),
                     ImageResponse.primaryFrom(ingredient, imageAssetUrlResolver)
             );
         }
