@@ -3,6 +3,8 @@ package com.example.freshkitchen.application.auth.service;
 import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
 import com.example.freshkitchen.application.auth.usecase.DevLoginUseCase;
 import com.example.freshkitchen.domain.user.entity.User;
+import com.example.freshkitchen.domain.user.exception.UserErrorCode;
+import com.example.freshkitchen.domain.user.exception.UserException;
 import com.example.freshkitchen.domain.user.repository.UserRepository;
 import com.example.freshkitchen.global.security.Role;
 import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
@@ -31,7 +33,7 @@ public class DevLoginService implements DevLoginUseCase {
     @Override
     public AuthTokenResult login(Command command) {
         User user = userRepository.findById(command.userId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. userId=" + command.userId()));
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
 
         String accessToken = jwtTokenProvider.generateDevAccessToken(
                 user.getId(), Role.USER, DEV_ACCESS_EXPIRATION_MINUTES

@@ -83,6 +83,9 @@ public class JwtTokenProvider {
         if (role == null) {
             throw new BusinessValidationException("role must not be null");
         }
+        if (expirationMinutes <= 0) {
+            throw new BusinessValidationException("expirationMinutes must be positive");
+        }
         Date now = new Date();
         Date expiration = new Date(now.getTime() + Duration.ofMinutes(expirationMinutes).toMillis());
 
