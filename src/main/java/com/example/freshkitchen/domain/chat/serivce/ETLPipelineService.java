@@ -35,12 +35,11 @@ public class ETLPipelineService {
             allDocuments.add(buildDocument(rootNode));
         }
         if (attach == null || attach.isEmpty()) {
-            log.error("벡터 저장 요청 파일이 없거나 비어 있습니다.");
             throw new IOException("유효하지 않은 입력입니다. 업로드 파일이 필요합니다.");
         }
         int totalSize = allDocuments.size();
 // 수정: 배치 사이즈를 더 작게 줄입니다 (5~10 권장)
-        int batchSize = 4;
+        int batchSize = 10;
 
         for (int i = 0; i < totalSize; i += batchSize) {
             int end = Math.min(i + batchSize, totalSize);
@@ -54,7 +53,6 @@ public class ETLPipelineService {
                 try {
                     vectorStore.add(batch);
                     success = true;
-                    log.info("성공: ({}/{})", end, totalSize);
                 } catch (Exception e) {
                     if (e.getMessage().contains("429")) {
                         retryCount++;
@@ -77,7 +75,7 @@ public class ETLPipelineService {
 
             // 정상 처리 후에도 짧은 휴식
             try {
-                Thread.sleep(2000);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
