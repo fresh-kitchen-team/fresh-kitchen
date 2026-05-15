@@ -246,6 +246,17 @@ public class ChatService {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND));
 
+        long previousMessageCount = messageRepository.countByRoomId(roomId);
+
+        ChatMessage userMessage = ChatMessage.create(
+                request.message(),
+                Sender.USER,
+                null,
+                chatRoom,
+                chatRoom.getUser()
+        );
+        messageRepository.save(userMessage);
+
         ChatMessage chatMessage = ChatMessage.create(
                 finalJson,
                 Sender.AI,
@@ -256,8 +267,7 @@ public class ChatService {
 
         ChatMessage saved = messageRepository.save(chatMessage);
 
-        long messageCount = messageRepository.countByRoomId(roomId);
-        if (messageCount == 1) {
+        if (previousMessageCount == 0) {
             String autoTitle = generateRoomTitle(request.message());
             chatRoom.updateTitle(autoTitle);
             chatRoomRepository.save(chatRoom);
