@@ -56,7 +56,8 @@ public class ETLPipelineService {
                     vectorStore.add(batch);
                     success = true;
                 } catch (Exception e) {
-                    if (e.getMessage().contains("429")) {
+                    log.error("임베딩 실패 상세: [{}] {}", e.getClass().getName(), e.getMessage());
+                    if (e.getMessage() != null && e.getMessage().contains("429")) {
                         retryCount++;
                  log.warn("429 에러 발생! {}초 후 다시 시도합니다. (시도: {}/5)", retryCount * 10, retryCount);
                         try {
