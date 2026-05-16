@@ -27,6 +27,12 @@ public class ETLPipelineService {
     private static final String TYPE = "recipe";  // ← 고정
 
     public String addVectorStore(MultipartFile attach) throws IOException {
+        log.info("=== addVectorStore 시작 ===");
+
+        if (attach == null || attach.isEmpty()) {
+            throw new IOException("유효하지 않은 입력입니다. 업로드 파일이 필요합니다.");
+        }
+
         JsonNode rootNode = objectMapper.readTree(attach.getInputStream());
         List<Document> allDocuments = new ArrayList<>();
         if (rootNode.isArray()) {
@@ -34,59 +40,58 @@ public class ETLPipelineService {
         } else {
             allDocuments.add(buildDocument(rootNode));
         }
-        if (attach == null || attach.isEmpty()) {
-            throw new IOException("유효하지 않은 입력입니다. 업로드 파일이 필요합니다.");
-        }
+
+        log.info("파싱된 문서 수: {}건", allDocuments.size());
+
         int totalSize = allDocuments.size();
-// 수정: 배치 사이즈를 더 작게 줄입니다 (5~10 권장)
-
         int batchSize = 50;
-
 
         for (int i = 0; i < totalSize; i += batchSize) {
             int end = Math.min(i + batchSize, totalSize);
             List<Document> batch = allDocuments.subList(i, end);
 
-            // 로직 핵심: 성공할 때까지 혹은 최대 재시도까지 반복
+            log.info("배치 처리 중: {}/{} ({}~{}번째)", end, totalSize, i + 1, end);
+
             boolean success = false;
             int retryCount = 0;
 
             while (!success && retryCount < 5) {
                 try {
+                    log.info("vectorStore.add() 호출 - 배치 크기: {}", batch.size());
                     vectorStore.add(batch);
+                    log.info("vectorStore.add() 성공! ({}/{})", end, totalSize);
                     success = true;
                 } catch (Exception e) {
-                    if (e.getMessage().contains("429")) {
+                    if (e.getMessage() != null && e.getMessage().contains("429")) {
                         retryCount++;
-                 log.warn("429 에러 발생! {}초 후 다시 시도합니다. (시도: {}/5)", retryCount * 10, retryCount);
+                        log.warn("429 에러 발생! {}초 후 다시 시도합니다. (시도: {}/5)", retryCount * 10, retryCount);
                         try {
-
                             Thread.sleep(retryCount * 10000);
-
                         } catch (InterruptedException ie) {
                             Thread.currentThread().interrupt();
                         }
                     } else {
+                        log.error("vectorStore.add() 실패 - 에러: {}", e.getMessage(), e);
                         throw e;
                     }
                 }
             }
 
-// 추가: 3번 다 실패하면 로그 남기기
             if (!success) {
-                log.error("배치 ({}/{}) 저장 실패 - 3번 재시도 모두 실패", end, totalSize);
+                log.error("배치 ({}/{}) 저장 실패 - 5번 재시도 모두 실패", end, totalSize);
             }
 
-            // 정상 처리 후에도 짧은 휴식
-            try {
-
-                Thread.sleep(30000);
-
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+            if (i + batchSize < totalSize) {
+                log.info("다음 배치 전 30초 대기...");
+                try {
+                    Thread.sleep(30000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }
 
+        log.info("=== addVectorStore 완료: {}건 저장 ===", totalSize);
         return "저장 완료: " + totalSize + "건";
     }
 
