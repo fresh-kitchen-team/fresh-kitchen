@@ -34,10 +34,14 @@ spring:
     retry:
       max-attempts: 3
       on-client-errors: false
+      backoff:
+        initial-interval: 2s
+        multiplier: 2
+        max-interval: 30s
     vectorstore:
       pgvector:
         initialize-schema: false
-        dimensions: 768
+        dimensions: 3072
         distance-type: cosine_distance
 
 logging:
@@ -58,7 +62,7 @@ oauth:
     client-id: ${GOOGLE_CLIENT_ID}
   kakao:
     client-id: ${KAKAO_CLIENT_ID}
-    app-key: ${KAKAO_APP_KEY:}
+    app-key: ${KAKAO_APP_KEY}
 
 ai:
   server:

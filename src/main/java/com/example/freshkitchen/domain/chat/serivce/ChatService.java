@@ -75,7 +75,7 @@ public class ChatService {
                         .chatClientBuilder(chatClientBuilder)
                         .build())
                 .documentRetriever(VectorStoreDocumentRetriever.builder()
-                        .topK(2)
+                        .topK(1)
                         .similarityThreshold(0.6)
                         .vectorStore(vectorStore)
                         .build())

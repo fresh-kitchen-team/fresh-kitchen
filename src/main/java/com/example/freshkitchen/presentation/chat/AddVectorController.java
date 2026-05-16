@@ -36,7 +36,7 @@ public class AddVectorController {
     @PostMapping("/add-vector-store")
     public String addDocument(
             @RequestParam(value = "attach", required = false) MultipartFile attach) throws IOException {
-        log.info("addDocument file={}", attach.getOriginalFilename());
+        log.info("addDocument file={}", attach != null ? attach.getOriginalFilename() : "null");
         return etlpipelineService.addVectorStore(attach);
     }
 }
