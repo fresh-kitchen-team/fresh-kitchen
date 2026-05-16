@@ -13,6 +13,7 @@ export DB_URL=$(aws ssm get-parameter --name "/fresh-kitchen/DB_URL" --with-decr
 export DB_USERNAME=$(aws ssm get-parameter --name "/fresh-kitchen/DB_USERNAME" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export DB_PASSWORD=$(aws ssm get-parameter --name "/fresh-kitchen/DB_PASSWORD" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export JWT_SECRET=$(aws ssm get-parameter --name "/fresh-kitchen/JWT_SECRET" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export GOOGLE_CLIENT_ID=$(aws ssm get-parameter --name "/fresh-kitchen/GOOGLE_CLIENT_ID" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export KAKAO_CLIENT_ID=$(aws ssm get-parameter --name "/fresh-kitchen/KAKAO_CLIENT_ID" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export KAKAO_APP_KEY=$(aws ssm get-parameter --name "/fresh-kitchen/KAKAO_APP_KEY" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export REDIS_HOST=$(aws ssm get-parameter --name "/fresh-kitchen/REDIS_HOST" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
