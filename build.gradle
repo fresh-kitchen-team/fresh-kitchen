@@ -58,6 +58,7 @@ dependencies {
 	implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
 	implementation 'org.springframework.ai:spring-ai-rag'
 	implementation 'org.springframework.ai:spring-ai-starter-model-chat-memory-repository-jdbc'
+
 	// PGVector
 	implementation 'com.pgvector:pgvector:0.1.4'
 	//FireBase
