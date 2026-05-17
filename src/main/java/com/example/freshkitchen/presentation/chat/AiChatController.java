@@ -45,6 +45,16 @@ public class AiChatController {
         return ApiResponse.success(response);
     }
 
+    @Operation(summary = "채팅방 삭제", description = "채팅방을 삭제합니다.")
+    @DeleteMapping("/delete/room/{roomId}")
+    public ResponseEntity<ApiResponse<ChatRoomResponse>> deleteRoom(
+            @PathVariable Long roomId
+    ) {
+        Long userId = getLoginUserId();
+        ChatRoomResponse response = chatService.deleteRoom(userId, roomId);
+        return ApiResponse.success(response);
+    }
+
     @Operation(summary = "채팅방 목록 조회", description = "사이드바용 채팅방 목록을 날짜별(오늘/7일/30일)로 조회합니다.")
     @GetMapping("/room")
     public ResponseEntity<ApiResponse<ChatRoomListResponse>> getRoomList() {
@@ -68,6 +78,8 @@ public class AiChatController {
         ChatRoomResponse response = chatService.updateRoomTitle(roomId, request);
         return ApiResponse.success(response);
     }
+
+
 
     private Long getLoginUserId() {
         JwtAuthentication authentication = (JwtAuthentication) SecurityContextHolder

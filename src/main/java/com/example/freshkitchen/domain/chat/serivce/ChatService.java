@@ -344,4 +344,18 @@ public class ChatService {
 
         return new ChatRoomResponse(chatRoom.getId(), chatRoom.getTitle(), chatRoom.getCreatedAt());
     }
+
+    @Transactional
+    public ChatRoomResponse deleteRoom(Long userId, Long roomId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND));
+
+        if (!chatRoom.getUser().getId().equals(userId)) {
+            throw new ChatException(ChatErrorCode.CHAT_ROOM_NOT_OWNED_BY_USER);
+        }
+
+        ChatRoomResponse response = new ChatRoomResponse(chatRoom.getId(), chatRoom.getTitle(), chatRoom.getCreatedAt());
+        chatRoomRepository.delete(chatRoom);
+        return response;
+    }
 }

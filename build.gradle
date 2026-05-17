@@ -58,10 +58,10 @@ dependencies {
 	implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
 	implementation 'org.springframework.ai:spring-ai-rag'
 	implementation 'org.springframework.ai:spring-ai-starter-model-chat-memory-repository-jdbc'
-	implementation 'com.google.firebase:firebase-admin:9.2.0'
 	// PGVector
 	implementation 'com.pgvector:pgvector:0.1.4'
-
+	//FireBase
+	implementation 'com.google.firebase:firebase-admin:9.3.0'
 	// AWS S3
 	implementation platform('software.amazon.awssdk:bom:2.25.0')
 	implementation 'software.amazon.awssdk:s3'
