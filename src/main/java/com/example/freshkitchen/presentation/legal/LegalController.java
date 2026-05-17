@@ -2,6 +2,7 @@ package com.example.freshkitchen.presentation.legal;
 
 import com.example.freshkitchen.global.response.ApiResponse;
 import com.example.freshkitchen.infrastructure.legal.LegalProperties;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +25,10 @@ public class LegalController {
     }
 
     public record LegalResponse(
+            @Schema(description = "이용약관 URL (Notion)", example = "https://www.notion.so/freshkitchen-terms")
             String termsUrl,
+
+            @Schema(description = "개인정보처리방침 URL (Notion)", example = "https://www.notion.so/freshkitchen-privacy")
             String privacyUrl
     ) {
     }
