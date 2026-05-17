@@ -88,3 +88,24 @@ image:
       access-key-id: ${AWS_ACCESS_KEY_ID:}
       secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
       public-base-url: ${IMAGE_STORAGE_S3_PUBLIC_BASE_URL:}
+
+app:
+  inquiry:
+    admin-email: ${INQUIRY_ADMIN_EMAIL:freshkitchen.team@gmail.com}
+  version:
+    latest-version: "1.0.0"
+    minimum-version: "1.0.0"
+    force-update: false
+    update-url: ""
+  legal:
+    terms-url: ${LEGAL_TERMS_URL:}
+    privacy-url: ${LEGAL_PRIVACY_URL:}
+
+spring.mail:
+  host: smtp.gmail.com
+  port: 587
+  username: ${MAIL_USERNAME:}
+  password: ${MAIL_PASSWORD:}
+  properties:
+    mail.smtp.auth: true
+    mail.smtp.starttls.enable: true

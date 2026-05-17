@@ -34,7 +34,8 @@ public class SecurityConfig {
             "/add-vector-store",
 
             "/api/v1/auth/dev-login",
-
+            "/api/v1/app/version",
+            "/api/v1/legal",
     };
 
     private final JwtTokenProvider jwtTokenProvider;
