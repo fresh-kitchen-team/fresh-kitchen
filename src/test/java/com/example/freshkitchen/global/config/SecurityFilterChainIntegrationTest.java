@@ -36,7 +36,6 @@ import com.example.freshkitchen.global.security.exception.SecurityErrorCode;
 import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
 import com.example.freshkitchen.global.security.infrastructure.TokenPayload;
 import com.example.freshkitchen.domain.chat.serivce.ChatService;
-import com.example.freshkitchen.domain.chat.serivce.ETLPipelineService;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
 import com.example.freshkitchen.infrastructure.app.AppVersionProperties;
 import com.example.freshkitchen.infrastructure.image.LocalImageStorageProperties;
@@ -136,9 +135,6 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private DevLoginUseCase devLoginUseCase;
-
-    @MockitoBean
-    private ETLPipelineService etlPipelineService;
 
     @MockitoBean
     private ChatService chatService;
