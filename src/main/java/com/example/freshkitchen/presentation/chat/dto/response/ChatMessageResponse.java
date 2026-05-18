@@ -11,6 +11,7 @@ public record ChatMessageResponse(
             String sender,
             String text,
             AiPayloadResponse aiPayload,
+            String uiType,
             String createdAt
     ) {}
 
@@ -26,4 +27,6 @@ public record ChatMessageResponse(
             List<String> steps,
             String time
     ) {}
+
+
 }

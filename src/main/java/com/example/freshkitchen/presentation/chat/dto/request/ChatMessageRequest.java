@@ -1,27 +1,16 @@
 package com.example.freshkitchen.presentation.chat.dto.request;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-
-import java.util.List;
 
 public record ChatMessageRequest(
         @NotBlank String message,
-        @NotBlank String type,
-        @Valid @NotEmpty List<IngredientRequest> ingredients,
-        @Valid UserPreferencesRequest userPreferences
+        AiSettingRequest aiSetting
 ) {
-    public record IngredientRequest(
-            Long id,
-            String name,
-            String expiresAt
-    ) {}
-
-    public record UserPreferencesRequest(
-            List<String> allergies,
-            List<String> preferredIngredients,
-            List<String> preferredFoodStyles,
-            List<String> cookingTool
+    public record AiSettingRequest(
+            boolean responseStyle,
+            boolean priorityExpiration,
+            boolean priorityNutrition,
+            boolean priorityFrequent,
+            boolean provideExtraInfo
     ) {}
 }
