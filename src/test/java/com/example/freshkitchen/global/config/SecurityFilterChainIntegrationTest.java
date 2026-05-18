@@ -1,14 +1,19 @@
 package com.example.freshkitchen.global.config;
 
 import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
+import com.example.freshkitchen.application.auth.usecase.DevLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
+import com.example.freshkitchen.application.analytics.usecase.GetAnalyticsSummaryUseCase;
 import com.example.freshkitchen.application.chat.usecase.CreateChatRoomUseCase;
 import com.example.freshkitchen.application.chat.usecase.GetChatHistoryUseCase;
 import com.example.freshkitchen.application.chat.usecase.GetChatRoomListUseCase;
 import com.example.freshkitchen.application.chat.usecase.SendChatMessageUseCase;
 import com.example.freshkitchen.application.chat.usecase.UpdateChatRoomTitleUseCase;
+import com.example.freshkitchen.application.ingredient.usecase.ConsumeIngredientUseCase;
+import com.example.freshkitchen.application.tips.usecase.GetRecyclingGuidesUseCase;
+import com.example.freshkitchen.application.tips.usecase.GetStorageTipsUseCase;
 import com.example.freshkitchen.application.home.usecase.GetHomeSummaryUseCase;
 import com.example.freshkitchen.application.image.usecase.ChangeIngredientPrimaryImageUseCase;
 import com.example.freshkitchen.application.image.usecase.UploadIngredientImageUseCase;
@@ -25,6 +30,7 @@ import com.example.freshkitchen.application.user.dto.UserProfileResult;
 import com.example.freshkitchen.application.user.usecase.DeleteUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.GetUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
+import com.example.freshkitchen.domain.chat.serivce.ChatService;
 import com.example.freshkitchen.global.security.Role;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
 import com.example.freshkitchen.global.security.exception.JwtTokenException;
@@ -117,6 +123,9 @@ class SecurityFilterChainIntegrationTest {
     private ScanReceiptImageUseCase scanReceiptImageUseCase;
 
     @MockitoBean
+    private DevLoginUseCase devLoginUseCase;
+
+    @MockitoBean
     private GoogleLoginUseCase googleLoginUseCase;
 
     @MockitoBean
@@ -127,6 +136,9 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private AiServerClient aiServerClient;
+
+    @MockitoBean
+    private ChatService chatService;
 
     @MockitoBean
     private Clock clock;
@@ -145,6 +157,18 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private UpdateChatRoomTitleUseCase updateChatRoomTitleUseCase;
+
+    @MockitoBean
+    private ConsumeIngredientUseCase consumeIngredientUseCase;
+
+    @MockitoBean
+    private GetAnalyticsSummaryUseCase getAnalyticsSummaryUseCase;
+
+    @MockitoBean
+    private GetStorageTipsUseCase getStorageTipsUseCase;
+
+    @MockitoBean
+    private GetRecyclingGuidesUseCase getRecyclingGuidesUseCase;
 
     @Test
     void protectedEndpoint_returns401_whenNoTokenProvided() throws Exception {
@@ -298,6 +322,32 @@ class SecurityFilterChainIntegrationTest {
     }
 
     @Test
+    void storageTipsEndpoint_isAccessibleWithoutToken() throws Exception {
+        mockMvc.perform(get("/api/v1/tips/storage"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void recyclingGuidesEndpoint_isAccessibleWithoutToken() throws Exception {
+        mockMvc.perform(get("/api/v1/tips/recycling"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void analyticsSummaryEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(get("/api/v1/analytics/summary"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void consumeEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(patch("/api/v1/items/1/consume"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
     void configuredUploadEndpoint_isAccessibleWithoutToken() throws Exception {
         mockMvc.perform(get("/assets/images/test.png"))
                 .andExpect(status().isOk());
@@ -320,5 +370,6 @@ class SecurityFilterChainIntegrationTest {
         String dummyUploadEndpoint() {
             return "upload-dummy";
         }
+
     }
 }

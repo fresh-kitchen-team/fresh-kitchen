@@ -1,6 +1,7 @@
 package com.example.freshkitchen.presentation.item;
 
 import com.example.freshkitchen.application.ingredient.dto.IngredientDto;
+import com.example.freshkitchen.application.ingredient.usecase.ConsumeIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientWithImageUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.DeleteIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.GetIngredientUseCase;
@@ -59,6 +60,7 @@ class ItemControllerTest {
 
     private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-05-01T00:00:00Z"), ZoneOffset.UTC);
 
+    private ConsumeIngredientUseCase consumeIngredientUseCase;
     private CreateIngredientWithImageUseCase createIngredientWithImageUseCase;
     private UpdateIngredientUseCase updateIngredientUseCase;
     private GetIngredientUseCase getIngredientUseCase;
@@ -69,6 +71,7 @@ class ItemControllerTest {
 
     @BeforeEach
     void setUp() {
+        consumeIngredientUseCase = mock(ConsumeIngredientUseCase.class);
         createIngredientWithImageUseCase = mock(CreateIngredientWithImageUseCase.class);
         updateIngredientUseCase = mock(UpdateIngredientUseCase.class);
         getIngredientUseCase = mock(GetIngredientUseCase.class);
@@ -83,6 +86,7 @@ class ItemControllerTest {
         validator.afterPropertiesSet();
 
         ItemController controller = new ItemController(
+                consumeIngredientUseCase,
                 createIngredientWithImageUseCase,
                 updateIngredientUseCase,
                 getIngredientUseCase,
