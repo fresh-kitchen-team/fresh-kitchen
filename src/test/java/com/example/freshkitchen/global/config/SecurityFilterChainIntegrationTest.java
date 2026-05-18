@@ -357,11 +357,7 @@ class SecurityFilterChainIntegrationTest {
 
     @Test
     void inquiryEndpoint_returns401_whenNoTokenProvided() throws Exception {
-        mockMvc.perform(post("/api/v1/inquiries")
-                        .contentType("application/json")
-                        .content("""
-                                { "title": "test", "content": "test content" }
-                                """))
+        mockMvc.perform(multipart("/api/v1/inquiries"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
     }
