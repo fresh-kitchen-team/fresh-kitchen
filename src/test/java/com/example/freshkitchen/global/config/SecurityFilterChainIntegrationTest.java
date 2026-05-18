@@ -334,6 +334,36 @@ class SecurityFilterChainIntegrationTest {
     }
 
     @Test
+    void appVersionEndpoint_isAccessibleWithoutToken() throws Exception {
+        mockMvc.perform(get("/api/v1/app/version"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void legalEndpoint_isAccessibleWithoutToken() throws Exception {
+        mockMvc.perform(get("/api/v1/legal"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void legalAgreementEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(post("/api/v1/legal/agreement"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void inquiryEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(post("/api/v1/inquiries")
+                        .contentType("application/json")
+                        .content("""
+                                { "title": "test", "content": "test content" }
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
     void configuredUploadEndpoint_isAccessibleWithoutToken() throws Exception {
         mockMvc.perform(get("/assets/images/test.png"))
                 .andExpect(status().isOk());

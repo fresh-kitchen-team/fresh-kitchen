@@ -99,7 +99,7 @@ image:
 
 app:
   inquiry:
-    admin-email: ${INQUIRY_ADMIN_EMAIL}
+    admin-email: ${INQUIRY_ADMIN_EMAIL:}
   version:
     latest-version: "1.0.0"
     minimum-version: "1.0.0"

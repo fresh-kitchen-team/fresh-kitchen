@@ -42,6 +42,7 @@
 - `ImageException`
 - `UserException`
 - `AiServerException`
+- `InquiryException`
 
 도메인별 예외는 각 도메인의 `ErrorCode` enum 과 1:1로 연결한다.
 
@@ -182,13 +183,19 @@
 | `IMAGE_ASSET_ALREADY_ATTACHED` | `400` | `IMAGE-400-5` | `image asset is already attached to ingredient` | 식재료-이미지 중복 연결 |
 | `IMAGE_ASSET_NOT_FOUND` | `404` | `IMAGE-404-1` | `image asset not found` | 이미지 asset 조회 실패 |
 
-### 6.3 UserErrorCode
+### 6.3 InquiryErrorCode
+
+| Enum | HTTP Status | Code | Message | 의미 |
+|------|-------------|------|---------|------|
+| `MAIL_SEND_FAILED` | `500` | `INQUIRY-500-1` | `Failed to send inquiry email` | 문의 이메일 발송 실패 (SMTP 오류 등) |
+
+### 6.4 UserErrorCode
 
 | Enum | HTTP Status | Code | Message | 의미 |
 |------|-------------|------|---------|------|
 | `USER_NOT_FOUND` | `404` | `USER-404-1` | `user not found` | 대상 사용자 조회 실패 |
 
-### 6.4 AiServerErrorCode
+### 6.5 AiServerErrorCode
 
 | Enum | HTTP Status | Code | Message | 의미 |
 |------|-------------|------|---------|------|

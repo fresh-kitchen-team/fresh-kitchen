@@ -23,11 +23,11 @@ public class SendInquiryService implements SendInquiryUseCase {
     public void send(Command command) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(inquiryProperties.getAdminEmail());
-        message.setSubject("[FreshKitchen 문의] " + command.title());
+        message.setSubject("[FreshKitchen 문의] " + sanitizeHeader(command.title()));
         message.setText(buildBody(command));
 
         if (command.contactEmail() != null && !command.contactEmail().isBlank()) {
-            message.setReplyTo(command.contactEmail());
+            message.setReplyTo(sanitizeHeader(command.contactEmail()));
         }
 
         try {
@@ -37,6 +37,10 @@ public class SendInquiryService implements SendInquiryUseCase {
             log.error("문의 이메일 발송 실패 — userId={}, title={}", command.userId(), command.title(), e);
             throw new InquiryException(InquiryErrorCode.MAIL_SEND_FAILED, e);
         }
+    }
+
+    private static String sanitizeHeader(String value) {
+        return value.replaceAll("[\\r\\n]", " ").trim();
     }
 
     private static String buildBody(Command command) {
