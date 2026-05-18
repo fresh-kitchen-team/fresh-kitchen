@@ -109,6 +109,9 @@ public class User extends BaseTimeEntity {
     }
 
     public void agreeTerms() {
+        if (hasAgreedTerms()) {
+            return;
+        }
         OffsetDateTime now = OffsetDateTime.now();
         this.termsAgreedAt = now;
         this.privacyAgreedAt = now;

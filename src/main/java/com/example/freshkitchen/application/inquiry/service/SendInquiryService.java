@@ -32,9 +32,9 @@ public class SendInquiryService implements SendInquiryUseCase {
 
         try {
             mailSender.send(message);
-            log.info("문의 이메일 발송 완료 — userId={}, title={}", command.userId(), command.title());
+            log.info("문의 이메일 발송 완료 — userId={}, title={}", command.userId(), sanitizeHeader(command.title()));
         } catch (MailException e) {
-            log.error("문의 이메일 발송 실패 — userId={}, title={}", command.userId(), command.title(), e);
+            log.error("문의 이메일 발송 실패 — userId={}, title={}", command.userId(), sanitizeHeader(command.title()), e);
             throw new InquiryException(InquiryErrorCode.MAIL_SEND_FAILED, e);
         }
     }
