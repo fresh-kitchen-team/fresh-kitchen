@@ -40,9 +40,14 @@ public class GetAnalyticsSummaryService implements GetAnalyticsSummaryUseCase {
         LocalDate today = LocalDate.now(clock);
         List<Ingredient> activeIngredients = ingredientRepository
                 .findAllByUserIdAndStatus(query.userId(), IngredientStatus.ACTIVE);
+        List<Ingredient> consumedIngredients = ingredientRepository
+                .findByUserIdAndStatus(query.userId(), IngredientStatus.CONSUMED);
+        List<Ingredient> discardedIngredients = ingredientRepository
+                .findByUserIdAndStatus(query.userId(), IngredientStatus.DISCARDED);
 
         Map<DisplayCategory, int[]> categoryMap = buildCategoryMap(activeIngredients, today);
-        List<AnalyticsDto.CategoryStat> categoryStats = buildCategoryStats(categoryMap);
+        Map<DisplayCategory, int[]> discardMap = buildDiscardMap(consumedIngredients, discardedIngredients);
+        List<AnalyticsDto.CategoryStat> categoryStats = buildCategoryStats(categoryMap, discardMap);
 
         List<AnalyticsDto.UrgentItem> urgentItems = activeIngredients.stream()
                 .filter(i -> isUrgent(i, today))
@@ -65,6 +70,10 @@ public class GetAnalyticsSummaryService implements GetAnalyticsSummaryUseCase {
 
         String message = buildMessage(urgentCount, topCategory, topCategoryCount);
 
+        int totalConsumed = consumedIngredients.size();
+        int totalDiscarded = discardedIngredients.size();
+        double overallDiscardRate = calculateDiscardRate(totalConsumed, totalDiscarded);
+
         return new AnalyticsDto.SummaryResponse(
                 totalActive,
                 urgentCount,
@@ -72,6 +81,7 @@ public class GetAnalyticsSummaryService implements GetAnalyticsSummaryUseCase {
                 topCategory != null ? topCategory.displayName() : null,
                 topCategoryCount,
                 message,
+                overallDiscardRate,
                 categoryStats,
                 urgentItems
         );
@@ -114,11 +124,43 @@ public class GetAnalyticsSummaryService implements GetAnalyticsSummaryUseCase {
         return map;
     }
 
-    private List<AnalyticsDto.CategoryStat> buildCategoryStats(Map<DisplayCategory, int[]> categoryMap) {
+    private Map<DisplayCategory, int[]> buildDiscardMap(List<Ingredient> consumed, List<Ingredient> discarded) {
+        Map<DisplayCategory, int[]> map = new EnumMap<>(DisplayCategory.class);
+        for (DisplayCategory dc : DisplayCategory.values()) {
+            map.put(dc, new int[]{0, 0}); // [consumedCount, discardedCount]
+        }
+        for (Ingredient i : consumed) {
+            DisplayCategory dc = resolveDisplayCategory(i);
+            map.get(dc)[0]++;
+        }
+        for (Ingredient i : discarded) {
+            DisplayCategory dc = resolveDisplayCategory(i);
+            map.get(dc)[1]++;
+        }
+        return map;
+    }
+
+    private static DisplayCategory resolveDisplayCategory(Ingredient ingredient) {
+        CatalogCategory cc = ingredient.getCatalog() != null
+                ? ingredient.getCatalog().getCategory() : null;
+        return DisplayCategory.from(cc);
+    }
+
+    private static double calculateDiscardRate(int consumed, int discarded) {
+        int total = consumed + discarded;
+        if (total == 0) return 0.0;
+        return Math.round(((double) discarded / total) * 1000.0) / 10.0; // 소수점 1자리
+    }
+
+    private List<AnalyticsDto.CategoryStat> buildCategoryStats(
+            Map<DisplayCategory, int[]> categoryMap,
+            Map<DisplayCategory, int[]> discardMap) {
         return java.util.Arrays.stream(DisplayCategory.values())
                 .map(dc -> {
                     int[] counts = categoryMap.get(dc);
-                    return new AnalyticsDto.CategoryStat(dc, dc.displayName(), counts[0], counts[1]);
+                    int[] discard = discardMap.get(dc);
+                    double rate = calculateDiscardRate(discard[0], discard[1]);
+                    return new AnalyticsDto.CategoryStat(dc, dc.displayName(), counts[0], counts[1], rate);
                 })
                 .toList();
     }

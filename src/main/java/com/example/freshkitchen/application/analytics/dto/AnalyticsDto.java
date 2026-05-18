@@ -17,6 +17,7 @@ public final class AnalyticsDto {
             String topUrgentCategoryDisplayName,
             int topUrgentCategoryCount,
             String message,
+            double overallDiscardRate,
             List<CategoryStat> categoryStats,
             List<UrgentItem> urgentItems
     ) {
@@ -26,7 +27,8 @@ public final class AnalyticsDto {
             DisplayCategory category,
             String displayName,
             int activeCount,
-            int urgentCount
+            int urgentCount,
+            double discardRate
     ) {
     }
 
