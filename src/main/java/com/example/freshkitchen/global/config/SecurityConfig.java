@@ -34,7 +34,7 @@ public class SecurityConfig {
             "/add-vector-store",
 
             "/api/v1/auth/dev-login",
-
+            "/api/v1/tips/**",
     };
 
     private final JwtTokenProvider jwtTokenProvider;
