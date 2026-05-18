@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 
 public enum InquiryErrorCode implements ErrorCode {
 
-    MAIL_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "INQUIRY-500-1", "Failed to send inquiry email");
+    MAIL_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "INQUIRY-500-1", "failed to send inquiry email");
 
     private final HttpStatus status;
     private final String code;

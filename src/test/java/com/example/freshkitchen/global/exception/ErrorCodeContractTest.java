@@ -212,12 +212,12 @@ class ErrorCodeContractTest {
                 InquiryErrorCode.MAIL_SEND_FAILED,
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "INQUIRY-500-1",
-                "Failed to send inquiry email"
+                "failed to send inquiry email"
         );
     }
 
     @Test
-    void domainExceptions_exposeTheirErrorCodes() {
+    void businessExceptions_exposeTheirErrorCodes() {
         IngredientException ingredientException = new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND);
         ImageException imageException = new ImageException(ImageErrorCode.USER_UPLOAD_OWNER_REQUIRED);
         UserException userException = new UserException(UserErrorCode.USER_NOT_FOUND);

@@ -24,8 +24,8 @@ public class GetTermsAgreementService implements GetTermsAgreementUseCase {
         return new AgreementStatus(
                 user.getTermsAgreedAt() != null,
                 user.getPrivacyAgreedAt() != null,
-                user.getTermsAgreedAt() != null ? user.getTermsAgreedAt().toString() : null,
-                user.getPrivacyAgreedAt() != null ? user.getPrivacyAgreedAt().toString() : null
+                user.getTermsAgreedAt(),
+                user.getPrivacyAgreedAt()
         );
     }
 }

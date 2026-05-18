@@ -342,8 +342,15 @@ class SecurityFilterChainIntegrationTest {
     }
 
     @Test
-    void legalAgreementEndpoint_returns401_whenNoTokenProvided() throws Exception {
+    void legalAgreementPostEndpoint_returns401_whenNoTokenProvided() throws Exception {
         mockMvc.perform(post("/api/v1/legal/agreement"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void legalAgreementGetEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(get("/api/v1/legal/agreement"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
     }

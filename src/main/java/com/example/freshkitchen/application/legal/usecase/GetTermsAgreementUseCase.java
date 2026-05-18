@@ -1,5 +1,7 @@
 package com.example.freshkitchen.application.legal.usecase;
 
+import java.time.OffsetDateTime;
+
 public interface GetTermsAgreementUseCase {
 
     AgreementStatus getStatus(Long userId);
@@ -7,8 +9,8 @@ public interface GetTermsAgreementUseCase {
     record AgreementStatus(
             boolean termsAgreed,
             boolean privacyAgreed,
-            String termsAgreedAt,
-            String privacyAgreedAt
+            OffsetDateTime termsAgreedAt,
+            OffsetDateTime privacyAgreedAt
     ) {
     }
 }

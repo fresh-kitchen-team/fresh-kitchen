@@ -24,8 +24,8 @@ public class AgreeTermsService implements AgreeTermsUseCase {
         user.agreeTerms();
 
         return new AgreementResult(
-                user.getTermsAgreedAt().toString(),
-                user.getPrivacyAgreedAt().toString()
+                user.getTermsAgreedAt(),
+                user.getPrivacyAgreedAt()
         );
     }
 }

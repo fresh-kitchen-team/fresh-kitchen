@@ -22,8 +22,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
@@ -106,13 +106,13 @@ image:
 
 app:
   inquiry:
-    admin-email: ${INQUIRY_ADMIN_EMAIL:}
+    admin-email: ${INQUIRY_ADMIN_EMAIL:no-reply@example.invalid}
   version:
     latest-version: "1.0.0"
     minimum-version: "1.0.0"
     force-update: false
     update-url: ""
   legal:
-    terms-url: ${LEGAL_TERMS_URL:}
-    privacy-url: ${LEGAL_PRIVACY_URL:}
+    terms-url: ${LEGAL_TERMS_URL:https://example.invalid/terms}
+    privacy-url: ${LEGAL_PRIVACY_URL:https://example.invalid/privacy}
 

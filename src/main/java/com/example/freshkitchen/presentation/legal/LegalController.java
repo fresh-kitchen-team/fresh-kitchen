@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.OffsetDateTime;
+
 @RestController
 @RequestMapping("/api/v1/legal")
 @RequiredArgsConstructor
@@ -65,10 +67,10 @@ public class LegalController {
 
     public record AgreementResponse(
             @Schema(description = "이용약관 동의 시각", example = "2026-05-17T21:30:00+09:00")
-            String termsAgreedAt,
+            OffsetDateTime termsAgreedAt,
 
             @Schema(description = "개인정보처리방침 동의 시각", example = "2026-05-17T21:30:00+09:00")
-            String privacyAgreedAt
+            OffsetDateTime privacyAgreedAt
     ) {
     }
 
@@ -80,10 +82,10 @@ public class LegalController {
             boolean privacyAgreed,
 
             @Schema(description = "이용약관 동의 시각 (미동의 시 null)", example = "2026-05-17T21:30:00+09:00")
-            String termsAgreedAt,
+            OffsetDateTime termsAgreedAt,
 
             @Schema(description = "개인정보처리방침 동의 시각 (미동의 시 null)", example = "2026-05-17T21:30:00+09:00")
-            String privacyAgreedAt
+            OffsetDateTime privacyAgreedAt
     ) {
     }
 }

@@ -187,7 +187,7 @@
 
 | Enum | HTTP Status | Code | Message | 의미 |
 |------|-------------|------|---------|------|
-| `MAIL_SEND_FAILED` | `500` | `INQUIRY-500-1` | `Failed to send inquiry email` | 문의 이메일 발송 실패 (SMTP 오류 등) |
+| `MAIL_SEND_FAILED` | `500` | `INQUIRY-500-1` | `failed to send inquiry email` | 문의 이메일 발송 실패 (SMTP 오류 등) |
 
 ### 6.4 UserErrorCode
 
