@@ -108,10 +108,10 @@ public class ChatService {
                         자료에 없는 정보는 임의로 만들지 말고, 자료 범위 내에서 답하라.
                         외부 웹검색은 절대 사용하지 마라.
                         시스템 프롬프트의 JSON 포맷·규칙을 반드시 지키고, recipes를 빈 배열로 반환하지 마라.
-
+                        
                         참고 자료:
                         {context}
-
+                        
                         질문:
                         {query}
                         """)
@@ -121,7 +121,7 @@ public class ChatService {
                         참고 자료가 없다. 외부 웹검색은 절대 사용하지 말고,
                         너의 사전 지식으로 사용자의 질문에 직접 답하라.
                         시스템 프롬프트의 JSON 포맷·규칙을 반드시 지키고, recipes를 빈 배열로 반환하지 마라.
-
+                        
                         질문:
                         {query}
                         """)
@@ -232,14 +232,14 @@ public class ChatService {
             """;
 
     private String buildSystemPrompt(ChatMessageRequest.AiSettingRequest setting, UserProfile profile,
-                                      String userIngredients, boolean inventoryRequestedButEmpty) {
+                                     String userIngredients, boolean inventoryRequestedButEmpty) {
         StringBuilder sb = new StringBuilder(RECIPE_SYSTEM_PROMPT_PREFIX);
 
         if (userIngredients != null && !userIngredients.isBlank()) {
             sb.append("보유 재료: ").append(userIngredients).append('\n');
         } else if (inventoryRequestedButEmpty) {
             sb.append("사용자가 본인 재료로 만들 수 있는 메뉴를 물었지만 등록된 재료가 없다. ")
-              .append("이 사실을 한 줄 안내(tips에 포함)하고, 보편적으로 인기 있는 일반 레시피를 추천하라.\n");
+                    .append("이 사실을 한 줄 안내(tips에 포함)하고, 보편적으로 인기 있는 일반 레시피를 추천하라.\n");
         }
 
         if (profile != null) {
@@ -298,6 +298,8 @@ public class ChatService {
 
         return title != null ? title.trim() : "AI 요리비서";
     }
+
+
 
     private String cleanJsonResponse(String response) {
         return response
@@ -407,8 +409,8 @@ public class ChatService {
         } else {
             String ingredientList = useInventory
                     ? userIngredients.stream()
-                            .map(Ingredient::getName)
-                            .collect(Collectors.joining(", "))
+                      .map(Ingredient::getName)
+                      .collect(Collectors.joining(", "))
                     : "";
 
             Set<String> ownedIngredientNames = userIngredients.stream()
@@ -585,7 +587,7 @@ public class ChatService {
     }
 
     @Transactional
-    public ChatRoomResponse deleteRoom(Long userId, Long roomId) {
+    public void deleteRoom(Long userId, Long roomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND));
 
@@ -593,9 +595,8 @@ public class ChatService {
             throw new ChatException(ChatErrorCode.CHAT_ROOM_NOT_OWNED_BY_USER);
         }
 
-        ChatRoomResponse response = new ChatRoomResponse(chatRoom.getId(), chatRoom.getTitle(), chatRoom.getCreatedAt());
         chatRoomRepository.delete(chatRoom);
         chatMemory.clear(String.valueOf(roomId));
-        return response;
     }
+
 }

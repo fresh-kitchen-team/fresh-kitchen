@@ -69,6 +69,17 @@ public class AiChatController {
         return ApiResponse.success(response);
     }
 
+    @Operation(summary = "채팅방 삭제", description = "채팅방을 삭제합니다.")
+    @DeleteMapping("/delete/room/{roomId}")
+    public ResponseEntity<ApiResponse<Void>> deleteRoom(
+            @PathVariable Long roomId
+    ) {
+        Long userId = getLoginUserId();
+        chatService.deleteRoom(userId, roomId);
+        return ApiResponse.success();
+    }
+
+
     private Long getLoginUserId() {
         JwtAuthentication authentication = (JwtAuthentication) SecurityContextHolder
                 .getContext()
