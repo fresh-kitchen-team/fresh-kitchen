@@ -109,13 +109,13 @@ image:
 
 app:
   inquiry:
-    admin-email: ${INQUIRY_ADMIN_EMAIL:no-reply@example.invalid}
+    admin-email: ${INQUIRY_ADMIN_EMAIL:no-reply@example.invalid}  # CI/test fallback; docker-compose enforces required via :?
   version:
     latest-version: "1.0.0"
     minimum-version: "1.0.0"
     force-update: false
     update-url: ""
   legal:
-    terms-url: ${LEGAL_TERMS_URL:https://example.invalid/terms}
-    privacy-url: ${LEGAL_PRIVACY_URL:https://example.invalid/privacy}
+    terms-url: ${LEGAL_TERMS_URL:https://example.invalid/terms}      # CI/test fallback; docker-compose enforces required via :?
+    privacy-url: ${LEGAL_PRIVACY_URL:https://example.invalid/privacy}  # CI/test fallback; docker-compose enforces required via :?
 
