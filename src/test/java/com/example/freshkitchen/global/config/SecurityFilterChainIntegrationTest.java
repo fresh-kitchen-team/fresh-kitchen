@@ -3,7 +3,11 @@ package com.example.freshkitchen.global.config;
 import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
 import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
+import com.example.freshkitchen.application.auth.usecase.DevLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
+import com.example.freshkitchen.application.inquiry.usecase.SendInquiryUseCase;
+import com.example.freshkitchen.application.legal.usecase.AgreeTermsUseCase;
+import com.example.freshkitchen.application.legal.usecase.GetTermsAgreementUseCase;
 import com.example.freshkitchen.application.chat.usecase.CreateChatRoomUseCase;
 import com.example.freshkitchen.application.chat.usecase.GetChatHistoryUseCase;
 import com.example.freshkitchen.application.chat.usecase.GetChatRoomListUseCase;
@@ -31,8 +35,13 @@ import com.example.freshkitchen.global.security.exception.JwtTokenException;
 import com.example.freshkitchen.global.security.exception.SecurityErrorCode;
 import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
 import com.example.freshkitchen.global.security.infrastructure.TokenPayload;
+import com.example.freshkitchen.domain.chat.serivce.ChatService;
+import com.example.freshkitchen.domain.chat.serivce.ETLPipelineService;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
+import com.example.freshkitchen.infrastructure.app.AppVersionProperties;
 import com.example.freshkitchen.infrastructure.image.LocalImageStorageProperties;
+import com.example.freshkitchen.infrastructure.inquiry.InquiryProperties;
+import com.example.freshkitchen.infrastructure.legal.LegalProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -126,6 +135,15 @@ class SecurityFilterChainIntegrationTest {
     private RefreshTokenUseCase refreshTokenUseCase;
 
     @MockitoBean
+    private DevLoginUseCase devLoginUseCase;
+
+    @MockitoBean
+    private ETLPipelineService etlPipelineService;
+
+    @MockitoBean
+    private ChatService chatService;
+
+    @MockitoBean
     private AiServerClient aiServerClient;
 
     @MockitoBean
@@ -145,6 +163,24 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private UpdateChatRoomTitleUseCase updateChatRoomTitleUseCase;
+
+    @MockitoBean
+    private SendInquiryUseCase sendInquiryUseCase;
+
+    @MockitoBean
+    private AgreeTermsUseCase agreeTermsUseCase;
+
+    @MockitoBean
+    private GetTermsAgreementUseCase getTermsAgreementUseCase;
+
+    @MockitoBean
+    private AppVersionProperties appVersionProperties;
+
+    @MockitoBean
+    private LegalProperties legalProperties;
+
+    @MockitoBean
+    private InquiryProperties inquiryProperties;
 
     @Test
     void protectedEndpoint_returns401_whenNoTokenProvided() throws Exception {

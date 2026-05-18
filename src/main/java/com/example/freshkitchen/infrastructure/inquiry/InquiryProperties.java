@@ -1,5 +1,6 @@
-package com.example.freshkitchen.infrastructure.app;
+package com.example.freshkitchen.infrastructure.inquiry;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,15 +12,10 @@ import org.springframework.validation.annotation.Validated;
 @Setter
 @Component
 @Validated
-@ConfigurationProperties(prefix = "app.version")
-public class AppVersionProperties {
+@ConfigurationProperties(prefix = "app.inquiry")
+public class InquiryProperties {
 
     @NotBlank
-    private String latestVersion;
-
-    @NotBlank
-    private String minimumVersion;
-
-    private boolean forceUpdate;
-    private String updateUrl;
+    @Email
+    private String adminEmail;
 }

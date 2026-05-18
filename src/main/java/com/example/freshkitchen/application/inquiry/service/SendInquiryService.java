@@ -1,9 +1,12 @@
 package com.example.freshkitchen.application.inquiry.service;
 
+import com.example.freshkitchen.application.inquiry.exception.InquiryErrorCode;
+import com.example.freshkitchen.application.inquiry.exception.InquiryException;
 import com.example.freshkitchen.application.inquiry.usecase.SendInquiryUseCase;
+import com.example.freshkitchen.infrastructure.inquiry.InquiryProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -14,14 +17,12 @@ import org.springframework.stereotype.Service;
 public class SendInquiryService implements SendInquiryUseCase {
 
     private final JavaMailSender mailSender;
-
-    @Value("${app.inquiry.admin-email}")
-    private String adminEmail;
+    private final InquiryProperties inquiryProperties;
 
     @Override
     public void send(Command command) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(adminEmail);
+        message.setTo(inquiryProperties.getAdminEmail());
         message.setSubject("[FreshKitchen 문의] " + command.title());
         message.setText(buildBody(command));
 
@@ -29,8 +30,13 @@ public class SendInquiryService implements SendInquiryUseCase {
             message.setReplyTo(command.contactEmail());
         }
 
-        mailSender.send(message);
-        log.info("문의 이메일 발송 완료 — userId={}, title={}", command.userId(), command.title());
+        try {
+            mailSender.send(message);
+            log.info("문의 이메일 발송 완료 — userId={}, title={}", command.userId(), command.title());
+        } catch (MailException e) {
+            log.error("문의 이메일 발송 실패 — userId={}, title={}", command.userId(), command.title(), e);
+            throw new InquiryException(InquiryErrorCode.MAIL_SEND_FAILED, e);
+        }
     }
 
     private static String buildBody(Command command) {

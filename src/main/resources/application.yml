@@ -19,6 +19,14 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
   ai:
     google:
       genai:
@@ -91,7 +99,7 @@ image:
 
 app:
   inquiry:
-    admin-email: ${INQUIRY_ADMIN_EMAIL:freshkitchen.team@gmail.com}
+    admin-email: ${INQUIRY_ADMIN_EMAIL}
   version:
     latest-version: "1.0.0"
     minimum-version: "1.0.0"
@@ -101,11 +109,3 @@ app:
     terms-url: ${LEGAL_TERMS_URL:}
     privacy-url: ${LEGAL_PRIVACY_URL:}
 
-spring.mail:
-  host: smtp.gmail.com
-  port: 587
-  username: ${MAIL_USERNAME:}
-  password: ${MAIL_PASSWORD:}
-  properties:
-    mail.smtp.auth: true
-    mail.smtp.starttls.enable: true
