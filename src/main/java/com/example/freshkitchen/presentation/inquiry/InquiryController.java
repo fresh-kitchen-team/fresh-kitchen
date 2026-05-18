@@ -5,10 +5,13 @@ import com.example.freshkitchen.application.inquiry.usecase.InquiryType;
 import com.example.freshkitchen.application.inquiry.usecase.SendInquiryUseCase;
 import com.example.freshkitchen.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/inquiries")
 @RequiredArgsConstructor
@@ -36,6 +40,8 @@ public class InquiryController {
             InquiryCategory category,
 
             @RequestParam
+            @NotBlank(message = "내용은 필수입니다")
+            @Size(max = 5000, message = "내용은 5000자 이내여야 합니다")
             @Schema(description = "문의/신고 내용", example = "레시피 추천이 잘못된 것 같습니다.")
             String content,
 

@@ -37,10 +37,14 @@ public class SendInquiryService implements SendInquiryUseCase {
             helper.setText(buildBody(command));
 
             if (command.image() != null && !command.image().isEmpty()) {
-                helper.addAttachment(
-                        command.image().getOriginalFilename(),
-                        command.image()
-                );
+                String originalFilename = command.image().getOriginalFilename();
+                String safeFilename = (originalFilename != null)
+                        ? org.springframework.util.StringUtils.getFilename(originalFilename)
+                        : "attachment";
+                if (safeFilename == null || safeFilename.isBlank()) {
+                    safeFilename = "attachment";
+                }
+                helper.addAttachment(safeFilename, command.image());
             }
 
             mailSender.send(mimeMessage);
