@@ -76,6 +76,13 @@ ai:
     connect-timeout-ms: ${AI_SERVER_CONNECT_TIMEOUT_MS:3000}
     read-timeout-ms: ${AI_SERVER_READ_TIMEOUT_MS:30000}
 
+chat:
+  intent-classifier:
+    enabled: ${INTENT_CLASSIFIER_ENABLED:true}
+    model: ${INTENT_CLASSIFIER_MODEL:gemini-2.5-flash-lite}
+    fallback-type: ${INTENT_CLASSIFIER_FALLBACK:GENERAL}
+
+
 image:
   storage:
     type: ${IMAGE_STORAGE_TYPE:local}
