@@ -1,6 +1,7 @@
 package com.example.freshkitchen.presentation.item;
 
 import com.example.freshkitchen.application.ingredient.dto.IngredientDto;
+import com.example.freshkitchen.application.ingredient.usecase.ConsumeIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientWithImageUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.DeleteIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.GetIngredientUseCase;
@@ -35,6 +36,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemController {
 
+    private final ConsumeIngredientUseCase consumeIngredientUseCase;
     private final CreateIngredientWithImageUseCase createIngredientWithImageUseCase;
     private final UpdateIngredientUseCase updateIngredientUseCase;
     private final GetIngredientUseCase getIngredientUseCase;
@@ -82,6 +84,16 @@ public class ItemController {
     ) {
         updateIngredientUseCase.update(ItemRequest.Update.from(request).toCommand(itemId, userId));
         return ApiResponse.success();
+    }
+
+    @PatchMapping("/{itemId}/consume")
+    public ResponseEntity<ApiResponse<ItemResponse.Consume>> consume(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable @Positive Long itemId
+    ) {
+        ConsumeIngredientUseCase.ConsumeResult result =
+                consumeIngredientUseCase.consume(new ConsumeIngredientUseCase.Command(itemId, userId));
+        return ApiResponse.success(new ItemResponse.Consume(result.consumedAt()));
     }
 
     @DeleteMapping("/{itemId}")
