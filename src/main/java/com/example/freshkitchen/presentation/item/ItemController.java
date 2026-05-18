@@ -25,10 +25,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.example.freshkitchen.domain.ingredient.enums.StorageType;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -71,16 +68,10 @@ public class ItemController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ItemResponse.Item>>> list(
-            @AuthenticationPrincipal Long userId,
-            @RequestParam(required = false)
-            @Schema(description = "유통기한 D-Day 필터 (예: 3이면 D-3 이내 항목만 조회)")
-            Integer maxDDay,
-            @RequestParam(required = false)
-            @Schema(description = "저장방법 필터 (FRIDGE, FREEZER, PANTRY)")
-            StorageType storageType
+            @AuthenticationPrincipal Long userId
     ) {
         return ApiResponse.success(ItemResponse.fromSummaries(
-                listIngredientsUseCase.list(new ListIngredientsUseCase.Query(userId, maxDDay, storageType)),
+                listIngredientsUseCase.list(new ListIngredientsUseCase.Query(userId)),
                 clock
         ));
     }

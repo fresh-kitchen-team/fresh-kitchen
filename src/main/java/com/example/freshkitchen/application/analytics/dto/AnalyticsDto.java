@@ -41,4 +41,16 @@ public final class AnalyticsDto {
             StorageType storageType
     ) {
     }
+
+    public record ExpiringItem(
+            Long id,
+            String name,
+            String emoji,
+            DisplayCategory category,
+            String categoryDisplayName,
+            LocalDate expiresAt,
+            int dDay,
+            StorageType storageType
+    ) {
+    }
 }

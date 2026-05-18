@@ -6,6 +6,7 @@ import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
 import com.example.freshkitchen.application.analytics.usecase.GetAnalyticsSummaryUseCase;
+import com.example.freshkitchen.application.analytics.usecase.ListExpiringItemsUseCase;
 import com.example.freshkitchen.application.chat.usecase.CreateChatRoomUseCase;
 import com.example.freshkitchen.application.chat.usecase.GetChatHistoryUseCase;
 import com.example.freshkitchen.application.chat.usecase.GetChatRoomListUseCase;
@@ -163,6 +164,9 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private GetAnalyticsSummaryUseCase getAnalyticsSummaryUseCase;
+
+    @MockitoBean
+    private ListExpiringItemsUseCase listExpiringItemsUseCase;
 
     @MockitoBean
     private GetStorageTipsUseCase getStorageTipsUseCase;
@@ -336,6 +340,13 @@ class SecurityFilterChainIntegrationTest {
     @Test
     void analyticsSummaryEndpoint_returns401_whenNoTokenProvided() throws Exception {
         mockMvc.perform(get("/api/v1/analytics/summary"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void expiringItemsEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(get("/api/v1/analytics/expiring-items"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
     }
