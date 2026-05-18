@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 public class ListExpiringItemsService implements ListExpiringItemsUseCase {
 
     private static final String DEFAULT_EMOJI = "🍽️";
+    private static final int DEFAULT_MAX_D_DAY = 10;
 
     private final IngredientRepository ingredientRepository;
     private final Clock clock;
@@ -32,18 +33,16 @@ public class ListExpiringItemsService implements ListExpiringItemsUseCase {
     @Override
     public List<AnalyticsDto.ExpiringItem> list(Query query) {
         LocalDate today = LocalDate.now(clock);
+        int effectiveMaxDDay = query.maxDDay() != null ? query.maxDDay() : DEFAULT_MAX_D_DAY;
+        LocalDate deadline = today.plusDays(effectiveMaxDDay);
 
         Stream<Ingredient> stream = ingredientRepository
                 .findAllByUserIdAndStatus(query.userId(), IngredientStatus.ACTIVE)
-                .stream();
+                .stream()
+                .filter(i -> i.getExpiresAt() != null && !i.getExpiresAt().isAfter(deadline));
 
         if (query.storageType() != null) {
             stream = stream.filter(i -> i.getStorage().getStorageType() == query.storageType());
-        }
-
-        if (query.maxDDay() != null) {
-            LocalDate deadline = today.plusDays(query.maxDDay());
-            stream = stream.filter(i -> i.getExpiresAt() != null && !i.getExpiresAt().isAfter(deadline));
         }
 
         return stream
