@@ -111,7 +111,8 @@ public class JwtTokenProvider {
     public Duration getRemainingTtl(String token) {
         try {
             Claims claims = parseClaims(token);
-            long remaining = claims.getExpiration().getTime() - System.currentTimeMillis();
+            long remaining = claims.getExpiration().getTime() - System.currentTimeMillis()
+                    + Duration.ofSeconds(CLOCK_SKEW_SECONDS).toMillis();
             return Duration.ofMillis(Math.max(remaining, 0));
         } catch (JwtTokenException e) {
             return Duration.ZERO;

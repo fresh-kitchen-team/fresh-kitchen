@@ -5,6 +5,7 @@ import com.example.freshkitchen.domain.user.entity.User;
 import com.example.freshkitchen.domain.user.exception.UserErrorCode;
 import com.example.freshkitchen.domain.user.exception.UserException;
 import com.example.freshkitchen.domain.user.repository.UserRepository;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.infrastructure.auth.RefreshTokenRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,9 @@ public class HardDeleteUserService implements HardDeleteUserUseCase {
         }
 
         Long userId = command.userId();
+        if (userId == null) {
+            throw new BusinessValidationException("userId must not be null");
+        }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));

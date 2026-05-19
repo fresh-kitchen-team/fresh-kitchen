@@ -4,6 +4,7 @@ import com.example.freshkitchen.application.auth.usecase.LogoutUseCase;
 import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
 import com.example.freshkitchen.infrastructure.auth.AccessTokenBlacklistRepository;
 import com.example.freshkitchen.infrastructure.auth.RefreshTokenRepository;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -25,6 +26,9 @@ public class LogoutService implements LogoutUseCase {
 
     @Override
     public void logout(Command command) {
+        if (command == null || command.userId() == null) {
+            throw new BusinessValidationException("userId must not be null");
+        }
         try {
             refreshTokenRepository.deleteByUserId(command.userId());
 

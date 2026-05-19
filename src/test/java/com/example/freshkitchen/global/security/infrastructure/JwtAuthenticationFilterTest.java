@@ -118,4 +118,40 @@ class JwtAuthenticationFilterTest {
         assertThat(stored.getErrorCode()).isEqualTo(JwtErrorCode.EMPTY_CLAIMS);
         verify(filterChain).doFilter(request, response);
     }
+
+    @Test
+    void doFilter_setsBlacklistedTokenException_whenTokenIsBlacklisted() throws ServletException, IOException {
+        request.addHeader("Authorization", "Bearer blacklisted-token");
+        given(jwtTokenProvider.validateAccessToken("blacklisted-token"))
+                .willReturn(new TokenPayload(1L, Role.USER));
+        given(accessTokenBlacklistRepository.isBlacklisted("blacklisted-token"))
+                .willReturn(true);
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+        JwtTokenException stored = (JwtTokenException) request.getAttribute(
+                JwtAuthenticationFilter.JWT_EXCEPTION_ATTRIBUTE
+        );
+        assertThat(stored).isNotNull();
+        assertThat(stored.getErrorCode()).isEqualTo(JwtErrorCode.BLACKLISTED_TOKEN);
+        verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    void doFilter_setsAuthentication_whenBlacklistCheckFailsWithRedisError() throws ServletException, IOException {
+        request.addHeader("Authorization", "Bearer valid-token-redis-down");
+        given(jwtTokenProvider.validateAccessToken("valid-token-redis-down"))
+                .willReturn(new TokenPayload(1L, Role.USER));
+        given(accessTokenBlacklistRepository.isBlacklisted("valid-token-redis-down"))
+                .willThrow(new RuntimeException("Redis connection refused"));
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        // fail-open: Redis 장애 시 인증 허용
+        JwtAuthentication auth = (JwtAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        assertThat(auth).isNotNull();
+        assertThat(auth.getUserId()).isEqualTo(1L);
+        verify(filterChain).doFilter(request, response);
+    }
 }
