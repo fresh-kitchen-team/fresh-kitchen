@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "User Profile", description = "인증된 사용자의 프로필 관리")
@@ -65,13 +64,12 @@ public class UserProfileController {
         return ApiResponse.success();
     }
 
-    @Operation(summary = "회원 탈퇴", description = "계정을 비활성화합니다. hard=true 시 dev 환경에서만 완전 삭제")
+    @Operation(summary = "회원 탈퇴", description = "계정을 비활성화(소프트 삭제)합니다")
     @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> deleteUser(
-            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
-            @RequestParam(defaultValue = "false") boolean hard
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId
     ) {
-        deleteUserUseCase.delete(new DeleteUserUseCase.Command(userId, hard));
+        deleteUserUseCase.delete(new DeleteUserUseCase.Command(userId));
         return ApiResponse.success();
     }
 }

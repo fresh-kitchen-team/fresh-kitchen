@@ -33,6 +33,7 @@ import com.example.freshkitchen.application.scan.usecase.ScanIngredientImageUseC
 import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase;
 import com.example.freshkitchen.application.user.dto.UserProfileResult;
 import com.example.freshkitchen.application.user.usecase.DeleteUserUseCase;
+import com.example.freshkitchen.application.user.usecase.HardDeleteUserUseCase;
 import com.example.freshkitchen.application.user.usecase.DeleteUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.GetUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
@@ -206,6 +207,9 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private DeleteUserUseCase deleteUserUseCase;
+
+    @MockitoBean
+    private HardDeleteUserUseCase hardDeleteUserUseCase;
 
     @Test
     void protectedEndpoint_returns401_whenNoTokenProvided() throws Exception {

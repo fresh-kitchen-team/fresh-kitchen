@@ -1,6 +1,6 @@
 package com.example.freshkitchen.application.user.usecase;
 
-public interface DeleteUserUseCase {
+public interface HardDeleteUserUseCase {
 
     void delete(Command command);
 
