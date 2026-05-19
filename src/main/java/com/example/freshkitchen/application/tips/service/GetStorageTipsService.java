@@ -23,9 +23,9 @@ public class GetStorageTipsService implements GetStorageTipsUseCase {
         List<StorageTip> tips;
 
         if (query.displayCategory() != null) {
-            tips = storageTipRepository.findAll(Sort.by("id")).stream()
-                    .filter(tip -> DisplayCategory.from(tip.getCategory()) == query.displayCategory())
-                    .toList();
+            tips = storageTipRepository.findByCategoryInOrderById(
+                    query.displayCategory().catalogCategories()
+            );
         } else {
             tips = storageTipRepository.findAll(Sort.by("id"));
         }

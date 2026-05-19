@@ -16,7 +16,8 @@ public enum IngredientErrorCode implements ErrorCode {
     STORAGE_NOT_OWNED_BY_USER(HttpStatus.BAD_REQUEST, "INGREDIENT-400-7", "storage must belong to user"),
     STORAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "INGREDIENT-404-2", "storage not found"),
     CATALOG_NOT_FOUND(HttpStatus.NOT_FOUND, "INGREDIENT-404-3", "ingredient catalog not found"),
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "INGREDIENT-404-4", "user not found");
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "INGREDIENT-404-4", "user not found"),
+    INVALID_STATUS_TRANSITION(HttpStatus.CONFLICT, "INGREDIENT-409-2", "invalid ingredient status transition");
 
     private final HttpStatus status;
     private final String code;

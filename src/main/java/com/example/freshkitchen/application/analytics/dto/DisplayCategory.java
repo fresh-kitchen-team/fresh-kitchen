@@ -39,6 +39,10 @@ public enum DisplayCategory {
         return displayName;
     }
 
+    public List<CatalogCategory> catalogCategories() {
+        return catalogCategories;
+    }
+
     public static DisplayCategory from(CatalogCategory catalogCategory) {
         if (catalogCategory == null) {
             return ETC;

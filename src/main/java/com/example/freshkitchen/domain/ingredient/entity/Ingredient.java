@@ -159,14 +159,22 @@ public class Ingredient extends BaseTimeEntity {
     }
 
     public void markConsumed(LocalDate consumedAt) {
+        if (this.status != IngredientStatus.ACTIVE) {
+            throw new IngredientException(IngredientErrorCode.INVALID_STATUS_TRANSITION);
+        }
+        requireNonNull(consumedAt, "consumedAt");
         this.status = IngredientStatus.CONSUMED;
-        this.consumedAt = consumedAt != null ? consumedAt : LocalDate.now();
+        this.consumedAt = consumedAt;
         this.discardedAt = null;
     }
 
     public void markDiscarded(LocalDate discardedAt) {
+        if (this.status != IngredientStatus.ACTIVE) {
+            throw new IngredientException(IngredientErrorCode.INVALID_STATUS_TRANSITION);
+        }
+        requireNonNull(discardedAt, "discardedAt");
         this.status = IngredientStatus.DISCARDED;
-        this.discardedAt = discardedAt != null ? discardedAt : LocalDate.now();
+        this.discardedAt = discardedAt;
         this.consumedAt = null;
     }
 
