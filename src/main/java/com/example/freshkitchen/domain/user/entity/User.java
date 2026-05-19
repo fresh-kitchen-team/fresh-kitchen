@@ -58,6 +58,12 @@ public class User extends BaseTimeEntity {
     @Column(name = "inactive_at")
     private OffsetDateTime inactiveAt;
 
+    @Column(name = "terms_agreed_at")
+    private OffsetDateTime termsAgreedAt;
+
+    @Column(name = "privacy_agreed_at")
+    private OffsetDateTime privacyAgreedAt;
+
     @Version
     @Column(name = "version", nullable = false)
     private Long version;
@@ -100,6 +106,19 @@ public class User extends BaseTimeEntity {
         requireNonNull(profile, "profile");
         this.profile = profile;
         profile.attachUser(this);
+    }
+
+    public void agreeTerms() {
+        if (hasAgreedTerms()) {
+            return;
+        }
+        OffsetDateTime now = OffsetDateTime.now();
+        this.termsAgreedAt = now;
+        this.privacyAgreedAt = now;
+    }
+
+    public boolean hasAgreedTerms() {
+        return this.termsAgreedAt != null && this.privacyAgreedAt != null;
     }
 
     public void removeProfile() { // orphanRemoval(부모와 연관관계가 끊긴 자식 엔티티를 JPA가 자동 삭제)이 동작하도록 profile 연결만 제거

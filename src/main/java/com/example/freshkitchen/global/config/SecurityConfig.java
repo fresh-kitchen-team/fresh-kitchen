@@ -12,10 +12,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -36,6 +39,11 @@ public class SecurityConfig {
             "/api/v1/auth/dev-login",
             "/api/v1/tips/storage",
             "/api/v1/tips/recycling",
+    };
+
+    private static final String[] PUBLIC_GET_ONLY_ENDPOINTS = {
+            "/api/v1/app/version",
+            "/api/v1/legal",
     };
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -79,8 +87,15 @@ public class SecurityConfig {
     }
 
     private RequestMatcher[] publicEndpointMatchers() {
-        return Arrays.stream(publicEndpoints())
+        List<RequestMatcher> matchers = new ArrayList<>(Arrays.stream(publicEndpoints())
                 .map(AntPathRequestMatcher::new)
-                .toArray(RequestMatcher[]::new);
+                .map(RequestMatcher.class::cast)
+                .toList());
+
+        Arrays.stream(PUBLIC_GET_ONLY_ENDPOINTS)
+                .map(pattern -> new AntPathRequestMatcher(pattern, HttpMethod.GET.name()))
+                .forEach(matchers::add);
+
+        return matchers.toArray(RequestMatcher[]::new);
     }
 }

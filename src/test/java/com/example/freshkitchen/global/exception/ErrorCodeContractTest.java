@@ -1,5 +1,7 @@
 package com.example.freshkitchen.global.exception;
 
+import com.example.freshkitchen.application.inquiry.exception.InquiryErrorCode;
+import com.example.freshkitchen.application.inquiry.exception.InquiryException;
 import com.example.freshkitchen.domain.image.exception.ImageErrorCode;
 import com.example.freshkitchen.domain.image.exception.ImageException;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
@@ -205,17 +207,29 @@ class ErrorCodeContractTest {
     }
 
     @Test
-    void domainExceptions_exposeTheirErrorCodes() {
+    void inquiryErrorCode_contractMatchesSpecification() {
+        assertContract(
+                InquiryErrorCode.MAIL_SEND_FAILED,
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "INQUIRY-500-1",
+                "failed to send inquiry email"
+        );
+    }
+
+    @Test
+    void businessExceptions_exposeTheirErrorCodes() {
         IngredientException ingredientException = new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND);
         ImageException imageException = new ImageException(ImageErrorCode.USER_UPLOAD_OWNER_REQUIRED);
         UserException userException = new UserException(UserErrorCode.USER_NOT_FOUND);
         AiServerException aiServerException = new AiServerException(AiServerErrorCode.AI_SERVER_UNAVAILABLE);
+        InquiryException inquiryException = new InquiryException(InquiryErrorCode.MAIL_SEND_FAILED);
         BusinessValidationException validationException = new BusinessValidationException("name must not be blank");
 
         assertEquals(IngredientErrorCode.INGREDIENT_NOT_FOUND, ingredientException.getErrorCode());
         assertEquals(ImageErrorCode.USER_UPLOAD_OWNER_REQUIRED, imageException.getErrorCode());
         assertEquals(UserErrorCode.USER_NOT_FOUND, userException.getErrorCode());
         assertEquals(AiServerErrorCode.AI_SERVER_UNAVAILABLE, aiServerException.getErrorCode());
+        assertEquals(InquiryErrorCode.MAIL_SEND_FAILED, inquiryException.getErrorCode());
         assertEquals(CommonErrorCode.INVALID_INPUT, validationException.getErrorCode());
     }
 

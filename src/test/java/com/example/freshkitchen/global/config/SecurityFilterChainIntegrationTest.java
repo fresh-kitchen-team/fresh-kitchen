@@ -7,6 +7,9 @@ import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
 import com.example.freshkitchen.application.analytics.usecase.GetAnalyticsSummaryUseCase;
 import com.example.freshkitchen.application.analytics.usecase.ListExpiringItemsUseCase;
+import com.example.freshkitchen.application.inquiry.usecase.SendInquiryUseCase;
+import com.example.freshkitchen.application.legal.usecase.AgreeTermsUseCase;
+import com.example.freshkitchen.application.legal.usecase.GetTermsAgreementUseCase;
 import com.example.freshkitchen.application.chat.usecase.CreateChatRoomUseCase;
 import com.example.freshkitchen.application.chat.usecase.GetChatHistoryUseCase;
 import com.example.freshkitchen.application.chat.usecase.GetChatRoomListUseCase;
@@ -39,7 +42,10 @@ import com.example.freshkitchen.global.security.exception.SecurityErrorCode;
 import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
 import com.example.freshkitchen.global.security.infrastructure.TokenPayload;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
+import com.example.freshkitchen.infrastructure.app.AppVersionProperties;
 import com.example.freshkitchen.infrastructure.image.LocalImageStorageProperties;
+import com.example.freshkitchen.infrastructure.inquiry.InquiryProperties;
+import com.example.freshkitchen.infrastructure.legal.LegalProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -136,10 +142,10 @@ class SecurityFilterChainIntegrationTest {
     private RefreshTokenUseCase refreshTokenUseCase;
 
     @MockitoBean
-    private AiServerClient aiServerClient;
+    private ChatService chatService;
 
     @MockitoBean
-    private ChatService chatService;
+    private AiServerClient aiServerClient;
 
     @MockitoBean
     private Clock clock;
@@ -173,6 +179,24 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private GetRecyclingGuidesUseCase getRecyclingGuidesUseCase;
+
+    @MockitoBean
+    private SendInquiryUseCase sendInquiryUseCase;
+
+    @MockitoBean
+    private AgreeTermsUseCase agreeTermsUseCase;
+
+    @MockitoBean
+    private GetTermsAgreementUseCase getTermsAgreementUseCase;
+
+    @MockitoBean
+    private AppVersionProperties appVersionProperties;
+
+    @MockitoBean
+    private LegalProperties legalProperties;
+
+    @MockitoBean
+    private InquiryProperties inquiryProperties;
 
     @Test
     void protectedEndpoint_returns401_whenNoTokenProvided() throws Exception {
@@ -338,6 +362,18 @@ class SecurityFilterChainIntegrationTest {
     }
 
     @Test
+    void appVersionEndpoint_isAccessibleWithoutToken() throws Exception {
+        mockMvc.perform(get("/api/v1/app/version"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void legalEndpoint_isAccessibleWithoutToken() throws Exception {
+        mockMvc.perform(get("/api/v1/legal"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void analyticsSummaryEndpoint_returns401_whenNoTokenProvided() throws Exception {
         mockMvc.perform(get("/api/v1/analytics/summary"))
                 .andExpect(status().isUnauthorized())
@@ -354,6 +390,27 @@ class SecurityFilterChainIntegrationTest {
     @Test
     void consumeEndpoint_returns401_whenNoTokenProvided() throws Exception {
         mockMvc.perform(patch("/api/v1/items/1/consume"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void legalAgreementPostEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(post("/api/v1/legal/agreement"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void legalAgreementGetEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(get("/api/v1/legal/agreement"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void inquiryEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(multipart("/api/v1/inquiries"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
     }
