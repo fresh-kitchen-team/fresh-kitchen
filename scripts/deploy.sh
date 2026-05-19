@@ -25,6 +25,16 @@ export GOOGLE_PROJECT_ID=$(aws ssm get-parameter --name "/fresh-kitchen/GOOGLE_P
 export IMAGE_STORAGE_TYPE=$(aws ssm get-parameter --name "/fresh-kitchen/IMAGE_STORAGE_TYPE" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export AWS_S3_BUCKET=$(aws ssm get-parameter --name "/fresh-kitchen/AWS_S3_BUCKET" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
 export IMAGE_STORAGE_S3_PUBLIC_BASE_URL=$(aws ssm get-parameter --name "/fresh-kitchen/IMAGE_STORAGE_S3_PUBLIC_BASE_URL" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+MAIL_USERNAME=$(aws ssm get-parameter --name "/fresh-kitchen/MAIL_USERNAME" --with-decryption --query Parameter.Value --output text --region "$AWS_REGION")
+export MAIL_USERNAME
+MAIL_PASSWORD=$(aws ssm get-parameter --name "/fresh-kitchen/MAIL_PASSWORD" --with-decryption --query Parameter.Value --output text --region "$AWS_REGION")
+export MAIL_PASSWORD
+INQUIRY_ADMIN_EMAIL=$(aws ssm get-parameter --name "/fresh-kitchen/INQUIRY_ADMIN_EMAIL" --with-decryption --query Parameter.Value --output text --region "$AWS_REGION")
+export INQUIRY_ADMIN_EMAIL
+LEGAL_TERMS_URL=$(aws ssm get-parameter --name "/fresh-kitchen/LEGAL_TERMS_URL" --with-decryption --query Parameter.Value --output text --region "$AWS_REGION")
+export LEGAL_TERMS_URL
+LEGAL_PRIVACY_URL=$(aws ssm get-parameter --name "/fresh-kitchen/LEGAL_PRIVACY_URL" --with-decryption --query Parameter.Value --output text --region "$AWS_REGION")
+export LEGAL_PRIVACY_URL
 
 
 echo "------------------ 서버 배포 시작 --------------------------------"
