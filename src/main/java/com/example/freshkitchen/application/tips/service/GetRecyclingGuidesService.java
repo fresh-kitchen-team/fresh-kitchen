@@ -3,6 +3,7 @@ package com.example.freshkitchen.application.tips.service;
 import com.example.freshkitchen.application.tips.usecase.GetRecyclingGuidesUseCase;
 import com.example.freshkitchen.domain.tips.repository.RecyclingGuideRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +18,7 @@ public class GetRecyclingGuidesService implements GetRecyclingGuidesUseCase {
 
     @Override
     public List<RecyclingGuideResult> get() {
-        return recyclingGuideRepository.findAll().stream()
+        return recyclingGuideRepository.findAll(Sort.by("id")).stream()
                 .map(guide -> new RecyclingGuideResult(
                         guide.getId(),
                         guide.getName(),

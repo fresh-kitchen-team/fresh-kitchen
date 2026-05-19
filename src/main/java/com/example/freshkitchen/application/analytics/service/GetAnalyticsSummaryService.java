@@ -41,9 +41,9 @@ public class GetAnalyticsSummaryService implements GetAnalyticsSummaryUseCase {
         List<Ingredient> activeIngredients = ingredientRepository
                 .findAllByUserIdAndStatus(query.userId(), IngredientStatus.ACTIVE);
         List<Ingredient> consumedIngredients = ingredientRepository
-                .findByUserIdAndStatus(query.userId(), IngredientStatus.CONSUMED);
+                .findAllByUserIdAndStatus(query.userId(), IngredientStatus.CONSUMED);
         List<Ingredient> discardedIngredients = ingredientRepository
-                .findByUserIdAndStatus(query.userId(), IngredientStatus.DISCARDED);
+                .findAllByUserIdAndStatus(query.userId(), IngredientStatus.DISCARDED);
 
         Map<DisplayCategory, int[]> categoryMap = buildCategoryMap(activeIngredients, today);
         Map<DisplayCategory, int[]> discardMap = buildDiscardMap(consumedIngredients, discardedIngredients);
@@ -101,7 +101,8 @@ public class GetAnalyticsSummaryService implements GetAnalyticsSummaryUseCase {
         if (expiresAt == null) {
             return false;
         }
-        return !expiresAt.isAfter(today.plusDays(URGENT_DAYS));
+        return !expiresAt.isBefore(today)
+                && !expiresAt.isAfter(today.plusDays(URGENT_DAYS));
     }
 
     private Map<DisplayCategory, int[]> buildCategoryMap(List<Ingredient> ingredients, LocalDate today) {

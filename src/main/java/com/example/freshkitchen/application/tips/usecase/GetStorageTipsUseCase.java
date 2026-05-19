@@ -1,7 +1,6 @@
 package com.example.freshkitchen.application.tips.usecase;
 
 import com.example.freshkitchen.application.analytics.dto.DisplayCategory;
-import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 
 import java.util.List;

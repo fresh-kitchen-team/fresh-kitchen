@@ -5,6 +5,7 @@ import com.example.freshkitchen.application.tips.usecase.GetStorageTipsUseCase;
 import com.example.freshkitchen.domain.tips.entity.StorageTip;
 import com.example.freshkitchen.domain.tips.repository.StorageTipRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,11 +23,11 @@ public class GetStorageTipsService implements GetStorageTipsUseCase {
         List<StorageTip> tips;
 
         if (query.displayCategory() != null) {
-            tips = storageTipRepository.findAll().stream()
+            tips = storageTipRepository.findAll(Sort.by("id")).stream()
                     .filter(tip -> DisplayCategory.from(tip.getCategory()) == query.displayCategory())
                     .toList();
         } else {
-            tips = storageTipRepository.findAll();
+            tips = storageTipRepository.findAll(Sort.by("id"));
         }
 
         return tips.stream()
