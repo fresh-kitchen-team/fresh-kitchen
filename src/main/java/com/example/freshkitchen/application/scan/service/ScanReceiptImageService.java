@@ -46,6 +46,12 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
 
         return new ScanDto.ReceiptImageScanResponse(
                 ScanDto.ScanType.RECEIPT_IMAGE,
+                new ScanDto.ImageAssetSummary(
+                        imageAsset.imageAssetId(),
+                        imageAsset.kind(),
+                        imageAsset.storageProvider(),
+                        imageAsset.imageUrl()
+                ),
                 purchasedAt,
                 sourceType(receiptOcr),
                 recognizedItems(receiptOcr, purchasedAt),
@@ -85,9 +91,11 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
     ) {
         return receiptOcr.ingredients().stream()
                 .filter(Objects::nonNull)
-                .map(String::trim)
-                .filter(name -> !name.isEmpty())
-                .map(name -> new ScanDto.ReceiptRecognizedItem(name, purchasedAt))
+                .map(item -> new ScanDto.ReceiptRecognizedItem(
+                        item.name().trim(),
+                        item.category(),
+                        purchasedAt
+                ))
                 .toList();
     }
 

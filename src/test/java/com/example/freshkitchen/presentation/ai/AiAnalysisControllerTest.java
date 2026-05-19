@@ -36,6 +36,7 @@ class AiAnalysisControllerTest {
         given(aiServerClient.classifyFood(any()))
                 .willReturn(new FoodClassificationResponse(
                         "Kimchi stew",
+                        "VEGETABLE",
                         0.91,
                         List.of(new FoodClassificationResponse.FoodCandidate("Kimchi stew", 0.91)),
                         "model",
@@ -49,6 +50,7 @@ class AiAnalysisControllerTest {
                 .andExpect(jsonPath("$.code").value("COMMON-200"))
                 .andExpect(jsonPath("$.message").value("Success"))
                 .andExpect(jsonPath("$.data.bestMatch").value("Kimchi stew"))
+                .andExpect(jsonPath("$.data.category").value("VEGETABLE"))
                 .andExpect(jsonPath("$.data.confidence").value(0.91))
                 .andExpect(jsonPath("$.data.top3[0].name").value("Kimchi stew"))
                 .andExpect(jsonPath("$.data.source").value("model"))
@@ -63,13 +65,14 @@ class AiAnalysisControllerTest {
         given(aiServerClient.extractReceiptIngredients(any()))
                 .willReturn(new ReceiptOcrResponse(
                         LocalDate.of(2026, 5, 1),
-                        List.of("Egg")
+                        List.of(new ReceiptOcrResponse.IngredientItem("Egg", "ETC"))
                 ));
 
         mockMvc.perform(multipart("/api/v1/ai/receipt-ocr").file(imageFile()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.purchasedAt").value("2026-05-01"))
-                .andExpect(jsonPath("$.data.ingredients[0]").value("Egg"))
+                .andExpect(jsonPath("$.data.ingredients[0].name").value("Egg"))
+                .andExpect(jsonPath("$.data.ingredients[0].category").value("ETC"))
                 .andExpect(jsonPath("$.data.storeName").doesNotExist())
                 .andExpect(jsonPath("$.data.recognizedItems").doesNotExist())
                 .andExpect(jsonPath("$.data.ocrText").doesNotExist());
@@ -81,19 +84,18 @@ class AiAnalysisControllerTest {
     void detectFridgeObjects_returnsObjects() throws Exception {
         given(aiServerClient.detectFridgeObjects(any()))
                 .willReturn(new FridgeDetectionResponse(List.of(
-                        new FridgeDetectionResponse.DetectedObject(
+                        new FridgeDetectionResponse.DetectedItem(
                                 "Apple",
-                                0.82,
-                                new FridgeDetectionResponse.Box(1.0, 2.0, 30.0, 40.0)
+                                "FRUIT"
                         )
                 )));
 
         mockMvc.perform(multipart("/api/v1/ai/fridge-detection").file(imageFile()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.objects[0].name").value("Apple"))
-                .andExpect(jsonPath("$.data.objects[0].confidence").value(0.82))
-                .andExpect(jsonPath("$.data.objects[0].box.x1").value(1.0))
-                .andExpect(jsonPath("$.data.objects[0].box.y2").value(40.0));
+                .andExpect(jsonPath("$.data.items[0].name").value("Apple"))
+                .andExpect(jsonPath("$.data.items[0].category").value("FRUIT"))
+                .andExpect(jsonPath("$.data.items[0].confidence").doesNotExist())
+                .andExpect(jsonPath("$.data.items[0].box").doesNotExist());
 
         then(aiServerClient).should().detectFridgeObjects(any());
     }

@@ -2,12 +2,12 @@ package com.example.freshkitchen.application.scan.service;
 
 import com.example.freshkitchen.application.image.usecase.StoreMultipartImageAssetUseCase;
 import com.example.freshkitchen.application.scan.dto.ScanDto;
-import com.example.freshkitchen.application.scan.usecase.ScanIngredientImageUseCase;
+import com.example.freshkitchen.application.scan.usecase.ScanFridgeImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.infrastructure.ai.AiServerClient;
-import com.example.freshkitchen.infrastructure.ai.dto.FoodClassificationResponse;
+import com.example.freshkitchen.infrastructure.ai.dto.FridgeDetectionResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -34,51 +34,42 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ScanIngredientImageServiceTest {
+class ScanFridgeImageServiceTest {
 
     private final StoreMultipartImageAssetUseCase storeMultipartImageAssetUseCase =
             mock(StoreMultipartImageAssetUseCase.class);
     private final AiServerClient aiServerClient = mock(AiServerClient.class);
-    private final ScanIngredientImageService service =
-            new ScanIngredientImageService(storeMultipartImageAssetUseCase, aiServerClient);
+    private final ScanFridgeImageService service =
+            new ScanFridgeImageService(storeMultipartImageAssetUseCase, aiServerClient);
     private final OffsetDateTime createdAt = OffsetDateTime.parse("2026-05-01T14:20:30+09:00");
 
     @Test
-    void scan_storesIngredientImageAssetAndReturnsFoodClassificationCandidates() {
-        MockMultipartFile file = new MockMultipartFile("file", "tomato.jpg", "image/jpeg", "image".getBytes());
+    void scan_storesFridgeImageAndReturnsDetectedItems() {
+        MockMultipartFile file = new MockMultipartFile("file", "fridge.jpg", "image/jpeg", "image".getBytes());
         when(storeMultipartImageAssetUseCase.store(any(StoreMultipartImageAssetUseCase.Command.class)))
                 .thenReturn(new StoreMultipartImageAssetUseCase.Result(
-                        10L,
-                        ImageKind.INGREDIENT,
+                        12L,
+                        ImageKind.FRIDGE,
                         StorageProvider.S3,
-                        "https://cdn.example.com/images/1/ingredient/tomato.jpg",
+                        "https://cdn.example.com/images/1/fridge/fridge.jpg",
                         createdAt
                 ));
-        when(aiServerClient.classifyFood(eq("tomato.jpg"), any(byte[].class)))
-                .thenReturn(new FoodClassificationResponse(
-                        "Tomato",
-                        "VEGETABLE",
-                        0.93,
-                        List.of(new FoodClassificationResponse.FoodCandidate("Tomato", 0.93)),
-                        "model",
-                        "red round vegetable",
-                        false
-                ));
+        when(aiServerClient.detectFridgeObjects(eq("fridge.jpg"), any(byte[].class)))
+                .thenReturn(new FridgeDetectionResponse(List.of(
+                        new FridgeDetectionResponse.DetectedItem("계란", "ETC"),
+                        new FridgeDetectionResponse.DetectedItem("우유", "DAIRY")
+                )));
 
-        ScanDto.IngredientImageScanResponse response = service.scan(
-                new ScanIngredientImageUseCase.Command(1L, file)
-        );
+        ScanDto.FridgeImageScanResponse response = service.scan(new ScanFridgeImageUseCase.Command(1L, file));
 
         assertAll(
-                () -> assertEquals(ScanDto.ScanType.INGREDIENT_IMAGE, response.scanType()),
-                () -> assertEquals(10L, response.imageAsset().imageAssetId()),
-                () -> assertEquals(ImageKind.INGREDIENT, response.imageAsset().kind()),
-                () -> assertEquals(StorageProvider.S3, response.imageAsset().storageProvider()),
-                () -> assertEquals("https://cdn.example.com/images/1/ingredient/tomato.jpg",
-                        response.imageAsset().imageUrl()),
-                () -> assertEquals("Tomato", response.recognizedItems().get(0).name()),
-                () -> assertEquals("VEGETABLE", response.recognizedItems().get(0).category()),
-                () -> assertEquals(0.93, response.recognizedItems().get(0).confidence()),
+                () -> assertEquals(ScanDto.ScanType.FRIDGE_IMAGE, response.scanType()),
+                () -> assertEquals(12L, response.imageAsset().imageAssetId()),
+                () -> assertEquals(ImageKind.FRIDGE, response.imageAsset().kind()),
+                () -> assertEquals("계란", response.detectedItems().get(0).name()),
+                () -> assertEquals("ETC", response.detectedItems().get(0).category()),
+                () -> assertEquals("우유", response.detectedItems().get(1).name()),
+                () -> assertEquals("DAIRY", response.detectedItems().get(1).category()),
                 () -> assertEquals(createdAt, response.createdAt())
         );
         ArgumentCaptor<StoreMultipartImageAssetUseCase.Command> captor =
@@ -86,42 +77,42 @@ class ScanIngredientImageServiceTest {
         verify(storeMultipartImageAssetUseCase).store(captor.capture());
         assertAll(
                 () -> assertEquals(1L, captor.getValue().userId()),
-                () -> assertEquals(ImageKind.INGREDIENT, captor.getValue().kind()),
-                () -> assertEquals("tomato.jpg", captor.getValue().originalFilename()),
+                () -> assertEquals(ImageKind.FRIDGE, captor.getValue().kind()),
+                () -> assertEquals("fridge.jpg", captor.getValue().originalFilename()),
                 () -> assertEquals("image/jpeg", captor.getValue().contentType()),
                 () -> assertArrayEquals("image".getBytes(), captor.getValue().content())
         );
         ArgumentCaptor<byte[]> contentCaptor = ArgumentCaptor.forClass(byte[].class);
-        verify(aiServerClient).classifyFood(eq("tomato.jpg"), contentCaptor.capture());
+        verify(aiServerClient).detectFridgeObjects(eq("fridge.jpg"), contentCaptor.capture());
         assertArrayEquals("image".getBytes(), contentCaptor.getValue());
         InOrder inOrder = inOrder(aiServerClient, storeMultipartImageAssetUseCase);
-        inOrder.verify(aiServerClient).classifyFood(eq("tomato.jpg"), any(byte[].class));
+        inOrder.verify(aiServerClient).detectFridgeObjects(eq("fridge.jpg"), any(byte[].class));
         inOrder.verify(storeMultipartImageAssetUseCase).store(any(StoreMultipartImageAssetUseCase.Command.class));
     }
 
     @Test
-    void scan_doesNotStoreImageAssetWhenFoodClassificationFails() {
-        MockMultipartFile file = new MockMultipartFile("file", "tomato.jpg", "image/jpeg", "image".getBytes());
+    void scan_doesNotStoreImageAssetWhenFridgeDetectionFails() {
+        MockMultipartFile file = new MockMultipartFile("file", "fridge.jpg", "image/jpeg", "image".getBytes());
         RuntimeException failure = new RuntimeException("ai server unavailable");
-        when(aiServerClient.classifyFood(eq("tomato.jpg"), any(byte[].class))).thenThrow(failure);
+        when(aiServerClient.detectFridgeObjects(eq("fridge.jpg"), any(byte[].class))).thenThrow(failure);
 
         RuntimeException thrown = assertThrows(
                 RuntimeException.class,
-                () -> service.scan(new ScanIngredientImageUseCase.Command(1L, file))
+                () -> service.scan(new ScanFridgeImageUseCase.Command(1L, file))
         );
 
         assertEquals(failure, thrown);
-        verify(aiServerClient).classifyFood(eq("tomato.jpg"), any(byte[].class));
+        verify(aiServerClient).detectFridgeObjects(eq("fridge.jpg"), any(byte[].class));
         verifyNoInteractions(storeMultipartImageAssetUseCase);
     }
 
     @Test
     void scan_doesNotCallAiServerWhenUserIdIsMissing() {
-        MockMultipartFile file = new MockMultipartFile("file", "tomato.jpg", "image/jpeg", "image".getBytes());
+        MockMultipartFile file = new MockMultipartFile("file", "fridge.jpg", "image/jpeg", "image".getBytes());
 
         BusinessValidationException thrown = assertThrows(
                 BusinessValidationException.class,
-                () -> service.scan(new ScanIngredientImageUseCase.Command(null, file))
+                () -> service.scan(new ScanFridgeImageUseCase.Command(null, file))
         );
 
         assertEquals("userId must not be null", thrown.getMessage());
@@ -130,7 +121,7 @@ class ScanIngredientImageServiceTest {
 
     @Test
     void scan_isNotTransactionalSoAiCallRunsOutsideStorageTransaction() throws NoSuchMethodException {
-        Method scan = ScanIngredientImageService.class.getMethod("scan", ScanIngredientImageUseCase.Command.class);
+        Method scan = ScanFridgeImageService.class.getMethod("scan", ScanFridgeImageUseCase.Command.class);
 
         assertFalse(scan.isAnnotationPresent(Transactional.class));
     }

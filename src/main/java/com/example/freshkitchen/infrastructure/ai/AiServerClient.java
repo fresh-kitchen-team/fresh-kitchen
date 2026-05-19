@@ -82,6 +82,16 @@ public class AiServerClient {
         return response;
     }
 
+    public FridgeDetectionResponse detectFridgeObjects(String originalFilename, byte[] content) {
+        FridgeDetectionResponse response = postMultipart(
+                FRIDGE_DETECTION_PATH,
+                multipartBody(originalFilename, content),
+                FridgeDetectionResponse.class
+        );
+        validateFridgeDetection(response);
+        return response;
+    }
+
     private <T> T postMultipart(String path, MultipartFile file, Class<T> responseType) {
         return postMultipart(path, multipartBody(file), responseType);
     }
@@ -187,6 +197,7 @@ public class AiServerClient {
     private static void validateFoodClassification(FoodClassificationResponse response) {
         if (response == null
                 || response.bestMatch() == null
+                || response.category() == null
                 || response.confidence() == null
                 || response.top3() == null
                 || response.source() == null
@@ -202,29 +213,30 @@ public class AiServerClient {
     private static void validateReceiptOcr(ReceiptOcrResponse response) {
         if (response == null
                 || response.ingredients() == null
-                || response.ingredients().stream().anyMatch(AiServerClient::isInvalidIngredientName)) {
+                || response.ingredients().stream().anyMatch(AiServerClient::isInvalidIngredientItem)) {
             throw new AiServerException(AiServerErrorCode.AI_RESPONSE_INVALID);
         }
     }
 
-    private static boolean isInvalidIngredientName(String name) {
-        return name == null || name.isBlank();
+    private static boolean isInvalidIngredientItem(ReceiptOcrResponse.IngredientItem item) {
+        return item == null
+                || item.name() == null
+                || item.name().isBlank()
+                || item.category() == null
+                || item.category().isBlank();
     }
 
     private static void validateFridgeDetection(FridgeDetectionResponse response) {
-        if (response == null || response.objects() == null || response.objects().stream().anyMatch(AiServerClient::isInvalidObject)) {
+        if (response == null || response.items() == null || response.items().stream().anyMatch(AiServerClient::isInvalidDetectedItem)) {
             throw new AiServerException(AiServerErrorCode.AI_RESPONSE_INVALID);
         }
     }
 
-    private static boolean isInvalidObject(FridgeDetectionResponse.DetectedObject object) {
-        return object == null
-                || object.name() == null
-                || object.confidence() == null
-                || object.box() == null
-                || object.box().x1() == null
-                || object.box().y1() == null
-                || object.box().x2() == null
-                || object.box().y2() == null;
+    private static boolean isInvalidDetectedItem(FridgeDetectionResponse.DetectedItem item) {
+        return item == null
+                || item.name() == null
+                || item.name().isBlank()
+                || item.category() == null
+                || item.category().isBlank();
     }
 }

@@ -21,7 +21,6 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -65,7 +64,10 @@ class ScanReceiptImageServiceTest {
         when(aiServerClient.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class)))
                 .thenReturn(new ReceiptOcrResponse(
                         LocalDate.of(2026, 5, 1),
-                        Arrays.asList("Egg", "Milk")
+                        List.of(
+                                new ReceiptOcrResponse.IngredientItem("Egg", "ETC"),
+                                new ReceiptOcrResponse.IngredientItem("Milk", "DAIRY")
+                        )
                 ));
 
         ScanDto.ReceiptImageScanResponse response = service.scan(
@@ -74,11 +76,15 @@ class ScanReceiptImageServiceTest {
 
         assertAll(
                 () -> assertEquals(ScanDto.ScanType.RECEIPT_IMAGE, response.scanType()),
+                () -> assertEquals(11L, response.imageAsset().imageAssetId()),
+                () -> assertEquals(ImageKind.RECEIPT, response.imageAsset().kind()),
                 () -> assertEquals(LocalDate.of(2026, 5, 1), response.purchasedAt()),
                 () -> assertEquals(ScanDto.ReceiptPurchaseDateSourceType.OCR, response.purchasedAtSourceType()),
                 () -> assertEquals("Egg", response.recognizedItems().get(0).name()),
+                () -> assertEquals("ETC", response.recognizedItems().get(0).category()),
                 () -> assertEquals(LocalDate.of(2026, 5, 1), response.recognizedItems().get(0).registeredAt()),
                 () -> assertEquals("Milk", response.recognizedItems().get(1).name()),
+                () -> assertEquals("DAIRY", response.recognizedItems().get(1).category()),
                 () -> assertEquals(2, response.recognizedItems().size()),
                 () -> assertEquals(createdAt, response.createdAt())
         );
@@ -111,7 +117,7 @@ class ScanReceiptImageServiceTest {
         when(aiServerClient.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class)))
                 .thenReturn(new ReceiptOcrResponse(
                         null,
-                        List.of("Egg")
+                        List.of(new ReceiptOcrResponse.IngredientItem("Egg", "ETC"))
                 ));
 
         ScanDto.ReceiptImageScanResponse response = service.scan(
