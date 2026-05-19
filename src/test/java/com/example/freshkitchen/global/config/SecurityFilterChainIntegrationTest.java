@@ -38,6 +38,7 @@ import com.example.freshkitchen.application.user.usecase.DeleteUserProfileUseCas
 import com.example.freshkitchen.application.user.usecase.GetUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
 import com.example.freshkitchen.domain.chat.serivce.ChatService;
+import com.example.freshkitchen.infrastructure.auth.AccessTokenBlacklistRepository;
 import com.example.freshkitchen.global.security.Role;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
 import com.example.freshkitchen.global.security.exception.JwtTokenException;
@@ -210,6 +211,9 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private HardDeleteUserUseCase hardDeleteUserUseCase;
+
+    @MockitoBean
+    private AccessTokenBlacklistRepository accessTokenBlacklistRepository;
 
     @Test
     void protectedEndpoint_returns401_whenNoTokenProvided() throws Exception {

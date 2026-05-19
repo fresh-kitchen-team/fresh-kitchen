@@ -1,17 +1,21 @@
 package com.example.freshkitchen.global.security.infrastructure;
 
 import com.example.freshkitchen.global.security.JwtAuthentication;
+import com.example.freshkitchen.global.security.exception.JwtErrorCode;
 import com.example.freshkitchen.global.security.exception.JwtTokenException;
+import com.example.freshkitchen.infrastructure.auth.AccessTokenBlacklistRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -21,6 +25,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final AccessTokenBlacklistRepository accessTokenBlacklistRepository;
 
     @Override
     protected void doFilterInternal(
@@ -33,6 +38,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 TokenPayload payload = jwtTokenProvider.validateAccessToken(token);
+                if (accessTokenBlacklistRepository.isBlacklisted(token)) {
+                    throw new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
+                }
                 SecurityContextHolder.getContext().setAuthentication(
                         new JwtAuthentication(payload.userId(), payload.role())
                 );

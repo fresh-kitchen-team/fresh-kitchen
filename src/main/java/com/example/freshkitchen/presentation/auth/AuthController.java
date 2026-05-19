@@ -9,7 +9,9 @@ import com.example.freshkitchen.global.response.ApiResponse;
 import com.example.freshkitchen.presentation.auth.dto.AuthRequest;
 import com.example.freshkitchen.presentation.auth.dto.AuthResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -52,11 +54,34 @@ public class AuthController {
         return ApiResponse.success(AuthResponse.Token.from(result));
     }
 
-    @Operation(summary = "로그아웃", description = "Refresh Token을 무효화하여 세션을 종료합니다")
+    @Operation(
+            summary = "로그아웃",
+            description = """
+                    Refresh Token을 무효화하고 Access Token을 블랙리스트에 등록하여 세션을 종료합니다.
+
+                    - 호출 후 클라이언트는 반드시 로컬의 accessToken, refreshToken을 삭제해야 합니다.
+                    - 이미 로그아웃된 상태에서 재호출해도 200이 반환됩니다 (멱등)."""
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그아웃 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "유효하지 않은 토큰")
+    })
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(@AuthenticationPrincipal Long userId) {
-        logoutUseCase.logout(new LogoutUseCase.Command(userId));
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @AuthenticationPrincipal Long userId,
+            HttpServletRequest request
+    ) {
+        String accessToken = extractToken(request);
+        logoutUseCase.logout(new LogoutUseCase.Command(userId, accessToken));
         return ApiResponse.success();
+    }
+
+    private String extractToken(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7).trim();
+        }
+        return null;
     }
 
     @Operation(summary = "토큰 갱신", description = "Refresh Token으로 새 Access/Refresh Token 발급")

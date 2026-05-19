@@ -4,6 +4,6 @@ public interface LogoutUseCase {
 
     void logout(Command command);
 
-    record Command(Long userId) {
+    record Command(Long userId, String accessToken) {
     }
 }

@@ -3,6 +3,7 @@ package com.example.freshkitchen.global.config;
 import com.example.freshkitchen.global.security.infrastructure.JwtAuthenticationEntryPoint;
 import com.example.freshkitchen.global.security.infrastructure.JwtAuthenticationFilter;
 import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
+import com.example.freshkitchen.infrastructure.auth.AccessTokenBlacklistRepository;
 import com.example.freshkitchen.infrastructure.image.LocalImageStorageProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,7 @@ public class SecurityConfig {
     };
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final AccessTokenBlacklistRepository accessTokenBlacklistRepository;
     private final ObjectMapper objectMapper;
     private final LocalImageStorageProperties localImageStorageProperties;
 
@@ -72,7 +74,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider);
+        return new JwtAuthenticationFilter(jwtTokenProvider, accessTokenBlacklistRepository);
     }
 
     @Bean

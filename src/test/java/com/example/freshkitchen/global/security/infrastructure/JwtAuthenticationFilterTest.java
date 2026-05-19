@@ -4,6 +4,7 @@ import com.example.freshkitchen.global.security.JwtAuthentication;
 import com.example.freshkitchen.global.security.Role;
 import com.example.freshkitchen.global.security.exception.JwtErrorCode;
 import com.example.freshkitchen.global.security.exception.JwtTokenException;
+import com.example.freshkitchen.infrastructure.auth.AccessTokenBlacklistRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.AfterEach;
@@ -29,6 +30,9 @@ class JwtAuthenticationFilterTest {
     private JwtTokenProvider jwtTokenProvider;
 
     @Mock
+    private AccessTokenBlacklistRepository accessTokenBlacklistRepository;
+
+    @Mock
     private FilterChain filterChain;
 
     private JwtAuthenticationFilter filter;
@@ -37,7 +41,7 @@ class JwtAuthenticationFilterTest {
 
     @BeforeEach
     void setUp() {
-        filter = new JwtAuthenticationFilter(jwtTokenProvider);
+        filter = new JwtAuthenticationFilter(jwtTokenProvider, accessTokenBlacklistRepository);
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
         SecurityContextHolder.clearContext();
