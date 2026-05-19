@@ -121,6 +121,19 @@ public class User extends BaseTimeEntity {
         return this.termsAgreedAt != null && this.privacyAgreedAt != null;
     }
 
+    public void deactivate() {
+        if (this.status == UserStatus.INACTIVE) {
+            return;
+        }
+        this.status = UserStatus.INACTIVE;
+        this.inactiveAt = OffsetDateTime.now();
+    }
+
+    public void reactivate() {
+        this.status = UserStatus.ACTIVE;
+        this.inactiveAt = null;
+    }
+
     public void removeProfile() { // orphanRemoval(부모와 연관관계가 끊긴 자식 엔티티를 JPA가 자동 삭제)이 동작하도록 profile 연결만 제거
         if (this.profile == null) {
             return;

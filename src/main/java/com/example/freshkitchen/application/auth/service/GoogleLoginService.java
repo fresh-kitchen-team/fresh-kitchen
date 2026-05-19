@@ -51,6 +51,9 @@ public class GoogleLoginService implements GoogleLoginUseCase {
             }
         } else {
             user = optionalUser.get();
+            if (user.getStatus() == com.example.freshkitchen.domain.user.enums.UserStatus.INACTIVE) {
+                user.reactivate();
+            }
         }
 
         String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), Role.USER);

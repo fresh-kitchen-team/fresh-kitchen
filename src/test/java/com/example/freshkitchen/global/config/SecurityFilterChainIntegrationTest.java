@@ -4,6 +4,7 @@ import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
 import com.example.freshkitchen.application.auth.usecase.DevLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
+import com.example.freshkitchen.application.auth.usecase.LogoutUseCase;
 import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
 import com.example.freshkitchen.application.analytics.usecase.GetAnalyticsSummaryUseCase;
 import com.example.freshkitchen.application.analytics.usecase.ListExpiringItemsUseCase;
@@ -31,6 +32,7 @@ import com.example.freshkitchen.application.ingredient.usecase.UpdateIngredientU
 import com.example.freshkitchen.application.scan.usecase.ScanIngredientImageUseCase;
 import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase;
 import com.example.freshkitchen.application.user.dto.UserProfileResult;
+import com.example.freshkitchen.application.user.usecase.DeleteUserUseCase;
 import com.example.freshkitchen.application.user.usecase.DeleteUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.GetUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
@@ -62,6 +64,7 @@ import java.util.Set;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -197,6 +200,12 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private InquiryProperties inquiryProperties;
+
+    @MockitoBean
+    private LogoutUseCase logoutUseCase;
+
+    @MockitoBean
+    private DeleteUserUseCase deleteUserUseCase;
 
     @Test
     void protectedEndpoint_returns401_whenNoTokenProvided() throws Exception {
@@ -411,6 +420,20 @@ class SecurityFilterChainIntegrationTest {
     @Test
     void inquiryEndpoint_returns401_whenNoTokenProvided() throws Exception {
         mockMvc.perform(multipart("/api/v1/inquiries"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void logoutEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/logout"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void deleteUserEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/users/me"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
     }

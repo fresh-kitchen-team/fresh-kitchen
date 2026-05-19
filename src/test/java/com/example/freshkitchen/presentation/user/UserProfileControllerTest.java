@@ -2,6 +2,7 @@ package com.example.freshkitchen.presentation.user;
 
 import com.example.freshkitchen.application.user.dto.UserProfileResult;
 import com.example.freshkitchen.application.user.usecase.DeleteUserProfileUseCase;
+import com.example.freshkitchen.application.user.usecase.DeleteUserUseCase;
 import com.example.freshkitchen.application.user.usecase.GetUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
 import com.example.freshkitchen.domain.user.enums.AllergyType;
@@ -43,12 +44,14 @@ class UserProfileControllerTest {
     private final GetUserProfileUseCase getUserProfileUseCase = mock(GetUserProfileUseCase.class);
     private final UpdateUserProfileUseCase updateUserProfileUseCase = mock(UpdateUserProfileUseCase.class);
     private final DeleteUserProfileUseCase deleteUserProfileUseCase = mock(DeleteUserProfileUseCase.class);
+    private final DeleteUserUseCase deleteUserUseCase = mock(DeleteUserUseCase.class);
 
     private final MockMvc mockMvc = MockMvcBuilders
             .standaloneSetup(new UserProfileController(
                     getUserProfileUseCase,
                     updateUserProfileUseCase,
-                    deleteUserProfileUseCase
+                    deleteUserProfileUseCase,
+                    deleteUserUseCase
             ))
             .setCustomArgumentResolvers(authenticationPrincipalResolver(TEST_USER_ID))
             .setControllerAdvice(new GlobalExceptionHandler())
@@ -251,7 +254,8 @@ class UserProfileControllerTest {
                 .standaloneSetup(new UserProfileController(
                         getUserProfileUseCase,
                         updateUserProfileUseCase,
-                        deleteUserProfileUseCase
+                        deleteUserProfileUseCase,
+                        deleteUserUseCase
                 ))
                 .setCustomArgumentResolvers(authenticationPrincipalResolver(99L))
                 .setControllerAdvice(new GlobalExceptionHandler())
@@ -345,7 +349,8 @@ class UserProfileControllerTest {
                 .standaloneSetup(new UserProfileController(
                         getUserProfileUseCase,
                         updateUserProfileUseCase,
-                        deleteUserProfileUseCase
+                        deleteUserProfileUseCase,
+                        deleteUserUseCase
                 ))
                 .setCustomArgumentResolvers(authenticationPrincipalResolver(99L))
                 .setControllerAdvice(new GlobalExceptionHandler())
@@ -373,7 +378,8 @@ class UserProfileControllerTest {
                 .standaloneSetup(new UserProfileController(
                         getUserProfileUseCase,
                         updateUserProfileUseCase,
-                        deleteUserProfileUseCase
+                        deleteUserProfileUseCase,
+                        deleteUserUseCase
                 ))
                 .setCustomArgumentResolvers(authenticationPrincipalResolver(99L))
                 .setControllerAdvice(new GlobalExceptionHandler())

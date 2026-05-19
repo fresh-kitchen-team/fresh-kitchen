@@ -3,6 +3,7 @@ package com.example.freshkitchen.presentation.auth;
 import com.example.freshkitchen.application.auth.dto.AuthTokenResult;
 import com.example.freshkitchen.application.auth.usecase.GoogleLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
+import com.example.freshkitchen.application.auth.usecase.LogoutUseCase;
 import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
 import com.example.freshkitchen.global.response.ApiResponse;
 import com.example.freshkitchen.presentation.auth.dto.AuthRequest;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +27,7 @@ public class AuthController {
 
     private final GoogleLoginUseCase googleLoginUseCase;
     private final KakaoLoginUseCase kakaoLoginUseCase;
+    private final LogoutUseCase logoutUseCase;
     private final RefreshTokenUseCase refreshTokenUseCase;
 
     @Operation(summary = "Google 로그인", description = "Google ID Token으로 로그인/회원가입 후 JWT 발급")
@@ -47,6 +50,13 @@ public class AuthController {
                 new KakaoLoginUseCase.Command(request.idToken())
         );
         return ApiResponse.success(AuthResponse.Token.from(result));
+    }
+
+    @Operation(summary = "로그아웃", description = "Refresh Token을 무효화하여 세션을 종료합니다")
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@AuthenticationPrincipal Long userId) {
+        logoutUseCase.logout(new LogoutUseCase.Command(userId));
+        return ApiResponse.success();
     }
 
     @Operation(summary = "토큰 갱신", description = "Refresh Token으로 새 Access/Refresh Token 발급")
