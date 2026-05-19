@@ -38,14 +38,12 @@ public class GetAnalyticsSummaryService implements GetAnalyticsSummaryUseCase {
         validate(query);
 
         LocalDate today = LocalDate.now(clock);
-        List<Ingredient> allIngredients = ingredientRepository.findAllByUserId(query.userId());
-
-        List<Ingredient> activeIngredients = allIngredients.stream()
-                .filter(i -> i.getStatus() == IngredientStatus.ACTIVE).toList();
-        List<Ingredient> consumedIngredients = allIngredients.stream()
-                .filter(i -> i.getStatus() == IngredientStatus.CONSUMED).toList();
-        List<Ingredient> discardedIngredients = allIngredients.stream()
-                .filter(i -> i.getStatus() == IngredientStatus.DISCARDED).toList();
+        List<Ingredient> activeIngredients = ingredientRepository
+                .findAllByUserIdAndStatus(query.userId(), IngredientStatus.ACTIVE);
+        List<Ingredient> consumedIngredients = ingredientRepository
+                .findAllByUserIdAndStatus(query.userId(), IngredientStatus.CONSUMED);
+        List<Ingredient> discardedIngredients = ingredientRepository
+                .findAllByUserIdAndStatus(query.userId(), IngredientStatus.DISCARDED);
 
         Map<DisplayCategory, int[]> categoryMap = buildCategoryMap(activeIngredients, today);
         Map<DisplayCategory, int[]> discardMap = buildDiscardMap(consumedIngredients, discardedIngredients);
