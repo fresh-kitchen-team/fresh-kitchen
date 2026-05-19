@@ -11,6 +11,7 @@ public enum JwtErrorCode implements ErrorCode {
     UNSUPPORTED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-401-4", "unsupported token"),
     EMPTY_CLAIMS(HttpStatus.UNAUTHORIZED, "AUTH-401-5", "token claims are empty"),
     NOT_YET_VALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-401-6", "token is not yet valid"),
+    BLACKLISTED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-401-7", "token has been invalidated by logout"),
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH-401-8", "invalid or expired refresh token");
 
     private final HttpStatus status;

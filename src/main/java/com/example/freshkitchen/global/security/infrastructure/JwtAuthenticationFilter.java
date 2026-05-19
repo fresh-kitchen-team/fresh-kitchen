@@ -39,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 TokenPayload payload = jwtTokenProvider.validateAccessToken(token);
                 if (accessTokenBlacklistRepository.isBlacklisted(token)) {
-                    throw new JwtTokenException(JwtErrorCode.EXPIRED_TOKEN);
+                    throw new JwtTokenException(JwtErrorCode.BLACKLISTED_TOKEN);
                 }
                 SecurityContextHolder.getContext().setAuthentication(
                         new JwtAuthentication(payload.userId(), payload.role())
