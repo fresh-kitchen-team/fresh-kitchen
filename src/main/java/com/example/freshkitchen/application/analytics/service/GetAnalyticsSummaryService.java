@@ -190,7 +190,7 @@ public class GetAnalyticsSummaryService implements GetAnalyticsSummaryUseCase {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("유통기한이 3일 이내인 식재료가 ").append(urgentCount).append("개 있습니다.");
+        sb.append("유통기한이 ").append(URGENT_DAYS).append("일 이내인 식재료가 ").append(urgentCount).append("개 있습니다.");
 
         if (topCategory != null && topCategoryCount > 0) {
             sb.append(" 가장 주의가 필요한 카테고리는 ")
