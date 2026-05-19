@@ -37,6 +37,8 @@ public class SecurityConfig {
             "/add-vector-store",
 
             "/api/v1/auth/dev-login",
+            "/api/v1/tips/storage",
+            "/api/v1/tips/recycling",
     };
 
     private static final String[] PUBLIC_GET_ONLY_ENDPOINTS = {

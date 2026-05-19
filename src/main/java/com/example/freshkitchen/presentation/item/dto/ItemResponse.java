@@ -21,6 +21,11 @@ public final class ItemResponse {
     ) {
     }
 
+    public record Consume(
+            LocalDate consumedAt
+    ) {
+    }
+
     public record Item(
             Long id,
             String name,

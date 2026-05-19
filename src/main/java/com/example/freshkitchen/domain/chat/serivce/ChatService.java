@@ -371,7 +371,7 @@ public class ChatService {
         boolean useInventory = !isGeneralChat && intentClassifier.wantsToUseInventory(request.message());
         List<Ingredient> userIngredients = isGeneralChat
                 ? List.of()
-                : ingredientRepository.findByUserIdAndStatus(userId, IngredientStatus.ACTIVE);
+                : ingredientRepository.findAllByUserIdAndStatus(userId, IngredientStatus.ACTIVE);
 
         log.info("chat intent userId={}, type={}, useInventory={}, activeIngredientCount={}",
                 userId, resolvedType, useInventory, userIngredients.size());

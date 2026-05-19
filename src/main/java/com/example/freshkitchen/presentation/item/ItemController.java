@@ -1,6 +1,7 @@
 package com.example.freshkitchen.presentation.item;
 
 import com.example.freshkitchen.application.ingredient.dto.IngredientDto;
+import com.example.freshkitchen.application.ingredient.usecase.ConsumeIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientWithImageUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.DeleteIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.GetIngredientUseCase;
@@ -16,6 +17,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,11 +32,13 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/items")
 @RequiredArgsConstructor
 public class ItemController {
 
+    private final ConsumeIngredientUseCase consumeIngredientUseCase;
     private final CreateIngredientWithImageUseCase createIngredientWithImageUseCase;
     private final UpdateIngredientUseCase updateIngredientUseCase;
     private final GetIngredientUseCase getIngredientUseCase;
@@ -82,6 +86,16 @@ public class ItemController {
     ) {
         updateIngredientUseCase.update(ItemRequest.Update.from(request).toCommand(itemId, userId));
         return ApiResponse.success();
+    }
+
+    @PatchMapping("/{itemId}/consume")
+    public ResponseEntity<ApiResponse<ItemResponse.Consume>> consume(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable @Positive Long itemId
+    ) {
+        ConsumeIngredientUseCase.ConsumeResult result =
+                consumeIngredientUseCase.consume(new ConsumeIngredientUseCase.Command(itemId, userId));
+        return ApiResponse.success(new ItemResponse.Consume(result.consumedAt()));
     }
 
     @DeleteMapping("/{itemId}")
