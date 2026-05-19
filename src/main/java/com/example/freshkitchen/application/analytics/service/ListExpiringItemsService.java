@@ -8,6 +8,7 @@ import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,8 @@ public class ListExpiringItemsService implements ListExpiringItemsUseCase {
 
     @Override
     public List<AnalyticsDto.ExpiringItem> list(Query query) {
+        validate(query);
+
         LocalDate today = LocalDate.now(clock);
         int effectiveMaxDDay = query.maxDDay() != null ? query.maxDDay() : DEFAULT_MAX_D_DAY;
         LocalDate deadline = today.plusDays(effectiveMaxDDay);
@@ -52,6 +55,18 @@ public class ListExpiringItemsService implements ListExpiringItemsUseCase {
                 ))
                 .map(i -> toExpiringItem(i, today))
                 .toList();
+    }
+
+    private static void validate(Query query) {
+        if (query == null) {
+            throw new BusinessValidationException("query must not be null");
+        }
+        if (query.userId() == null || query.userId() <= 0) {
+            throw new BusinessValidationException("userId must be positive");
+        }
+        if (query.maxDDay() != null && query.maxDDay() < 0) {
+            throw new BusinessValidationException("maxDDay must not be negative");
+        }
     }
 
     private AnalyticsDto.ExpiringItem toExpiringItem(Ingredient ingredient, LocalDate today) {

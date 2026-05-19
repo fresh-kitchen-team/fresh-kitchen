@@ -6,9 +6,11 @@ import com.example.freshkitchen.application.analytics.usecase.ListExpiringItemsU
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/analytics")
 @RequiredArgsConstructor
@@ -37,7 +40,8 @@ public class AnalyticsController {
     public ResponseEntity<ApiResponse<List<AnalyticsDto.ExpiringItem>>> expiringItems(
             @AuthenticationPrincipal Long userId,
             @RequestParam(required = false)
-            @Schema(description = "유통기한 D-Day 필터 (예: 3이면 D-3 이내 항목만 조회)")
+            @Schema(description = "유통기한 D-Day 필터 (예: 3이면 D-3 이내 항목만 조회, 기본값 10)")
+            @PositiveOrZero
             Integer maxDDay,
             @RequestParam(required = false)
             @Schema(description = "저장방법 필터 (FRIDGE, FREEZER, PANTRY)")
