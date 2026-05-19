@@ -6,6 +6,7 @@ import com.example.freshkitchen.application.analytics.usecase.ListExpiringItemsU
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +42,7 @@ public class AnalyticsController {
             @AuthenticationPrincipal Long userId,
             @RequestParam(required = false)
             @Schema(description = "유통기한 D-Day 필터 (예: 3이면 D-3 이내 항목만 조회, 기본값 10)")
-            @PositiveOrZero
+            @PositiveOrZero @Max(30)
             Integer maxDDay,
             @RequestParam(required = false)
             @Schema(description = "저장방법 필터 (FRIDGE, FREEZER, PANTRY)")
