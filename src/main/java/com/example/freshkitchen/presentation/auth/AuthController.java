@@ -68,7 +68,7 @@ public class AuthController {
     })
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
-            @AuthenticationPrincipal Long userId,
+            @io.swagger.v3.oas.annotations.Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             HttpServletRequest request
     ) {
         String accessToken = extractToken(request);

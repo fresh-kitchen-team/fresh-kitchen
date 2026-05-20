@@ -8,6 +8,7 @@ import com.example.freshkitchen.global.exception.BusinessValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -38,7 +39,7 @@ public class LogoutService implements LogoutUseCase {
             }
 
             log.info("로그아웃 완료. userId={}", command.userId());
-        } catch (RedisConnectionFailureException e) {
+        } catch (RedisConnectionFailureException | RedisSystemException e) {
             log.error("Redis 연결 실패로 로그아웃 토큰 무효화 불완전. userId={}", command.userId(), e);
             // 로그아웃은 best-effort — 클라이언트가 토큰을 삭제하면 UX적으로 로그아웃 완료
             // Refresh Token은 Redis TTL(14일)로 자연 만료됨

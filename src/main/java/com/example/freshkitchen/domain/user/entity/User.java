@@ -123,10 +123,15 @@ public class User extends BaseTimeEntity {
 
     public void deactivate() {
         if (this.status == UserStatus.INACTIVE) {
-            return;
+            throw new com.example.freshkitchen.domain.user.exception.UserException(
+                    com.example.freshkitchen.domain.user.exception.UserErrorCode.ALREADY_INACTIVE);
         }
         this.status = UserStatus.INACTIVE;
         this.inactiveAt = OffsetDateTime.now();
+    }
+
+    public boolean isInactive() {
+        return this.status == UserStatus.INACTIVE;
     }
 
     public void reactivate() {

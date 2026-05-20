@@ -159,6 +159,18 @@ class ErrorCodeContractTest {
                 "USER-404-1",
                 "user not found"
         );
+        assertContract(
+                UserErrorCode.ALREADY_INACTIVE,
+                HttpStatus.CONFLICT,
+                "USER-409-1",
+                "user is already inactive"
+        );
+        assertContract(
+                UserErrorCode.HARD_DELETE_DISABLED,
+                HttpStatus.FORBIDDEN,
+                "USER-403-1",
+                "hard delete is not allowed in this environment"
+        );
     }
 
     @Test
@@ -181,6 +193,7 @@ class ErrorCodeContractTest {
         assertContract(JwtErrorCode.UNSUPPORTED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-4", "unsupported token");
         assertContract(JwtErrorCode.EMPTY_CLAIMS, HttpStatus.UNAUTHORIZED, "AUTH-401-5", "token claims are empty");
         assertContract(JwtErrorCode.NOT_YET_VALID_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-6", "token is not yet valid");
+        assertContract(JwtErrorCode.BLACKLISTED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-9", "token has been invalidated by logout");
         assertContract(JwtErrorCode.INVALID_REFRESH_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-8", "invalid or expired refresh token");
     }
 

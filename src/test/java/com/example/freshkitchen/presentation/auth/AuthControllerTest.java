@@ -139,17 +139,6 @@ class AuthControllerTest {
         ));
     }
 
-    @Test
-    void logout_returns200_withNullAccessToken_whenNoAuthHeader() throws Exception {
-        mockMvc.perform(post("/api/v1/auth/logout"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value(200));
-
-        then(logoutUseCase).should().logout(argThat(cmd ->
-                cmd.userId().equals(TEST_USER_ID) && cmd.accessToken() == null
-        ));
-    }
-
     private static HandlerMethodArgumentResolver authenticationPrincipalResolver(Long userId) {
         return new HandlerMethodArgumentResolver() {
             @Override

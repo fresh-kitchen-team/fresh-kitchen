@@ -39,10 +39,10 @@ public class HardDeleteUserService implements HardDeleteUserUseCase {
             throw new UserException(UserErrorCode.HARD_DELETE_DISABLED);
         }
 
-        Long userId = command.userId();
-        if (userId == null) {
+        if (command == null || command.userId() == null) {
             throw new BusinessValidationException("userId must not be null");
         }
+        Long userId = command.userId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
