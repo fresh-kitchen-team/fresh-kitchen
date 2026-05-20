@@ -19,6 +19,17 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
   ai:
     google:
       genai:
@@ -83,6 +94,14 @@ chat:
     fallback-type: ${INTENT_CLASSIFIER_FALLBACK:GENERAL}
 
 
+fcm:
+  firebase-credentials-location: ${FCM_FIREBASE_CREDENTIALS_LOCATION:}
+  expiring-notification:
+    enabled: ${FCM_EXPIRING_NOTIFICATION_ENABLED:true}
+    cron: ${FCM_EXPIRING_NOTIFICATION_CRON:0 0 9 * * *}
+    zone: ${FCM_EXPIRING_NOTIFICATION_ZONE:Asia/Seoul}
+    days-ahead: ${FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD:1}
+
 image:
   storage:
     type: ${IMAGE_STORAGE_TYPE:local}
@@ -95,3 +114,16 @@ image:
       access-key-id: ${AWS_ACCESS_KEY_ID:}
       secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
       public-base-url: ${IMAGE_STORAGE_S3_PUBLIC_BASE_URL:}
+
+app:
+  inquiry:
+    admin-email: ${INQUIRY_ADMIN_EMAIL:no-reply@example.invalid}  # CI/test fallback; docker-compose enforces required via :?
+  version:
+    latest-version: "1.0.0"
+    minimum-version: "1.0.0"
+    force-update: false
+    update-url: ""
+  legal:
+    terms-url: ${LEGAL_TERMS_URL:https://example.invalid/terms}      # CI/test fallback; docker-compose enforces required via :?
+    privacy-url: ${LEGAL_PRIVACY_URL:https://example.invalid/privacy}  # CI/test fallback; docker-compose enforces required via :?
+

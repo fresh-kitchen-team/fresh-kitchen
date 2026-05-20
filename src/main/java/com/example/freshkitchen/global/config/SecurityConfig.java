@@ -3,6 +3,7 @@ package com.example.freshkitchen.global.config;
 import com.example.freshkitchen.global.security.infrastructure.JwtAuthenticationEntryPoint;
 import com.example.freshkitchen.global.security.infrastructure.JwtAuthenticationFilter;
 import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
+import com.example.freshkitchen.infrastructure.auth.AccessTokenBlacklistRepository;
 import com.example.freshkitchen.infrastructure.image.LocalImageStorageProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -12,10 +13,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -34,10 +38,17 @@ public class SecurityConfig {
             "/add-vector-store",
 
             "/api/v1/auth/dev-login",
+            "/api/v1/tips/storage",
+            "/api/v1/tips/recycling",
+    };
 
+    private static final String[] PUBLIC_GET_ONLY_ENDPOINTS = {
+            "/api/v1/app/version",
+            "/api/v1/legal",
     };
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final AccessTokenBlacklistRepository accessTokenBlacklistRepository;
     private final ObjectMapper objectMapper;
     private final LocalImageStorageProperties localImageStorageProperties;
 
@@ -63,7 +74,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider);
+        return new JwtAuthenticationFilter(jwtTokenProvider, accessTokenBlacklistRepository);
     }
 
     @Bean
@@ -78,8 +89,15 @@ public class SecurityConfig {
     }
 
     private RequestMatcher[] publicEndpointMatchers() {
-        return Arrays.stream(publicEndpoints())
+        List<RequestMatcher> matchers = new ArrayList<>(Arrays.stream(publicEndpoints())
                 .map(AntPathRequestMatcher::new)
-                .toArray(RequestMatcher[]::new);
+                .map(RequestMatcher.class::cast)
+                .toList());
+
+        Arrays.stream(PUBLIC_GET_ONLY_ENDPOINTS)
+                .map(pattern -> new AntPathRequestMatcher(pattern, HttpMethod.GET.name()))
+                .forEach(matchers::add);
+
+        return matchers.toArray(RequestMatcher[]::new);
     }
 }

@@ -42,6 +42,7 @@
 - `ImageException`
 - `UserException`
 - `AiServerException`
+- `InquiryException`
 
 도메인별 예외는 각 도메인의 `ErrorCode` enum 과 1:1로 연결한다.
 
@@ -182,13 +183,21 @@
 | `IMAGE_ASSET_ALREADY_ATTACHED` | `400` | `IMAGE-400-5` | `image asset is already attached to ingredient` | 식재료-이미지 중복 연결 |
 | `IMAGE_ASSET_NOT_FOUND` | `404` | `IMAGE-404-1` | `image asset not found` | 이미지 asset 조회 실패 |
 
-### 6.3 UserErrorCode
+### 6.3 InquiryErrorCode
+
+| Enum | HTTP Status | Code | Message | 의미 |
+|------|-------------|------|---------|------|
+| `MAIL_SEND_FAILED` | `500` | `INQUIRY-500-1` | `failed to send inquiry email` | 문의 이메일 발송 실패 (SMTP 오류 등) |
+
+### 6.4 UserErrorCode
 
 | Enum | HTTP Status | Code | Message | 의미 |
 |------|-------------|------|---------|------|
 | `USER_NOT_FOUND` | `404` | `USER-404-1` | `user not found` | 대상 사용자 조회 실패 |
+| `ALREADY_INACTIVE` | `409` | `USER-409-1` | `user is already inactive` | 이미 비활성화된 계정에 대해 탈퇴 시도 |
+| `HARD_DELETE_DISABLED` | `403` | `USER-403-1` | `hard delete is not allowed in this environment` | 하드 삭제가 비활성화된 환경에서 호출 |
 
-### 6.4 AiServerErrorCode
+### 6.5 AiServerErrorCode
 
 | Enum | HTTP Status | Code | Message | 의미 |
 |------|-------------|------|---------|------|
@@ -219,6 +228,7 @@ OAuth 인증 과정에서 발생하는 예외를 `OAuthException` 및 아래 `OA
 | `INVALID_ID_TOKEN` | `401` | `AUTH-401-7` | `invalid id token` | OAuth provider가 발급한 ID Token 검증 실패 (서명, 만료, audience 불일치 등) |
 | `PROVIDER_NOT_SUPPORTED` | `400` | `AUTH-400-1` | `oauth provider not supported` | 지원하지 않는 OAuth provider 요청 |
 | `OAUTH_PROVIDER_UNAVAILABLE` | `503` | `AUTH-503-1` | `oauth provider unavailable` | OAuth provider(Google/Kakao)의 공개키 조회 등 외부 통신 실패 (네트워크 오류, 타임아웃 등) |
+| `USER_RESOLUTION_FAILED` | `500` | `AUTH-500-1` | `failed to resolve user during oauth login` | 동시 가입 충돌 후 재조회 실패 또는 재활성화 대상 유저 조회 실패 등 비정상 상태 |
 
 ### 7.3 JwtErrorCode
 
@@ -233,6 +243,7 @@ OAuth 인증 과정에서 발생하는 예외를 `OAuthException` 및 아래 `OA
 | `EMPTY_CLAIMS` | `401` | `AUTH-401-5` | `token claims are empty` | 토큰 문자열이 `null`이거나 비어있음 |
 | `NOT_YET_VALID_TOKEN` | `401` | `AUTH-401-6` | `token is not yet valid` | 토큰이 아직 활성화되지 않음 (`nbf`가 현재 시각보다 30초를 초과해 미래인 경우; 최대 30초 clock skew 허용) |
 | `INVALID_REFRESH_TOKEN` | `401` | `AUTH-401-8` | `invalid or expired refresh token` | 유효하지 않거나 탈취/만료된 리프레시 토큰 |
+| `BLACKLISTED_TOKEN` | `401` | `AUTH-401-9` | `token has been invalidated by logout` | 로그아웃으로 블랙리스트에 등록된 Access Token 사용 시도 |
 
 ---
 

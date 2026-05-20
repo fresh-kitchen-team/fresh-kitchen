@@ -104,6 +104,21 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    /**
+     * 토큰의 남은 유효시간을 반환합니다.
+     * 이미 만료된 토큰이거나 파싱 실패 시 Duration.ZERO를 반환합니다.
+     */
+    public Duration getRemainingTtl(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            long remaining = claims.getExpiration().getTime() - System.currentTimeMillis()
+                    + Duration.ofSeconds(CLOCK_SKEW_SECONDS).toMillis();
+            return Duration.ofMillis(Math.max(remaining, 0));
+        } catch (JwtTokenException e) {
+            return Duration.ZERO;
+        }
+    }
+
     public TokenPayload validateAccessToken(String token) {
         Claims claims = parseClaims(token);
         assertTokenType(claims, TOKEN_TYPE_ACCESS);

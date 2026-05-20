@@ -1,5 +1,7 @@
 package com.example.freshkitchen.global.exception;
 
+import com.example.freshkitchen.application.inquiry.exception.InquiryErrorCode;
+import com.example.freshkitchen.application.inquiry.exception.InquiryException;
 import com.example.freshkitchen.domain.image.exception.ImageErrorCode;
 import com.example.freshkitchen.domain.image.exception.ImageException;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
@@ -157,6 +159,18 @@ class ErrorCodeContractTest {
                 "USER-404-1",
                 "user not found"
         );
+        assertContract(
+                UserErrorCode.ALREADY_INACTIVE,
+                HttpStatus.CONFLICT,
+                "USER-409-1",
+                "user is already inactive"
+        );
+        assertContract(
+                UserErrorCode.HARD_DELETE_DISABLED,
+                HttpStatus.FORBIDDEN,
+                "USER-403-1",
+                "hard delete is not allowed in this environment"
+        );
     }
 
     @Test
@@ -169,6 +183,7 @@ class ErrorCodeContractTest {
         assertContract(OAuthErrorCode.INVALID_ID_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-7", "invalid id token");
         assertContract(OAuthErrorCode.PROVIDER_NOT_SUPPORTED, HttpStatus.BAD_REQUEST, "AUTH-400-1", "oauth provider not supported");
         assertContract(OAuthErrorCode.OAUTH_PROVIDER_UNAVAILABLE, HttpStatus.SERVICE_UNAVAILABLE, "AUTH-503-1", "oauth provider unavailable");
+        assertContract(OAuthErrorCode.USER_RESOLUTION_FAILED, HttpStatus.INTERNAL_SERVER_ERROR, "AUTH-500-1", "failed to resolve user during oauth login");
     }
 
     @Test
@@ -179,6 +194,7 @@ class ErrorCodeContractTest {
         assertContract(JwtErrorCode.UNSUPPORTED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-4", "unsupported token");
         assertContract(JwtErrorCode.EMPTY_CLAIMS, HttpStatus.UNAUTHORIZED, "AUTH-401-5", "token claims are empty");
         assertContract(JwtErrorCode.NOT_YET_VALID_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-6", "token is not yet valid");
+        assertContract(JwtErrorCode.BLACKLISTED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-9", "token has been invalidated by logout");
         assertContract(JwtErrorCode.INVALID_REFRESH_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-8", "invalid or expired refresh token");
     }
 
@@ -205,17 +221,29 @@ class ErrorCodeContractTest {
     }
 
     @Test
-    void domainExceptions_exposeTheirErrorCodes() {
+    void inquiryErrorCode_contractMatchesSpecification() {
+        assertContract(
+                InquiryErrorCode.MAIL_SEND_FAILED,
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "INQUIRY-500-1",
+                "failed to send inquiry email"
+        );
+    }
+
+    @Test
+    void businessExceptions_exposeTheirErrorCodes() {
         IngredientException ingredientException = new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND);
         ImageException imageException = new ImageException(ImageErrorCode.USER_UPLOAD_OWNER_REQUIRED);
         UserException userException = new UserException(UserErrorCode.USER_NOT_FOUND);
         AiServerException aiServerException = new AiServerException(AiServerErrorCode.AI_SERVER_UNAVAILABLE);
+        InquiryException inquiryException = new InquiryException(InquiryErrorCode.MAIL_SEND_FAILED);
         BusinessValidationException validationException = new BusinessValidationException("name must not be blank");
 
         assertEquals(IngredientErrorCode.INGREDIENT_NOT_FOUND, ingredientException.getErrorCode());
         assertEquals(ImageErrorCode.USER_UPLOAD_OWNER_REQUIRED, imageException.getErrorCode());
         assertEquals(UserErrorCode.USER_NOT_FOUND, userException.getErrorCode());
         assertEquals(AiServerErrorCode.AI_SERVER_UNAVAILABLE, aiServerException.getErrorCode());
+        assertEquals(InquiryErrorCode.MAIL_SEND_FAILED, inquiryException.getErrorCode());
         assertEquals(CommonErrorCode.INVALID_INPUT, validationException.getErrorCode());
     }
 
