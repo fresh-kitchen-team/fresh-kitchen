@@ -8,22 +8,30 @@ import com.example.freshkitchen.domain.user.repository.UserRepository;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.infrastructure.auth.RefreshTokenRepository;
 import jakarta.persistence.EntityManager;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 @Transactional
 public class HardDeleteUserService implements HardDeleteUserUseCase {
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final EntityManager entityManager;
+    private final boolean hardDeleteEnabled;
 
-    @Value("${dev.hard-delete.enabled:false}")
-    private boolean hardDeleteEnabled;
+    public HardDeleteUserService(
+            UserRepository userRepository,
+            RefreshTokenRepository refreshTokenRepository,
+            EntityManager entityManager,
+            @Value("${dev.hard-delete.enabled:false}") boolean hardDeleteEnabled
+    ) {
+        this.userRepository = userRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.entityManager = entityManager;
+        this.hardDeleteEnabled = hardDeleteEnabled;
+    }
 
     @Override
     public void delete(Command command) {

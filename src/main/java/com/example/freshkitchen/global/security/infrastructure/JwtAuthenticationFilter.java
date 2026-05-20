@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -44,7 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     }
                 } catch (JwtTokenException e) {
                     throw e;  // 블랙리스트 차단은 그대로 전파
-                } catch (Exception e) {
+                } catch (RedisConnectionFailureException | RedisSystemException e) {
                     log.warn("블랙리스트 조회 실패 (fail-open). Redis 상태를 확인하세요.", e);
                     // 가용성 우선: Redis 장애 시 요청을 차단하지 않음
                 }

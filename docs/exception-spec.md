@@ -194,6 +194,8 @@
 | Enum | HTTP Status | Code | Message | 의미 |
 |------|-------------|------|---------|------|
 | `USER_NOT_FOUND` | `404` | `USER-404-1` | `user not found` | 대상 사용자 조회 실패 |
+| `ALREADY_INACTIVE` | `409` | `USER-409-1` | `user is already inactive` | 이미 비활성화된 계정에 대해 탈퇴 시도 |
+| `HARD_DELETE_DISABLED` | `403` | `USER-403-1` | `hard delete is not allowed in this environment` | 하드 삭제가 비활성화된 환경에서 호출 |
 
 ### 6.5 AiServerErrorCode
 
@@ -240,6 +242,7 @@ OAuth 인증 과정에서 발생하는 예외를 `OAuthException` 및 아래 `OA
 | `EMPTY_CLAIMS` | `401` | `AUTH-401-5` | `token claims are empty` | 토큰 문자열이 `null`이거나 비어있음 |
 | `NOT_YET_VALID_TOKEN` | `401` | `AUTH-401-6` | `token is not yet valid` | 토큰이 아직 활성화되지 않음 (`nbf`가 현재 시각보다 30초를 초과해 미래인 경우; 최대 30초 clock skew 허용) |
 | `INVALID_REFRESH_TOKEN` | `401` | `AUTH-401-8` | `invalid or expired refresh token` | 유효하지 않거나 탈취/만료된 리프레시 토큰 |
+| `BLACKLISTED_TOKEN` | `401` | `AUTH-401-9` | `token has been invalidated by logout` | 로그아웃으로 블랙리스트에 등록된 Access Token 사용 시도 |
 
 ---
 

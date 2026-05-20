@@ -400,6 +400,38 @@ class UserProfileControllerTest {
         then(getUserProfileUseCase).should().get(query);
     }
 
+    @Test
+    void deleteUser_returns200() throws Exception {
+        mockMvc.perform(delete("/api/v1/users/me"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.code").value("COMMON-200"));
+
+        then(deleteUserUseCase).should().delete(new DeleteUserUseCase.Command(TEST_USER_ID));
+    }
+
+    @Test
+    void deleteUser_returns404_whenUserNotFound() throws Exception {
+        willThrow(new UserException(UserErrorCode.USER_NOT_FOUND))
+                .given(deleteUserUseCase)
+                .delete(new DeleteUserUseCase.Command(TEST_USER_ID));
+
+        mockMvc.perform(delete("/api/v1/users/me"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("USER-404-1"));
+    }
+
+    @Test
+    void deleteUser_returns409_whenAlreadyInactive() throws Exception {
+        willThrow(new UserException(UserErrorCode.ALREADY_INACTIVE))
+                .given(deleteUserUseCase)
+                .delete(new DeleteUserUseCase.Command(TEST_USER_ID));
+
+        mockMvc.perform(delete("/api/v1/users/me"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("USER-409-1"));
+    }
+
     private static HandlerMethodArgumentResolver authenticationPrincipalResolver(Long userId) {
         return new HandlerMethodArgumentResolver() {
             @Override

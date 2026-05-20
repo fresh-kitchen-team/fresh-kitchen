@@ -9,11 +9,18 @@ import com.example.freshkitchen.global.exception.handler.GlobalExceptionHandler;
 import com.example.freshkitchen.global.security.exception.OAuthErrorCode;
 import com.example.freshkitchen.global.security.exception.OAuthException;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -27,8 +34,11 @@ class AuthControllerTest {
     private final LogoutUseCase logoutUseCase = mock(LogoutUseCase.class);
     private final RefreshTokenUseCase refreshTokenUseCase = mock(RefreshTokenUseCase.class);
 
+    private static final Long TEST_USER_ID = 1L;
+
     private final MockMvc mockMvc = MockMvcBuilders
             .standaloneSetup(new AuthController(googleLoginUseCase, kakaoLoginUseCase, logoutUseCase, refreshTokenUseCase))
+            .setCustomArgumentResolvers(authenticationPrincipalResolver(TEST_USER_ID))
             .setControllerAdvice(new GlobalExceptionHandler())
             .build();
 
@@ -116,4 +126,49 @@ class AuthControllerTest {
         verifyNoInteractions(googleLoginUseCase, kakaoLoginUseCase, refreshTokenUseCase);
     }
 
+    @Test
+    void logout_returns200_andPassesAccessToken() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/logout")
+                        .header("Authorization", "Bearer my-access-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.code").value("COMMON-200"));
+
+        then(logoutUseCase).should().logout(argThat(cmd ->
+                cmd.userId().equals(TEST_USER_ID) && "my-access-token".equals(cmd.accessToken())
+        ));
+    }
+
+    @Test
+    void logout_returns200_withNullAccessToken_whenNoAuthHeader() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/logout"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200));
+
+        then(logoutUseCase).should().logout(argThat(cmd ->
+                cmd.userId().equals(TEST_USER_ID) && cmd.accessToken() == null
+        ));
+    }
+
+    private static HandlerMethodArgumentResolver authenticationPrincipalResolver(Long userId) {
+        return new HandlerMethodArgumentResolver() {
+            @Override
+            public boolean supportsParameter(MethodParameter parameter) {
+                Class<?> type = parameter.getParameterType();
+                return parameter.hasParameterAnnotation(
+                        org.springframework.security.core.annotation.AuthenticationPrincipal.class
+                ) && (Long.class.equals(type) || long.class.equals(type));
+            }
+
+            @Override
+            public Object resolveArgument(
+                    MethodParameter parameter,
+                    ModelAndViewContainer mavContainer,
+                    NativeWebRequest webRequest,
+                    WebDataBinderFactory binderFactory
+            ) {
+                return userId;
+            }
+        };
+    }
 }
