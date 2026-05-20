@@ -57,17 +57,23 @@ final class AiResponseProcessor {
     private static void validateFoodClassification(FoodClassificationResponse response) {
         if (response == null
                 || response.bestMatch() == null
+                || response.bestMatch().isBlank()
                 || response.category() == null
+                || response.category().isBlank()
                 || response.confidence() == null
                 || response.top3() == null
                 || response.source() == null
+                || response.source().isBlank()
                 || response.top3().stream().anyMatch(AiResponseProcessor::isInvalidFoodCandidate)) {
             throw new AiServerException(AiServerErrorCode.AI_RESPONSE_INVALID);
         }
     }
 
     private static boolean isInvalidFoodCandidate(FoodClassificationResponse.FoodCandidate item) {
-        return item == null || item.name() == null || item.confidence() == null;
+        return item == null
+                || item.name() == null
+                || item.name().isBlank()
+                || item.confidence() == null;
     }
 
     private static void validateReceiptOcr(ReceiptOcrResponse response) {

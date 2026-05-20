@@ -24,8 +24,8 @@ public class ScanIngredientImageService implements ScanIngredientImageUseCase {
     @Override
     public ScanDto.IngredientImageScanResponse scan(Command command) {
         validate(command);
-        byte[] content = bytes(command.file());
         String originalFilename = originalFilename(command.file());
+        byte[] content = bytes(command.file());
         FoodClassificationResponse classification = aiServerClient.classifyFood(
                 originalFilename,
                 content

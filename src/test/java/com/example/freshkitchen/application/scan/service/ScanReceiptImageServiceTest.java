@@ -15,6 +15,7 @@ import org.mockito.InOrder;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.lang.reflect.Method;
 import java.time.Clock;
@@ -32,6 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -164,8 +166,10 @@ class ScanReceiptImageServiceTest {
     }
 
     @Test
-    void scan_doesNotCallAiServerWhenOriginalFilenameIsBlank() {
-        MockMultipartFile file = new MockMultipartFile("file", "   ", "image/jpeg", "image".getBytes());
+    void scan_doesNotReadFileWhenOriginalFilenameIsBlank() throws Exception {
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getOriginalFilename()).thenReturn("   ");
 
         BusinessValidationException thrown = assertThrows(
                 BusinessValidationException.class,
@@ -173,6 +177,7 @@ class ScanReceiptImageServiceTest {
         );
 
         assertEquals("originalFilename must not be blank", thrown.getMessage());
+        verify(file, never()).getBytes();
         verifyNoInteractions(aiServerClient, storeMultipartImageAssetUseCase);
     }
 

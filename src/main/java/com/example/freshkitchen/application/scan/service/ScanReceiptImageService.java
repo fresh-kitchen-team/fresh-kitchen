@@ -28,8 +28,8 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
     @Override
     public ScanDto.ReceiptImageScanResponse scan(Command command) {
         validate(command);
-        byte[] content = bytes(command.file());
         String originalFilename = originalFilename(command.file());
+        byte[] content = bytes(command.file());
         ReceiptOcrResponse receiptOcr = aiServerClient.extractReceiptIngredients(
                 originalFilename,
                 content

@@ -348,6 +348,29 @@ class AiServerClientTest {
     }
 
     @Test
+    void classifyFood_mapsBlankRequiredStringFieldToAiResponseInvalid() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiServerClient client = new AiServerClient(builder.build(), "service-token");
+
+        server.expect(once(), requestTo("https://ai.example.com/internal/v1/food-classification"))
+                .andRespond(withSuccess("""
+                        {
+                          "bestMatch": " ",
+                          "category": "ETC",
+                          "confidence": 0.95,
+                          "top3": [{"name": "Bibimbap", "confidence": 0.95}],
+                          "source": "gemini"
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        AiServerException exception = assertThrows(AiServerException.class, () -> client.classifyFood(imageFile()));
+
+        assertEquals(AiServerErrorCode.AI_RESPONSE_INVALID, exception.getErrorCode());
+        server.verify();
+    }
+
+    @Test
     void classifyFood_mapsNullTop3ItemToAiResponseInvalid() {
         RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
@@ -357,8 +380,32 @@ class AiServerClientTest {
                 .andRespond(withSuccess("""
                         {
                           "bestMatch": "Bibimbap",
+                          "category": "ETC",
                           "confidence": 0.95,
                           "top3": [null],
+                          "source": "gemini"
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        AiServerException exception = assertThrows(AiServerException.class, () -> client.classifyFood(imageFile()));
+
+        assertEquals(AiServerErrorCode.AI_RESPONSE_INVALID, exception.getErrorCode());
+        server.verify();
+    }
+
+    @Test
+    void classifyFood_mapsBlankTop3NameToAiResponseInvalid() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiServerClient client = new AiServerClient(builder.build(), "service-token");
+
+        server.expect(once(), requestTo("https://ai.example.com/internal/v1/food-classification"))
+                .andRespond(withSuccess("""
+                        {
+                          "bestMatch": "Bibimbap",
+                          "category": "ETC",
+                          "confidence": 0.95,
+                          "top3": [{"name": " ", "confidence": 0.95}],
                           "source": "gemini"
                         }
                         """, MediaType.APPLICATION_JSON));

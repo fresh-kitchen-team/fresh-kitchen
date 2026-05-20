@@ -24,8 +24,8 @@ public class ScanFridgeImageService implements ScanFridgeImageUseCase {
     @Override
     public ScanDto.FridgeImageScanResponse scan(Command command) {
         validate(command);
-        byte[] content = bytes(command.file());
         String originalFilename = originalFilename(command.file());
+        byte[] content = bytes(command.file());
         FridgeDetectionResponse detection = aiServerClient.detectFridgeObjects(
                 originalFilename,
                 content
