@@ -46,8 +46,7 @@ public class AiServerClient {
 
     public FoodClassificationResponse classifyFood(MultipartFile file) {
         FoodClassificationResponse response = postMultipart(FOOD_CLASSIFICATION_PATH, file, FoodClassificationResponse.class);
-        validateFoodClassification(response);
-        return response;
+        return AiResponseProcessor.process(response);
     }
 
     public FoodClassificationResponse classifyFood(String originalFilename, byte[] content) {
@@ -56,14 +55,12 @@ public class AiServerClient {
                 multipartBody(originalFilename, content),
                 FoodClassificationResponse.class
         );
-        validateFoodClassification(response);
-        return response;
+        return AiResponseProcessor.process(response);
     }
 
     public ReceiptOcrResponse extractReceiptIngredients(MultipartFile file) {
         ReceiptOcrResponse response = postMultipart(RECEIPT_OCR_PATH, file, ReceiptOcrResponse.class);
-        validateReceiptOcr(response);
-        return response;
+        return AiResponseProcessor.process(response);
     }
 
     public ReceiptOcrResponse extractReceiptIngredients(String originalFilename, byte[] content) {
@@ -72,14 +69,12 @@ public class AiServerClient {
                 multipartBody(originalFilename, content),
                 ReceiptOcrResponse.class
         );
-        validateReceiptOcr(response);
-        return response;
+        return AiResponseProcessor.process(response);
     }
 
     public FridgeDetectionResponse detectFridgeObjects(MultipartFile file) {
         FridgeDetectionResponse response = postMultipart(FRIDGE_DETECTION_PATH, file, FridgeDetectionResponse.class);
-        validateFridgeDetection(response);
-        return response;
+        return AiResponseProcessor.process(response);
     }
 
     public FridgeDetectionResponse detectFridgeObjects(String originalFilename, byte[] content) {
@@ -88,8 +83,7 @@ public class AiServerClient {
                 multipartBody(originalFilename, content),
                 FridgeDetectionResponse.class
         );
-        validateFridgeDetection(response);
-        return response;
+        return AiResponseProcessor.process(response);
     }
 
     private <T> T postMultipart(String path, MultipartFile file, Class<T> responseType) {
@@ -192,51 +186,5 @@ public class AiServerClient {
             current = current.getCause();
         }
         return false;
-    }
-
-    private static void validateFoodClassification(FoodClassificationResponse response) {
-        if (response == null
-                || response.bestMatch() == null
-                || response.category() == null
-                || response.confidence() == null
-                || response.top3() == null
-                || response.source() == null
-                || response.top3().stream().anyMatch(AiServerClient::isInvalidFoodCandidate)) {
-            throw new AiServerException(AiServerErrorCode.AI_RESPONSE_INVALID);
-        }
-    }
-
-    private static boolean isInvalidFoodCandidate(FoodClassificationResponse.FoodCandidate item) {
-        return item == null || item.name() == null || item.confidence() == null;
-    }
-
-    private static void validateReceiptOcr(ReceiptOcrResponse response) {
-        if (response == null
-                || response.ingredients() == null
-                || response.ingredients().stream().anyMatch(AiServerClient::isInvalidIngredientItem)) {
-            throw new AiServerException(AiServerErrorCode.AI_RESPONSE_INVALID);
-        }
-    }
-
-    private static boolean isInvalidIngredientItem(ReceiptOcrResponse.IngredientItem item) {
-        return item == null
-                || item.name() == null
-                || item.name().isBlank()
-                || item.category() == null
-                || item.category().isBlank();
-    }
-
-    private static void validateFridgeDetection(FridgeDetectionResponse response) {
-        if (response == null || response.items() == null || response.items().stream().anyMatch(AiServerClient::isInvalidDetectedItem)) {
-            throw new AiServerException(AiServerErrorCode.AI_RESPONSE_INVALID);
-        }
-    }
-
-    private static boolean isInvalidDetectedItem(FridgeDetectionResponse.DetectedItem item) {
-        return item == null
-                || item.name() == null
-                || item.name().isBlank()
-                || item.category() == null
-                || item.category().isBlank();
     }
 }

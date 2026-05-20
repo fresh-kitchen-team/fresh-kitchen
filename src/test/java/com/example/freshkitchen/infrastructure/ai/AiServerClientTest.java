@@ -48,12 +48,12 @@ class AiServerClientTest {
                 .andExpect(header("X-Request-Id", org.hamcrest.Matchers.notNullValue()))
                 .andRespond(withSuccess("""
                         {
-                          "bestMatch": "Bibimbap",
-                          "category": "ETC",
+                          "bestMatch": " Bibimbap ",
+                          "category": " ETC ",
                           "confidence": 0.95,
                           "top3": [
-                            {"name": "Bibimbap", "confidence": 0.95},
-                            {"name": "Fried rice", "confidence": 0.03}
+                            {"name": " Bibimbap ", "confidence": 0.95},
+                            {"name": " Fried rice ", "confidence": 0.03}
                           ],
                           "source": "gemini"
                         }
@@ -65,6 +65,7 @@ class AiServerClientTest {
         assertEquals("ETC", response.category());
         assertEquals(0.95, response.confidence());
         assertEquals("Bibimbap", response.top3().get(0).name());
+        assertEquals("Fried rice", response.top3().get(1).name());
         assertEquals("gemini", response.source());
         assertNull(response.geminiReason());
         assertNull(response.autoSaved());
@@ -83,9 +84,9 @@ class AiServerClientTest {
                         {
                           "purchasedAt": "2026-05-01",
                           "ingredients": [
-                            {"name": "두부", "category": "ETC"},
-                            {"name": "계란", "category": "ETC"},
-                            {"name": "김치", "category": "VEGETABLE"}
+                            {"name": " 두부 ", "category": " ETC "},
+                            {"name": " 계란 ", "category": " ETC "},
+                            {"name": " 김치 ", "category": " VEGETABLE "}
                           ]
                         }
                         """, MediaType.APPLICATION_JSON));
@@ -96,6 +97,7 @@ class AiServerClientTest {
         assertEquals("두부", response.ingredients().get(0).name());
         assertEquals("ETC", response.ingredients().get(0).category());
         assertEquals("계란", response.ingredients().get(1).name());
+        assertEquals("ETC", response.ingredients().get(1).category());
         assertEquals("김치", response.ingredients().get(2).name());
         assertEquals("VEGETABLE", response.ingredients().get(2).category());
         server.verify();
@@ -138,7 +140,7 @@ class AiServerClientTest {
                 .andRespond(withSuccess("""
                         {
                           "items": [
-                            {"name": "Apple", "category": "FRUIT"}
+                            {"name": " Apple ", "category": " FRUIT "}
                           ]
                         }
                         """, MediaType.APPLICATION_JSON));
