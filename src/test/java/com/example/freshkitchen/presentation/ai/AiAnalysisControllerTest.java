@@ -81,7 +81,7 @@ class AiAnalysisControllerTest {
     }
 
     @Test
-    void detectFridgeObjects_returnsObjects() throws Exception {
+    void detectFridgeObjects_returnsItems() throws Exception {
         given(aiServerClient.detectFridgeObjects(any()))
                 .willReturn(new FridgeDetectionResponse(List.of(
                         new FridgeDetectionResponse.DetectedItem(
