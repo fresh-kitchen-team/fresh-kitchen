@@ -6,6 +6,7 @@ import com.example.freshkitchen.global.security.exception.JwtErrorCode;
 import com.example.freshkitchen.global.security.exception.JwtTokenException;
 import com.example.freshkitchen.infrastructure.auth.AccessTokenBlacklistRepository;
 import jakarta.servlet.FilterChain;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -144,7 +145,7 @@ class JwtAuthenticationFilterTest {
         given(jwtTokenProvider.validateAccessToken("valid-token-redis-down"))
                 .willReturn(new TokenPayload(1L, Role.USER));
         given(accessTokenBlacklistRepository.isBlacklisted("valid-token-redis-down"))
-                .willThrow(new RuntimeException("Redis connection refused"));
+                .willThrow(new RedisConnectionFailureException("Redis connection refused"));
 
         filter.doFilterInternal(request, response, filterChain);
 

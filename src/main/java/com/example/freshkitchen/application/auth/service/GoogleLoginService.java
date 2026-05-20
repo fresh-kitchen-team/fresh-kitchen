@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -60,7 +62,14 @@ public class GoogleLoginService implements GoogleLoginUseCase {
 
         String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), Role.USER);
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
-        refreshTokenRepository.save(user.getId(), refreshToken, Duration.ofDays(refreshExpirationDays));
+
+        Long userId = user.getId();
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                refreshTokenRepository.save(userId, refreshToken, Duration.ofDays(refreshExpirationDays));
+            }
+        });
 
         return new AuthTokenResult(accessToken, refreshToken, isNew);
     }

@@ -7,12 +7,14 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Profile({"local", "dev"})
 @ConditionalOnProperty(name = "dev.hard-delete.enabled", havingValue = "true", matchIfMissing = false)
 @Tag(name = "Dev Auth", description = "개발 환경 전용 인증 API (운영 비활성화)")
 @RestController
