@@ -6,6 +6,8 @@ import com.example.freshkitchen.domain.ingredient.entity.Storage;
 import com.example.freshkitchen.domain.image.entity.ImageAsset;
 import com.example.freshkitchen.domain.user.enums.Provider;
 import com.example.freshkitchen.domain.user.enums.UserStatus;
+import com.example.freshkitchen.domain.user.exception.UserErrorCode;
+import com.example.freshkitchen.domain.user.exception.UserException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -123,8 +125,7 @@ public class User extends BaseTimeEntity {
 
     public void deactivate() {
         if (this.status == UserStatus.INACTIVE) {
-            throw new com.example.freshkitchen.domain.user.exception.UserException(
-                    com.example.freshkitchen.domain.user.exception.UserErrorCode.ALREADY_INACTIVE);
+            throw new UserException(UserErrorCode.ALREADY_INACTIVE);
         }
         this.status = UserStatus.INACTIVE;
         this.inactiveAt = OffsetDateTime.now();

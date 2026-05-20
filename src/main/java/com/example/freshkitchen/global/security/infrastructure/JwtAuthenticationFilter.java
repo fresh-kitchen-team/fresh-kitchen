@@ -44,8 +44,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     if (accessTokenBlacklistRepository.isBlacklisted(token)) {
                         throw new JwtTokenException(JwtErrorCode.BLACKLISTED_TOKEN);
                     }
-                } catch (JwtTokenException e) {
-                    throw e;  // 블랙리스트 차단은 그대로 전파
                 } catch (RedisConnectionFailureException | RedisSystemException e) {
                     log.warn("블랙리스트 조회 실패 (fail-open). Redis 상태를 확인하세요.", e);
                     // 가용성 우선: Redis 장애 시 요청을 차단하지 않음

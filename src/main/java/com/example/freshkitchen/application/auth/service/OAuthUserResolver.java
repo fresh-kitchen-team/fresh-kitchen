@@ -4,26 +4,33 @@ import com.example.freshkitchen.domain.user.entity.User;
 import com.example.freshkitchen.domain.user.enums.Provider;
 import com.example.freshkitchen.domain.user.enums.UserStatus;
 import com.example.freshkitchen.domain.user.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW;
 
 /**
  * OAuth 로그인 시 유저 조회/생성/재활성화를 처리합니다.
  * <p>
- * 각 DB 작업은 {@link TransactionTemplate}으로 독립 트랜잭션을 보장하여,
- * 동시 회원가입 충돌(DataIntegrityViolationException) 발생 시
+ * 각 DB 작업은 {@code REQUIRES_NEW} 전파 옵션의 {@link TransactionTemplate}으로
+ * 독립 트랜잭션을 보장하여, 동시 회원가입 충돌(DataIntegrityViolationException) 발생 시
  * PostgreSQL의 aborted-transaction 상태가 후속 쿼리에 영향을 주지 않습니다.
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class OAuthUserResolver {
 
     private final UserRepository userRepository;
     private final TransactionTemplate transactionTemplate;
+
+    public OAuthUserResolver(UserRepository userRepository, PlatformTransactionManager txManager) {
+        this.userRepository = userRepository;
+        this.transactionTemplate = new TransactionTemplate(txManager);
+        this.transactionTemplate.setPropagationBehavior(PROPAGATION_REQUIRES_NEW);
+    }
 
     public Result resolve(String providerUserId, Provider provider) {
         // 1차: 기존 유저 조회 (독립 트랜잭션)

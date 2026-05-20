@@ -22,16 +22,21 @@ class OAuthUserResolverTest {
 
     private final UserRepository userRepository = mock(UserRepository.class);
 
-    // TransactionTemplate that just executes the callback directly
-    private final TransactionTemplate transactionTemplate = new TransactionTemplate() {
-        @Override
-        @SuppressWarnings("unchecked")
-        public <T> T execute(TransactionCallback<T> action) {
-            return action.doInTransaction(null);
-        }
-    };
+    private final OAuthUserResolver resolver = createResolver();
 
-    private final OAuthUserResolver resolver = new OAuthUserResolver(userRepository, transactionTemplate);
+    private OAuthUserResolver createResolver() {
+        // TransactionTemplate that just executes the callback directly (no real TX)
+        TransactionTemplate txTemplate = new TransactionTemplate() {
+            @Override
+            @SuppressWarnings("unchecked")
+            public <T> T execute(TransactionCallback<T> action) {
+                return action.doInTransaction(null);
+            }
+        };
+        OAuthUserResolver r = new OAuthUserResolver(userRepository, mock(org.springframework.transaction.PlatformTransactionManager.class));
+        ReflectionTestUtils.setField(r, "transactionTemplate", txTemplate);
+        return r;
+    }
 
     @Test
     void resolve_returnsExistingUser_whenFound() {
