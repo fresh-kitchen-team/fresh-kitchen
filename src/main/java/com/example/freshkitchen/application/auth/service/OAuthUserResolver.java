@@ -63,7 +63,9 @@ public class OAuthUserResolver {
         if (user.getStatus() == UserStatus.INACTIVE) {
             User reactivated = transactionTemplate.execute(status -> {
                 User managed = userRepository.findByProviderAndProviderUserId(provider, providerUserId)
-                        .orElseThrow();
+                        .orElseThrow(() -> new IllegalStateException(
+                                "재활성화 대상 유저 조회 실패. provider=" + provider
+                                        + ", providerUserId=" + providerUserId));
                 managed.reactivate();
                 return managed;
             });
