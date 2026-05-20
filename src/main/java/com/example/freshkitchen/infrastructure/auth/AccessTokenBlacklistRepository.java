@@ -23,6 +23,9 @@ public class AccessTokenBlacklistRepository {
      * @param remainingTtl 토큰의 남은 유효시간
      */
     public void add(String token, Duration remainingTtl) {
+        if (token == null || token.isBlank() || remainingTtl == null) {
+            return;
+        }
         if (remainingTtl.isNegative() || remainingTtl.isZero()) {
             return;
         }
@@ -33,6 +36,9 @@ public class AccessTokenBlacklistRepository {
      * 해당 Access Token이 블랙리스트에 등록되어 있는지 확인합니다.
      */
     public boolean isBlacklisted(String token) {
+        if (token == null || token.isBlank()) {
+            return false;
+        }
         return Boolean.TRUE.equals(redisTemplate.hasKey(key(token)));
     }
 

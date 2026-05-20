@@ -54,8 +54,8 @@ public class OAuthUserResolver {
             );
             return new Result(created, true);
         } catch (DataIntegrityViolationException e) {
-            log.warn("동시 회원가입 충돌 감지, 새 트랜잭션으로 재조회. provider={}, providerUserId={}",
-                    provider, providerUserId, e);
+            log.warn("동시 회원가입 충돌 감지, 새 트랜잭션으로 재조회. provider={}", provider);
+            log.debug("동시 회원가입 충돌 상세", e);
         }
 
         // 3차: 충돌 후 재조회 (별도 독립 트랜잭션 — aborted 세션 영향 없음)

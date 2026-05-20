@@ -9,6 +9,7 @@ import com.example.freshkitchen.domain.user.repository.UserRepository;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.infrastructure.auth.RefreshTokenRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -17,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
 
 class DeleteUserServiceTest {
@@ -56,5 +58,19 @@ class DeleteUserServiceTest {
     void delete_throwsBusinessValidationException_whenUserIdIsNull() {
         assertThatThrownBy(() -> service.delete(new DeleteUserUseCase.Command(null)))
                 .isInstanceOf(BusinessValidationException.class);
+    }
+
+    @Test
+    void delete_keepsDeactivation_whenRefreshTokenDeleteFails() {
+        User user = User.create(new User.CreateCommand("provider-id", Provider.GOOGLE));
+        ReflectionTestUtils.setField(user, "id", 1L);
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        willThrow(new RedisConnectionFailureException("redis down"))
+                .given(refreshTokenRepository).deleteByUserId(1L);
+
+        service.delete(new DeleteUserUseCase.Command(1L));
+
+        assertThat(user.getStatus()).isEqualTo(UserStatus.INACTIVE);
+        then(refreshTokenRepository).should().deleteByUserId(1L);
     }
 }
