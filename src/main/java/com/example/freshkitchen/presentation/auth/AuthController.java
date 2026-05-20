@@ -6,6 +6,7 @@ import com.example.freshkitchen.application.auth.usecase.KakaoLoginUseCase;
 import com.example.freshkitchen.application.auth.usecase.LogoutUseCase;
 import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
 import com.example.freshkitchen.global.response.ApiResponse;
+import com.example.freshkitchen.global.security.infrastructure.JwtAuthenticationFilter;
 import com.example.freshkitchen.presentation.auth.dto.AuthRequest;
 import com.example.freshkitchen.presentation.auth.dto.AuthResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -71,17 +72,9 @@ public class AuthController {
             @io.swagger.v3.oas.annotations.Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             HttpServletRequest request
     ) {
-        String accessToken = extractToken(request);
+        String accessToken = JwtAuthenticationFilter.extractToken(request);
         logoutUseCase.logout(new LogoutUseCase.Command(userId, accessToken));
         return ApiResponse.success();
-    }
-
-    private String extractToken(HttpServletRequest request) {
-        String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
-            return header.substring(7).trim();
-        }
-        return null;
     }
 
     @Operation(summary = "토큰 갱신", description = "Refresh Token으로 새 Access/Refresh Token 발급")
