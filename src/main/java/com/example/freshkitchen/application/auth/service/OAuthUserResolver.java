@@ -38,6 +38,17 @@ public class OAuthUserResolver {
         return new Result(user, false);
     }
 
+    /**
+     * 신규 유저 생성을 시도하고, Unique Constraint 충돌 시 기존 유저를 재조회합니다.
+     * <p>
+     * ⚠️ PostgreSQL 제약: saveAndFlush()가 DataIntegrityViolationException을 던지면
+     * 현재 트랜잭션이 abort 상태가 되어 후속 쿼리가 실패할 수 있습니다.
+     * 현재는 REQUIRES_NEW 트랜잭션 안에서 재조회하므로, 동일 세션의 abort 상태에서
+     * 쿼리가 거부될 가능성이 있습니다.
+     * <p>
+     * 현재 트래픽 규모에서는 동일 유저의 동시 최초 가입이 극히 드물어 실용적 위험은 낮지만,
+     * 트래픽 증가 시 재조회를 별도 트랜잭션으로 분리하는 것을 권장합니다.
+     */
     private Result createNewUser(String providerUserId, Provider provider) {
         try {
             User user = userRepository.saveAndFlush(
