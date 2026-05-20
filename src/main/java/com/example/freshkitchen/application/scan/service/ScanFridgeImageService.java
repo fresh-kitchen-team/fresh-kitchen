@@ -25,15 +25,16 @@ public class ScanFridgeImageService implements ScanFridgeImageUseCase {
     public ScanDto.FridgeImageScanResponse scan(Command command) {
         validate(command);
         byte[] content = bytes(command.file());
+        String originalFilename = originalFilename(command.file());
         FridgeDetectionResponse detection = aiServerClient.detectFridgeObjects(
-                command.file().getOriginalFilename(),
+                originalFilename,
                 content
         );
         StoreMultipartImageAssetUseCase.Result imageAsset = storeMultipartImageAssetUseCase.store(
                 new StoreMultipartImageAssetUseCase.Command(
                         command.userId(),
                         ImageKind.FRIDGE,
-                        command.file().getOriginalFilename(),
+                        originalFilename,
                         command.file().getContentType(),
                         content
                 )
@@ -62,6 +63,14 @@ public class ScanFridgeImageService implements ScanFridgeImageUseCase {
         if (command.file() == null || command.file().isEmpty()) {
             throw new BusinessValidationException("file must not be empty");
         }
+    }
+
+    private static String originalFilename(MultipartFile file) {
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.isBlank()) {
+            throw new BusinessValidationException("originalFilename must not be blank");
+        }
+        return originalFilename.trim();
     }
 
     private static List<ScanDto.DetectedItem> detectedItems(FridgeDetectionResponse detection) {

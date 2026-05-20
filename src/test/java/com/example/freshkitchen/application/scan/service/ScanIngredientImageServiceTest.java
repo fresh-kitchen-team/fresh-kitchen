@@ -45,7 +45,7 @@ class ScanIngredientImageServiceTest {
 
     @Test
     void scan_storesIngredientImageAssetAndReturnsFoodClassificationCandidates() {
-        MockMultipartFile file = new MockMultipartFile("file", "tomato.jpg", "image/jpeg", "image".getBytes());
+        MockMultipartFile file = new MockMultipartFile("file", " tomato.jpg ", "image/jpeg", "image".getBytes());
         when(storeMultipartImageAssetUseCase.store(any(StoreMultipartImageAssetUseCase.Command.class)))
                 .thenReturn(new StoreMultipartImageAssetUseCase.Result(
                         10L,
@@ -125,6 +125,19 @@ class ScanIngredientImageServiceTest {
         );
 
         assertEquals("userId must not be null", thrown.getMessage());
+        verifyNoInteractions(aiServerClient, storeMultipartImageAssetUseCase);
+    }
+
+    @Test
+    void scan_doesNotCallAiServerWhenOriginalFilenameIsBlank() {
+        MockMultipartFile file = new MockMultipartFile("file", "   ", "image/jpeg", "image".getBytes());
+
+        BusinessValidationException thrown = assertThrows(
+                BusinessValidationException.class,
+                () -> service.scan(new ScanIngredientImageUseCase.Command(1L, file))
+        );
+
+        assertEquals("originalFilename must not be blank", thrown.getMessage());
         verifyNoInteractions(aiServerClient, storeMultipartImageAssetUseCase);
     }
 

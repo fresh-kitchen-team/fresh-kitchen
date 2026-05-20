@@ -52,7 +52,7 @@ class ScanReceiptImageServiceTest {
 
     @Test
     void scan_storesReceiptImageAndReturnsOcrMetadata() {
-        MockMultipartFile file = new MockMultipartFile("file", "receipt.jpg", "image/jpeg", "image".getBytes());
+        MockMultipartFile file = new MockMultipartFile("file", " receipt.jpg ", "image/jpeg", "image".getBytes());
         when(storeMultipartImageAssetUseCase.store(any(StoreMultipartImageAssetUseCase.Command.class)))
                 .thenReturn(new StoreMultipartImageAssetUseCase.Result(
                         11L,
@@ -160,6 +160,19 @@ class ScanReceiptImageServiceTest {
         );
 
         assertEquals("userId must not be null", thrown.getMessage());
+        verifyNoInteractions(aiServerClient, storeMultipartImageAssetUseCase);
+    }
+
+    @Test
+    void scan_doesNotCallAiServerWhenOriginalFilenameIsBlank() {
+        MockMultipartFile file = new MockMultipartFile("file", "   ", "image/jpeg", "image".getBytes());
+
+        BusinessValidationException thrown = assertThrows(
+                BusinessValidationException.class,
+                () -> service.scan(new ScanReceiptImageUseCase.Command(1L, file))
+        );
+
+        assertEquals("originalFilename must not be blank", thrown.getMessage());
         verifyNoInteractions(aiServerClient, storeMultipartImageAssetUseCase);
     }
 

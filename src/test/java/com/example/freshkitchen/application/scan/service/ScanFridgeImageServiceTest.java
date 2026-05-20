@@ -45,7 +45,7 @@ class ScanFridgeImageServiceTest {
 
     @Test
     void scan_storesFridgeImageAndReturnsDetectedItems() {
-        MockMultipartFile file = new MockMultipartFile("file", "fridge.jpg", "image/jpeg", "image".getBytes());
+        MockMultipartFile file = new MockMultipartFile("file", " fridge.jpg ", "image/jpeg", "image".getBytes());
         when(storeMultipartImageAssetUseCase.store(any(StoreMultipartImageAssetUseCase.Command.class)))
                 .thenReturn(new StoreMultipartImageAssetUseCase.Result(
                         12L,
@@ -116,6 +116,19 @@ class ScanFridgeImageServiceTest {
         );
 
         assertEquals("userId must not be null", thrown.getMessage());
+        verifyNoInteractions(aiServerClient, storeMultipartImageAssetUseCase);
+    }
+
+    @Test
+    void scan_doesNotCallAiServerWhenOriginalFilenameIsBlank() {
+        MockMultipartFile file = new MockMultipartFile("file", "   ", "image/jpeg", "image".getBytes());
+
+        BusinessValidationException thrown = assertThrows(
+                BusinessValidationException.class,
+                () -> service.scan(new ScanFridgeImageUseCase.Command(1L, file))
+        );
+
+        assertEquals("originalFilename must not be blank", thrown.getMessage());
         verifyNoInteractions(aiServerClient, storeMultipartImageAssetUseCase);
     }
 

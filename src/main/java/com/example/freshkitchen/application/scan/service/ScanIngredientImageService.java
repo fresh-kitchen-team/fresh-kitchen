@@ -25,15 +25,16 @@ public class ScanIngredientImageService implements ScanIngredientImageUseCase {
     public ScanDto.IngredientImageScanResponse scan(Command command) {
         validate(command);
         byte[] content = bytes(command.file());
+        String originalFilename = originalFilename(command.file());
         FoodClassificationResponse classification = aiServerClient.classifyFood(
-                command.file().getOriginalFilename(),
+                originalFilename,
                 content
         );
         StoreMultipartImageAssetUseCase.Result imageAsset = storeMultipartImageAssetUseCase.store(
                 new StoreMultipartImageAssetUseCase.Command(
                         command.userId(),
                         ImageKind.INGREDIENT,
-                        command.file().getOriginalFilename(),
+                        originalFilename,
                         command.file().getContentType(),
                         content
                 )
@@ -62,6 +63,14 @@ public class ScanIngredientImageService implements ScanIngredientImageUseCase {
         if (command.file() == null || command.file().isEmpty()) {
             throw new BusinessValidationException("file must not be empty");
         }
+    }
+
+    private static String originalFilename(MultipartFile file) {
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.isBlank()) {
+            throw new BusinessValidationException("originalFilename must not be blank");
+        }
+        return originalFilename.trim();
     }
 
     private static List<ScanDto.RecognizedItem> recognizedItems(FoodClassificationResponse classification) {

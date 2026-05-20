@@ -29,8 +29,9 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
     public ScanDto.ReceiptImageScanResponse scan(Command command) {
         validate(command);
         byte[] content = bytes(command.file());
+        String originalFilename = originalFilename(command.file());
         ReceiptOcrResponse receiptOcr = aiServerClient.extractReceiptIngredients(
-                command.file().getOriginalFilename(),
+                originalFilename,
                 content
         );
         LocalDate purchasedAt = purchasedAt(receiptOcr);
@@ -38,7 +39,7 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
                 new StoreMultipartImageAssetUseCase.Command(
                         command.userId(),
                         ImageKind.RECEIPT,
-                        command.file().getOriginalFilename(),
+                        originalFilename,
                         command.file().getContentType(),
                         content
                 )
@@ -69,6 +70,14 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
         if (command.file() == null || command.file().isEmpty()) {
             throw new BusinessValidationException("file must not be empty");
         }
+    }
+
+    private static String originalFilename(MultipartFile file) {
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.isBlank()) {
+            throw new BusinessValidationException("originalFilename must not be blank");
+        }
+        return originalFilename.trim();
     }
 
     private LocalDate purchasedAt(ReceiptOcrResponse receiptOcr) {
