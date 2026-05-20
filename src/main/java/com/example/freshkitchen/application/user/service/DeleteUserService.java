@@ -8,9 +8,13 @@ import com.example.freshkitchen.domain.user.repository.UserRepository;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.infrastructure.auth.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -26,8 +30,13 @@ public class DeleteUserService implements DeleteUserUseCase {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
 
-        refreshTokenRepository.deleteByUserId(userId);
         user.deactivate();
+
+        try {
+            refreshTokenRepository.deleteByUserId(userId);
+        } catch (RedisConnectionFailureException | RedisSystemException e) {
+            log.error("Refresh Token 삭제 실패 (best-effort). userId={}", userId, e);
+        }
     }
 
     private static Long requireUserId(Command command) {

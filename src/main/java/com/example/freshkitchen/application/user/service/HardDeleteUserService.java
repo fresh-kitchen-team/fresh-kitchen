@@ -9,10 +9,14 @@ import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.infrastructure.auth.RefreshTokenRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -56,7 +60,12 @@ public class HardDeleteUserService implements HardDeleteUserUseCase {
         entityManager.createQuery("DELETE FROM Storage s WHERE s.user.id = :userId")
                 .setParameter("userId", userId).executeUpdate();
 
-        refreshTokenRepository.deleteByUserId(userId);
         userRepository.delete(user);
+
+        try {
+            refreshTokenRepository.deleteByUserId(userId);
+        } catch (RedisConnectionFailureException | RedisSystemException e) {
+            log.error("Refresh Token 삭제 실패 (best-effort). userId={}", userId, e);
+        }
     }
 }
