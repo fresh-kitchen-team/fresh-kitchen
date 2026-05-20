@@ -61,11 +61,13 @@ public class OAuthUserResolver {
 
     private Result handleExistingUser(User user, Provider provider, String providerUserId) {
         if (user.getStatus() == UserStatus.INACTIVE) {
-            transactionTemplate.executeWithoutResult(status -> {
+            User reactivated = transactionTemplate.execute(status -> {
                 User managed = userRepository.findByProviderAndProviderUserId(provider, providerUserId)
                         .orElseThrow();
                 managed.reactivate();
+                return managed;
             });
+            return new Result(reactivated, false);
         }
         return new Result(user, false);
     }
