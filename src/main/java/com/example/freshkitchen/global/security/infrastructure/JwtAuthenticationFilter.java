@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -25,9 +26,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "com.example.freshkitchen.security.jwtException";
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
+    private static final long REDIS_ERROR_LOG_INTERVAL_MS = 60_000;
 
     private final JwtTokenProvider jwtTokenProvider;
     private final AccessTokenBlacklistRepository accessTokenBlacklistRepository;
+    private final AtomicLong lastRedisErrorLogTime = new AtomicLong(0);
 
     @Override
     protected void doFilterInternal(
@@ -45,7 +48,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         throw new JwtTokenException(JwtErrorCode.BLACKLISTED_TOKEN);
                     }
                 } catch (RedisConnectionFailureException | RedisSystemException e) {
-                    log.warn("블랙리스트 조회 실패 (fail-open). Redis 상태를 확인하세요.", e);
+                    long now = System.currentTimeMillis();
+                    long last = lastRedisErrorLogTime.get();
+                    if (now - last >= REDIS_ERROR_LOG_INTERVAL_MS
+                            && lastRedisErrorLogTime.compareAndSet(last, now)) {
+                        log.warn("블랙리스트 조회 실패 (fail-open). Redis 상태를 확인하세요.", e);
+                    }
                     // 가용성 우선: Redis 장애 시 요청을 차단하지 않음
                 }
                 SecurityContextHolder.getContext().setAuthentication(

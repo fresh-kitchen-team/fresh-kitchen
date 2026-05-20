@@ -10,6 +10,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.example.freshkitchen.global.security.exception.OAuthException;
+
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -106,7 +108,7 @@ class OAuthUserResolverTest {
                 .willThrow(new DataIntegrityViolationException("unique constraint"));
 
         assertThatThrownBy(() -> resolver.resolve("ghost-sub", Provider.KAKAO))
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(OAuthException.class);
     }
 
     private User createUserWithId(String providerUserId, Provider provider, Long id) {

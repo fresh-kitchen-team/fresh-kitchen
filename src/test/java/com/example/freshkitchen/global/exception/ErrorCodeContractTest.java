@@ -183,6 +183,7 @@ class ErrorCodeContractTest {
         assertContract(OAuthErrorCode.INVALID_ID_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-7", "invalid id token");
         assertContract(OAuthErrorCode.PROVIDER_NOT_SUPPORTED, HttpStatus.BAD_REQUEST, "AUTH-400-1", "oauth provider not supported");
         assertContract(OAuthErrorCode.OAUTH_PROVIDER_UNAVAILABLE, HttpStatus.SERVICE_UNAVAILABLE, "AUTH-503-1", "oauth provider unavailable");
+        assertContract(OAuthErrorCode.USER_RESOLUTION_FAILED, HttpStatus.INTERNAL_SERVER_ERROR, "AUTH-500-1", "failed to resolve user during oauth login");
     }
 
     @Test

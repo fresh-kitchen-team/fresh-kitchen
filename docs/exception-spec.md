@@ -228,6 +228,7 @@ OAuth 인증 과정에서 발생하는 예외를 `OAuthException` 및 아래 `OA
 | `INVALID_ID_TOKEN` | `401` | `AUTH-401-7` | `invalid id token` | OAuth provider가 발급한 ID Token 검증 실패 (서명, 만료, audience 불일치 등) |
 | `PROVIDER_NOT_SUPPORTED` | `400` | `AUTH-400-1` | `oauth provider not supported` | 지원하지 않는 OAuth provider 요청 |
 | `OAUTH_PROVIDER_UNAVAILABLE` | `503` | `AUTH-503-1` | `oauth provider unavailable` | OAuth provider(Google/Kakao)의 공개키 조회 등 외부 통신 실패 (네트워크 오류, 타임아웃 등) |
+| `USER_RESOLUTION_FAILED` | `500` | `AUTH-500-1` | `failed to resolve user during oauth login` | 동시 가입 충돌 후 재조회 실패 또는 재활성화 대상 유저 조회 실패 등 비정상 상태 |
 
 ### 7.3 JwtErrorCode
 

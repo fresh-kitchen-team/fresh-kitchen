@@ -4,6 +4,8 @@ import com.example.freshkitchen.domain.user.entity.User;
 import com.example.freshkitchen.domain.user.enums.Provider;
 import com.example.freshkitchen.domain.user.enums.UserStatus;
 import com.example.freshkitchen.domain.user.repository.UserRepository;
+import com.example.freshkitchen.global.security.exception.OAuthErrorCode;
+import com.example.freshkitchen.global.security.exception.OAuthException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
@@ -59,9 +61,7 @@ public class OAuthUserResolver {
         // 3차: 충돌 후 재조회 (별도 독립 트랜잭션 — aborted 세션 영향 없음)
         User recovered = transactionTemplate.execute(status ->
                 userRepository.findByProviderAndProviderUserId(provider, providerUserId)
-                        .orElseThrow(() -> new IllegalStateException(
-                                "동시 가입 충돌 후 유저 재조회 실패. provider=" + provider
-                                        + ", providerUserId=" + providerUserId))
+                        .orElseThrow(() -> new OAuthException(OAuthErrorCode.USER_RESOLUTION_FAILED))
         );
         return new Result(recovered, false);
     }
@@ -70,9 +70,7 @@ public class OAuthUserResolver {
         if (user.getStatus() == UserStatus.INACTIVE) {
             User reactivated = transactionTemplate.execute(status -> {
                 User managed = userRepository.findByProviderAndProviderUserId(provider, providerUserId)
-                        .orElseThrow(() -> new IllegalStateException(
-                                "재활성화 대상 유저 조회 실패. provider=" + provider
-                                        + ", providerUserId=" + providerUserId));
+                        .orElseThrow(() -> new OAuthException(OAuthErrorCode.USER_RESOLUTION_FAILED));
                 managed.reactivate();
                 return managed;
             });
