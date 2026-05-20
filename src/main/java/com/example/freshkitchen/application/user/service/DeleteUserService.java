@@ -26,8 +26,8 @@ public class DeleteUserService implements DeleteUserUseCase {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
 
-        user.deactivate();
         refreshTokenRepository.deleteByUserId(userId);
+        user.deactivate();
     }
 
     private static Long requireUserId(Command command) {

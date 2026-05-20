@@ -56,7 +56,7 @@ public class HardDeleteUserService implements HardDeleteUserUseCase {
         entityManager.createQuery("DELETE FROM Storage s WHERE s.user.id = :userId")
                 .setParameter("userId", userId).executeUpdate();
 
-        userRepository.delete(user);
         refreshTokenRepository.deleteByUserId(userId);
+        userRepository.delete(user);
     }
 }

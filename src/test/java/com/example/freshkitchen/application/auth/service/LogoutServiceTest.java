@@ -58,15 +58,26 @@ class LogoutServiceTest {
     }
 
     @Test
-    void logout_succeedsGracefully_whenRedisConnectionFails() {
+    void logout_continuesBlacklist_whenRefreshDeleteFails() {
         willThrow(new RedisConnectionFailureException("connection refused"))
                 .given(refreshTokenRepository).deleteByUserId(1L);
+        given(jwtTokenProvider.getRemainingTtl("access-token")).willReturn(Duration.ofMinutes(10));
 
-        // best-effort: should not throw
+        // best-effort: refresh 삭제 실패해도 블랙리스트 등록은 독립 시도
         service.logout(new LogoutUseCase.Command(1L, "access-token"));
 
-        then(accessTokenBlacklistRepository).should(never()).add(
-                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()
-        );
+        then(accessTokenBlacklistRepository).should().add("access-token", Duration.ofMinutes(10));
+    }
+
+    @Test
+    void logout_succeedsGracefully_whenBothRedisFail() {
+        willThrow(new RedisConnectionFailureException("connection refused"))
+                .given(refreshTokenRepository).deleteByUserId(1L);
+        given(jwtTokenProvider.getRemainingTtl("access-token")).willReturn(Duration.ofMinutes(10));
+        willThrow(new RedisConnectionFailureException("connection refused"))
+                .given(accessTokenBlacklistRepository).add("access-token", Duration.ofMinutes(10));
+
+        // best-effort: 둘 다 실패해도 예외 전파 안 됨
+        service.logout(new LogoutUseCase.Command(1L, "access-token"));
     }
 }

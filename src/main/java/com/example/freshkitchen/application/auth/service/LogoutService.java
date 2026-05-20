@@ -32,17 +32,19 @@ public class LogoutService implements LogoutUseCase {
         }
         try {
             refreshTokenRepository.deleteByUserId(command.userId());
+        } catch (RedisConnectionFailureException | RedisSystemException e) {
+            log.error("Refresh Token 삭제 실패 (best-effort). userId={}", command.userId(), e);
+        }
 
+        try {
             if (command.accessToken() != null) {
                 Duration remaining = jwtTokenProvider.getRemainingTtl(command.accessToken());
                 accessTokenBlacklistRepository.add(command.accessToken(), remaining);
             }
-
-            log.info("로그아웃 완료. userId={}", command.userId());
         } catch (RedisConnectionFailureException | RedisSystemException e) {
-            log.error("Redis 연결 실패로 로그아웃 토큰 무효화 불완전. userId={}", command.userId(), e);
-            // 로그아웃은 best-effort — 클라이언트가 토큰을 삭제하면 UX적으로 로그아웃 완료
-            // Refresh Token은 Redis TTL(14일)로 자연 만료됨
+            log.error("Access Token 블랙리스트 등록 실패 (best-effort). userId={}", command.userId(), e);
         }
+
+        log.info("로그아웃 완료. userId={}", command.userId());
     }
 }
