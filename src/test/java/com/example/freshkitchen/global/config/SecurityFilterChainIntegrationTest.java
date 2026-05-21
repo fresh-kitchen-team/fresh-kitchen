@@ -23,6 +23,7 @@ import com.example.freshkitchen.application.ingredient.usecase.ListIngredientsUs
 import com.example.freshkitchen.application.ingredient.usecase.ListStoragesUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.ResolveIngredientDefaultsUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.UpdateIngredientUseCase;
+import com.example.freshkitchen.application.scan.usecase.ScanFridgeImageUseCase;
 import com.example.freshkitchen.application.scan.usecase.ScanIngredientImageUseCase;
 import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase;
 import com.example.freshkitchen.application.user.dto.UserProfileResult;
@@ -120,6 +121,9 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private ScanIngredientImageUseCase scanIngredientImageUseCase;
+
+    @MockitoBean
+    private ScanFridgeImageUseCase scanFridgeImageUseCase;
 
     @MockitoBean
     private ScanReceiptImageUseCase scanReceiptImageUseCase;
