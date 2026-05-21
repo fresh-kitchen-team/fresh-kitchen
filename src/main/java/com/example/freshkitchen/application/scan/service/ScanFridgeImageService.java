@@ -5,12 +5,10 @@ import com.example.freshkitchen.application.scan.dto.ScanDto;
 import com.example.freshkitchen.application.scan.port.ScanAiAnalysisPort;
 import com.example.freshkitchen.application.scan.usecase.ScanFridgeImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
-import com.example.freshkitchen.global.exception.BusinessValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -22,9 +20,13 @@ public class ScanFridgeImageService implements ScanFridgeImageUseCase {
 
     @Override
     public ScanDto.FridgeImageScanResponse scan(Command command) {
-        validate(command);
-        String originalFilename = ScanFileNameProcessor.process(command.file().getOriginalFilename());
-        byte[] content = bytes(command.file());
+        MultipartFile file = ScanFileProcessor.validateCommand(
+                command,
+                ScanFridgeImageUseCase.Command::userId,
+                ScanFridgeImageUseCase.Command::file
+        );
+        String originalFilename = ScanFileProcessor.originalFilename(file);
+        byte[] content = ScanFileProcessor.bytes(file);
         ScanAiAnalysisPort.FridgeDetection detection = scanAiAnalysisPort.detectFridgeObjects(
                 originalFilename,
                 content
@@ -34,7 +36,7 @@ public class ScanFridgeImageService implements ScanFridgeImageUseCase {
                         command.userId(),
                         ImageKind.FRIDGE,
                         originalFilename,
-                        command.file().getContentType(),
+                        file.getContentType(),
                         content
                 )
         );
@@ -52,29 +54,9 @@ public class ScanFridgeImageService implements ScanFridgeImageUseCase {
         );
     }
 
-    private static void validate(Command command) {
-        if (command == null) {
-            throw new BusinessValidationException("command must not be null");
-        }
-        if (command.userId() == null) {
-            throw new BusinessValidationException("userId must not be null");
-        }
-        if (command.file() == null || command.file().isEmpty()) {
-            throw new BusinessValidationException("file must not be empty");
-        }
-    }
-
     private static List<ScanDto.DetectedItem> detectedItems(ScanAiAnalysisPort.FridgeDetection detection) {
         return detection.items().stream()
                 .map(item -> new ScanDto.DetectedItem(item.name(), item.category()))
                 .toList();
-    }
-
-    private static byte[] bytes(MultipartFile file) {
-        try {
-            return file.getBytes();
-        } catch (IOException e) {
-            throw new BusinessValidationException("failed to read image file", e);
-        }
     }
 }

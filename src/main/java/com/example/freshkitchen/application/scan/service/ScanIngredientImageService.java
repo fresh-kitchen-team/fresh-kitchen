@@ -5,12 +5,10 @@ import com.example.freshkitchen.application.scan.dto.ScanDto;
 import com.example.freshkitchen.application.scan.port.ScanAiAnalysisPort;
 import com.example.freshkitchen.application.scan.usecase.ScanIngredientImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
-import com.example.freshkitchen.global.exception.BusinessValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -22,9 +20,13 @@ public class ScanIngredientImageService implements ScanIngredientImageUseCase {
 
     @Override
     public ScanDto.IngredientImageScanResponse scan(Command command) {
-        validate(command);
-        String originalFilename = ScanFileNameProcessor.process(command.file().getOriginalFilename());
-        byte[] content = bytes(command.file());
+        MultipartFile file = ScanFileProcessor.validateCommand(
+                command,
+                ScanIngredientImageUseCase.Command::userId,
+                ScanIngredientImageUseCase.Command::file
+        );
+        String originalFilename = ScanFileProcessor.originalFilename(file);
+        byte[] content = ScanFileProcessor.bytes(file);
         ScanAiAnalysisPort.FoodClassification classification = scanAiAnalysisPort.classifyFood(
                 originalFilename,
                 content
@@ -34,7 +36,7 @@ public class ScanIngredientImageService implements ScanIngredientImageUseCase {
                         command.userId(),
                         ImageKind.INGREDIENT,
                         originalFilename,
-                        command.file().getContentType(),
+                        file.getContentType(),
                         content
                 )
         );
@@ -52,18 +54,6 @@ public class ScanIngredientImageService implements ScanIngredientImageUseCase {
         );
     }
 
-    private static void validate(Command command) {
-        if (command == null) {
-            throw new BusinessValidationException("command must not be null");
-        }
-        if (command.userId() == null) {
-            throw new BusinessValidationException("userId must not be null");
-        }
-        if (command.file() == null || command.file().isEmpty()) {
-            throw new BusinessValidationException("file must not be empty");
-        }
-    }
-
     private static List<ScanDto.RecognizedItem> recognizedItems(ScanAiAnalysisPort.FoodClassification classification) {
         if (classification.top3().isEmpty()) {
             return List.of(new ScanDto.RecognizedItem(
@@ -75,13 +65,5 @@ public class ScanIngredientImageService implements ScanIngredientImageUseCase {
         return classification.top3().stream()
                 .map(item -> new ScanDto.RecognizedItem(item.name(), classification.category(), item.confidence()))
                 .toList();
-    }
-
-    private static byte[] bytes(MultipartFile file) {
-        try {
-            return file.getBytes();
-        } catch (IOException e) {
-            throw new BusinessValidationException("failed to read image file", e);
-        }
     }
 }
