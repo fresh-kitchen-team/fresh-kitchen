@@ -2,6 +2,7 @@ package com.example.freshkitchen.application.ingredient.usecase;
 
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
+import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 
 import java.time.LocalDate;
 
@@ -11,7 +12,7 @@ public interface CreateIngredientUseCase {
 
     record Command(
             Long userId,
-            Long storageId,
+            StorageType storageType,
             Long catalogId,
             String name,
             LocalDate registeredAt,

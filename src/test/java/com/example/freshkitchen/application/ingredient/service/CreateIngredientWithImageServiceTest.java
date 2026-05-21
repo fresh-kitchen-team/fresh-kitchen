@@ -8,6 +8,7 @@ import com.example.freshkitchen.domain.image.exception.ImageErrorCode;
 import com.example.freshkitchen.domain.image.exception.ImageException;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
+import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -106,7 +107,7 @@ class CreateIngredientWithImageServiceTest {
     private static CreateIngredientUseCase.Command command() {
         return new CreateIngredientUseCase.Command(
                 1L,
-                2L,
+                StorageType.FRIDGE,
                 3L,
                 "Tomato",
                 LocalDate.of(2026, 5, 1),
