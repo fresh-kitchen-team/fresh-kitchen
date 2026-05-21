@@ -2,12 +2,11 @@ package com.example.freshkitchen.application.scan.service;
 
 import com.example.freshkitchen.application.image.usecase.StoreMultipartImageAssetUseCase;
 import com.example.freshkitchen.application.scan.dto.ScanDto;
+import com.example.freshkitchen.application.scan.port.ScanAiAnalysisPort;
 import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
-import com.example.freshkitchen.infrastructure.ai.AiServerClient;
-import com.example.freshkitchen.infrastructure.ai.dto.ReceiptOcrResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -43,13 +42,13 @@ class ScanReceiptImageServiceTest {
 
     private final StoreMultipartImageAssetUseCase storeMultipartImageAssetUseCase =
             mock(StoreMultipartImageAssetUseCase.class);
-    private final AiServerClient aiServerClient = mock(AiServerClient.class);
+    private final ScanAiAnalysisPort scanAiAnalysisPort = mock(ScanAiAnalysisPort.class);
     private final Clock clock = Clock.fixed(
             LocalDate.of(2026, 5, 13).atStartOfDay().toInstant(ZoneOffset.UTC),
             ZoneOffset.UTC
     );
     private final ScanReceiptImageService service =
-            new ScanReceiptImageService(storeMultipartImageAssetUseCase, aiServerClient, clock);
+            new ScanReceiptImageService(storeMultipartImageAssetUseCase, scanAiAnalysisPort, clock);
     private final OffsetDateTime createdAt = OffsetDateTime.parse("2026-05-01T14:20:30+09:00");
 
     @Test
@@ -63,12 +62,12 @@ class ScanReceiptImageServiceTest {
                         "https://cdn.example.com/images/1/receipt/receipt.jpg",
                         createdAt
                 ));
-        when(aiServerClient.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class)))
-                .thenReturn(new ReceiptOcrResponse(
+        when(scanAiAnalysisPort.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class)))
+                .thenReturn(new ScanAiAnalysisPort.ReceiptOcr(
                         LocalDate.of(2026, 5, 1),
                         List.of(
-                                new ReceiptOcrResponse.IngredientItem("Egg", "ETC"),
-                                new ReceiptOcrResponse.IngredientItem("Milk", "DAIRY")
+                                new ScanAiAnalysisPort.ReceiptIngredient("Egg", "ETC"),
+                                new ScanAiAnalysisPort.ReceiptIngredient("Milk", "DAIRY")
                         )
                 ));
 
@@ -98,10 +97,10 @@ class ScanReceiptImageServiceTest {
         assertEquals("image/jpeg", captor.getValue().contentType());
         assertArrayEquals("image".getBytes(), captor.getValue().content());
         ArgumentCaptor<byte[]> contentCaptor = ArgumentCaptor.forClass(byte[].class);
-        verify(aiServerClient).extractReceiptIngredients(eq("receipt.jpg"), contentCaptor.capture());
+        verify(scanAiAnalysisPort).extractReceiptIngredients(eq("receipt.jpg"), contentCaptor.capture());
         assertArrayEquals("image".getBytes(), contentCaptor.getValue());
-        InOrder inOrder = inOrder(aiServerClient, storeMultipartImageAssetUseCase);
-        inOrder.verify(aiServerClient).extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class));
+        InOrder inOrder = inOrder(scanAiAnalysisPort, storeMultipartImageAssetUseCase);
+        inOrder.verify(scanAiAnalysisPort).extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class));
         inOrder.verify(storeMultipartImageAssetUseCase).store(any(StoreMultipartImageAssetUseCase.Command.class));
     }
 
@@ -116,10 +115,10 @@ class ScanReceiptImageServiceTest {
                         "https://cdn.example.com/images/1/receipt/receipt.jpg",
                         createdAt
                 ));
-        when(aiServerClient.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class)))
-                .thenReturn(new ReceiptOcrResponse(
+        when(scanAiAnalysisPort.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class)))
+                .thenReturn(new ScanAiAnalysisPort.ReceiptOcr(
                         null,
-                        List.of(new ReceiptOcrResponse.IngredientItem("Egg", "ETC"))
+                        List.of(new ScanAiAnalysisPort.ReceiptIngredient("Egg", "ETC"))
                 ));
 
         ScanDto.ReceiptImageScanResponse response = service.scan(
@@ -140,7 +139,7 @@ class ScanReceiptImageServiceTest {
     void scan_doesNotStoreImageAssetWhenReceiptOcrFails() {
         MockMultipartFile file = new MockMultipartFile("file", "receipt.jpg", "image/jpeg", "image".getBytes());
         RuntimeException failure = new RuntimeException("ocr server unavailable");
-        when(aiServerClient.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class))).thenThrow(failure);
+        when(scanAiAnalysisPort.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class))).thenThrow(failure);
 
         RuntimeException thrown = assertThrows(
                 RuntimeException.class,
@@ -148,7 +147,7 @@ class ScanReceiptImageServiceTest {
         );
 
         assertEquals(failure, thrown);
-        verify(aiServerClient).extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class));
+        verify(scanAiAnalysisPort).extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class));
         verifyNoInteractions(storeMultipartImageAssetUseCase);
     }
 
@@ -162,7 +161,7 @@ class ScanReceiptImageServiceTest {
         );
 
         assertEquals("userId must not be null", thrown.getMessage());
-        verifyNoInteractions(aiServerClient, storeMultipartImageAssetUseCase);
+        verifyNoInteractions(scanAiAnalysisPort, storeMultipartImageAssetUseCase);
     }
 
     @Test
@@ -178,7 +177,7 @@ class ScanReceiptImageServiceTest {
 
         assertEquals("originalFilename must not be blank", thrown.getMessage());
         verify(file, never()).getBytes();
-        verifyNoInteractions(aiServerClient, storeMultipartImageAssetUseCase);
+        verifyNoInteractions(scanAiAnalysisPort, storeMultipartImageAssetUseCase);
     }
 
     @Test

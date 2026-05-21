@@ -2,11 +2,10 @@ package com.example.freshkitchen.application.scan.service;
 
 import com.example.freshkitchen.application.image.usecase.StoreMultipartImageAssetUseCase;
 import com.example.freshkitchen.application.scan.dto.ScanDto;
+import com.example.freshkitchen.application.scan.port.ScanAiAnalysisPort;
 import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
-import com.example.freshkitchen.infrastructure.ai.AiServerClient;
-import com.example.freshkitchen.infrastructure.ai.dto.ReceiptOcrResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,15 +21,15 @@ import java.util.Objects;
 public class ScanReceiptImageService implements ScanReceiptImageUseCase {
 
     private final StoreMultipartImageAssetUseCase storeMultipartImageAssetUseCase;
-    private final AiServerClient aiServerClient;
+    private final ScanAiAnalysisPort scanAiAnalysisPort;
     private final Clock clock;
 
     @Override
     public ScanDto.ReceiptImageScanResponse scan(Command command) {
         validate(command);
-        String originalFilename = originalFilename(command.file());
+        String originalFilename = ScanFileNameProcessor.process(command.file().getOriginalFilename());
         byte[] content = bytes(command.file());
-        ReceiptOcrResponse receiptOcr = aiServerClient.extractReceiptIngredients(
+        ScanAiAnalysisPort.ReceiptOcr receiptOcr = scanAiAnalysisPort.extractReceiptIngredients(
                 originalFilename,
                 content
         );
@@ -72,22 +71,14 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
         }
     }
 
-    private static String originalFilename(MultipartFile file) {
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || originalFilename.isBlank()) {
-            throw new BusinessValidationException("originalFilename must not be blank");
-        }
-        return originalFilename.trim();
-    }
-
-    private LocalDate purchasedAt(ReceiptOcrResponse receiptOcr) {
+    private LocalDate purchasedAt(ScanAiAnalysisPort.ReceiptOcr receiptOcr) {
         if (receiptOcr.purchasedAt() != null) {
             return receiptOcr.purchasedAt();
         }
         return LocalDate.now(clock);
     }
 
-    private static ScanDto.ReceiptPurchaseDateSourceType sourceType(ReceiptOcrResponse receiptOcr) {
+    private static ScanDto.ReceiptPurchaseDateSourceType sourceType(ScanAiAnalysisPort.ReceiptOcr receiptOcr) {
         if (receiptOcr.purchasedAt() != null) {
             return ScanDto.ReceiptPurchaseDateSourceType.OCR;
         }
@@ -95,7 +86,7 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
     }
 
     private static List<ScanDto.ReceiptRecognizedItem> recognizedItems(
-            ReceiptOcrResponse receiptOcr,
+            ScanAiAnalysisPort.ReceiptOcr receiptOcr,
             LocalDate purchasedAt
     ) {
         return receiptOcr.ingredients().stream()

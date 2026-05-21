@@ -2,11 +2,10 @@ package com.example.freshkitchen.application.scan.service;
 
 import com.example.freshkitchen.application.image.usecase.StoreMultipartImageAssetUseCase;
 import com.example.freshkitchen.application.scan.dto.ScanDto;
+import com.example.freshkitchen.application.scan.port.ScanAiAnalysisPort;
 import com.example.freshkitchen.application.scan.usecase.ScanFridgeImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
-import com.example.freshkitchen.infrastructure.ai.AiServerClient;
-import com.example.freshkitchen.infrastructure.ai.dto.FridgeDetectionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,14 +18,14 @@ import java.util.List;
 public class ScanFridgeImageService implements ScanFridgeImageUseCase {
 
     private final StoreMultipartImageAssetUseCase storeMultipartImageAssetUseCase;
-    private final AiServerClient aiServerClient;
+    private final ScanAiAnalysisPort scanAiAnalysisPort;
 
     @Override
     public ScanDto.FridgeImageScanResponse scan(Command command) {
         validate(command);
-        String originalFilename = originalFilename(command.file());
+        String originalFilename = ScanFileNameProcessor.process(command.file().getOriginalFilename());
         byte[] content = bytes(command.file());
-        FridgeDetectionResponse detection = aiServerClient.detectFridgeObjects(
+        ScanAiAnalysisPort.FridgeDetection detection = scanAiAnalysisPort.detectFridgeObjects(
                 originalFilename,
                 content
         );
@@ -65,15 +64,7 @@ public class ScanFridgeImageService implements ScanFridgeImageUseCase {
         }
     }
 
-    private static String originalFilename(MultipartFile file) {
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || originalFilename.isBlank()) {
-            throw new BusinessValidationException("originalFilename must not be blank");
-        }
-        return originalFilename.trim();
-    }
-
-    private static List<ScanDto.DetectedItem> detectedItems(FridgeDetectionResponse detection) {
+    private static List<ScanDto.DetectedItem> detectedItems(ScanAiAnalysisPort.FridgeDetection detection) {
         return detection.items().stream()
                 .map(item -> new ScanDto.DetectedItem(item.name(), item.category()))
                 .toList();
