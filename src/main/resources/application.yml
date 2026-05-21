@@ -94,6 +94,7 @@ chat:
     fallback-type: ${INTENT_CLASSIFIER_FALLBACK:GENERAL}
 
 
+
 fcm:
   firebase-credentials-location: ${FCM_FIREBASE_CREDENTIALS_LOCATION:}
   expiring-notification:

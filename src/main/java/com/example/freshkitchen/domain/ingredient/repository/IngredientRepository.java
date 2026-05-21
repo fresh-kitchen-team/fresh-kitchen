@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface IngredientRepository extends JpaRepository<Ingredient, Long>, IngredientRepositoryCustom {
-    List<Ingredient> findByUserIdAndStatus(Long userId, IngredientStatus status);
+    List<Ingredient> findByUser_IdAndStatus(Long userId, IngredientStatus status);
 
     @Query("""
             SELECT i FROM Ingredient i
