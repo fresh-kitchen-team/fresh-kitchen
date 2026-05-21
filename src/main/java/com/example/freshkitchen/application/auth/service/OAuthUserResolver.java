@@ -74,7 +74,7 @@ public class OAuthUserResolver {
                 managed.reactivate();
                 return managed;
             });
-            return new Result(reactivated, false);
+            return new Result(reactivated, true);
         }
         return new Result(user, false);
     }
