@@ -55,7 +55,7 @@ class AiServerClientTest {
                             {"name": " Bibimbap ", "confidence": 0.95},
                             {"name": " Fried rice ", "confidence": 0.03}
                           ],
-                          "source": "gemini"
+                          "source": " gemini "
                         }
                         """, MediaType.APPLICATION_JSON));
 

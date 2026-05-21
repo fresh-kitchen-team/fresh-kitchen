@@ -23,7 +23,7 @@ final class AiResponseProcessor {
                                 item.confidence()
                         ))
                         .toList(),
-                response.source(),
+                response.source().trim(),
                 response.geminiReason(),
                 response.autoSaved()
         );
