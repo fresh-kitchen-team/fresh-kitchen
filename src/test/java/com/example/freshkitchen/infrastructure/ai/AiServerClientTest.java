@@ -125,7 +125,9 @@ class AiServerClientTest {
 
         assertNull(response.purchasedAt());
         assertEquals("두부", response.ingredients().get(0).name());
+        assertEquals("ETC", response.ingredients().get(0).category());
         assertEquals("김치", response.ingredients().get(1).name());
+        assertEquals("VEGETABLE", response.ingredients().get(1).category());
         server.verify();
     }
 
