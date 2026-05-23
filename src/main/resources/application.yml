@@ -94,6 +94,15 @@ chat:
     fallback-type: ${INTENT_CLASSIFIER_FALLBACK:GENERAL}
 
 
+
+fcm:
+  firebase-credentials-location: ${FCM_FIREBASE_CREDENTIALS_LOCATION:}
+  expiring-notification:
+    enabled: ${FCM_EXPIRING_NOTIFICATION_ENABLED:true}
+    cron: ${FCM_EXPIRING_NOTIFICATION_CRON:0 0 9 * * *}
+    zone: ${FCM_EXPIRING_NOTIFICATION_ZONE:Asia/Seoul}
+    days-ahead: ${FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD:1}
+
 image:
   storage:
     type: ${IMAGE_STORAGE_TYPE:local}

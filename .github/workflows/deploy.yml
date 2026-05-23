@@ -21,6 +21,11 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Firebase credentials 복원
+        run: |
+          mkdir -p src/main/resources/firebase
+          echo "${{ secrets.FIREBASE_CREDENTIALS_B64 }}" | base64 -d > src/main/resources/firebase/firebase.json
+
       - name: 테스트 및 빌드하기
         env:
           DB_URL: ${{ secrets.DB_URL }}

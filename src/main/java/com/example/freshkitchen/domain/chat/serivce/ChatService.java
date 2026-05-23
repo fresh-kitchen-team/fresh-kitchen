@@ -17,9 +17,11 @@ import com.example.freshkitchen.domain.ingredient.repository.IngredientRepositor
 import com.example.freshkitchen.domain.user.entity.User;
 import com.example.freshkitchen.domain.user.entity.UserProfile;
 import com.example.freshkitchen.domain.user.repository.UserRepository;
+import com.example.freshkitchen.presentation.chat.dto.request.AiSettingSaveRequest;
 import com.example.freshkitchen.presentation.chat.dto.request.ChatMessageRequest;
 import com.example.freshkitchen.presentation.chat.dto.request.ChatType;
 import com.example.freshkitchen.presentation.chat.dto.request.UpdateRoomTitleRequest;
+import com.example.freshkitchen.presentation.chat.dto.response.AiSettingResponse;
 import com.example.freshkitchen.presentation.chat.dto.response.ChatHistoryResponse;
 import com.example.freshkitchen.presentation.chat.dto.response.ChatMessageResponse;
 import com.example.freshkitchen.presentation.chat.dto.response.ChatRoomListResponse;
@@ -195,6 +197,34 @@ public class ChatService {
     }
 
     @Transactional
+    public AiSettingResponse saveAiSetting(Long userId, AiSettingSaveRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ChatException(ChatErrorCode.USER_NOT_FOUND));
+
+        String responseStyle = request.responseStyle() ? "간단" : "자세";
+
+        AiSetting setting = aiSettingRepository.findByUserId(userId)
+                .orElseGet(() -> AiSetting.createDefault(user));
+
+        setting.update(
+                request.provideExtraInfo(),
+                request.priorityExpiration(),
+                request.priorityNutrition(),
+                request.priorityFrequent(),
+                responseStyle);
+
+        AiSetting saved = aiSettingRepository.save(setting);
+        return AiSettingResponse.from(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public AiSettingResponse getAiSetting(Long userId) {
+        AiSetting setting = aiSettingRepository.findByUserId(userId)
+                .orElseThrow(() -> new ChatException(ChatErrorCode.AI_SETTING_NOT_FOUND));
+        return AiSettingResponse.from(setting);
+    }
+
+    @Transactional
     public ChatRoomResponse createChatRoom(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ChatException(ChatErrorCode.USER_NOT_FOUND));
@@ -231,7 +261,7 @@ public class ChatService {
             {"recipes":[{"name":"","ingredients":[],"steps":[],"time":""}],"tips":[],"missingIngredients":[]}
             """;
 
-    private String buildSystemPrompt(ChatMessageRequest.AiSettingRequest setting, UserProfile profile,
+    private String buildSystemPrompt(AiSettingSaveRequest setting, UserProfile profile,
                                      String userIngredients, boolean inventoryRequestedButEmpty) {
         StringBuilder sb = new StringBuilder(RECIPE_SYSTEM_PROMPT_PREFIX);
 
@@ -266,16 +296,53 @@ public class ChatService {
         }
 
         if (setting != null) {
-            List<String> flags = new ArrayList<>();
-            flags.add(setting.responseStyle() ? "간결" : "자세");
-            if (setting.priorityExpiration()) flags.add("유통기한임박우선");
-            if (setting.priorityNutrition()) flags.add("영양균형");
-            if (setting.priorityFrequent()) flags.add("자주쓰는재료우선");
-            if (setting.provideExtraInfo()) flags.add("추가정보(영양/보관/팁)포함");
-            sb.append("옵션: ").append(String.join(",", flags)).append('\n');
+            sb.append("## 사용자 응답 옵션(반드시 준수)\n");
+            if (setting.responseStyle()) {
+                sb.append("- 응답 스타일=간단: 각 레시피의 steps는 5단계 이내로 압축하고, 각 step은 짧은 명령형 한 문장으로 작성한다.\n");
+            } else {
+                sb.append("- 응답 스타일=자세: 각 레시피의 steps는 8단계 이상으로 세분화하고, 재료 손질·불 세기·시간·양념 비율을 구체적으로 명시한다.\n");
+            }
+            if (setting.provideExtraInfo()) {
+                sb.append("- 추가 정보=ON: tips 배열에 영양 정보·보관 팁·조리 팁·대체 재료 제안 중에서 반드시 2~3개 항목을 채운다. 절대 빈 배열로 두지 말 것.\n");
+            } else {
+                sb.append("- 추가 정보=OFF: tips는 비어 있어도 무방.\n");
+            }
+            if (setting.priorityExpiration()) {
+                sb.append("- 유통기한 우선=ON: 보유 재료 중 유통기한이 임박한 항목(7일 이내)을 가장 먼저 사용하는 레시피를 우선 추천한다.\n");
+            }
+            if (setting.priorityNutrition()) {
+                sb.append("- 영양 균형=ON: 한 끼 안에 탄수화물·단백질·채소가 골고루 포함되도록 메뉴를 구성한다.\n");
+            }
+            if (setting.priorityFrequent()) {
+                if (profile != null && !profile.getPreferredIngredients().isEmpty()) {
+                    sb.append("- 자주 쓰는 재료 우선=ON: 위 \"선호 재료\" 목록을 적극 활용해 레시피를 구성한다.\n");
+                } else {
+                    sb.append("- 자주 쓰는 재료 우선=ON: 사용자의 선호 재료가 등록되어 있지 않다면, 보편적으로 자주 사용되는 기본 식재료를 우선 활용한다.\n");
+                }
+            }
         }
 
         return sb.toString();
+    }
+
+    private AiSettingSaveRequest loadSettingValues(Long userId) {
+        return aiSettingRepository.findByUserId(userId)
+                .map(setting -> new AiSettingSaveRequest(
+                        "간단".equals(setting.getResponseStyle()),
+                        setting.isPriorityExpiration(),
+                        setting.isPriorityNutrition(),
+                        setting.isPriorityFrequent(),
+                        setting.isProvideExtraInfo()))
+                .orElse(null);
+    }
+
+    private String responseStyleDirective(AiSettingSaveRequest setting) {
+        if (setting == null) {
+            return "";
+        }
+        return setting.responseStyle()
+                ? " 답변은 핵심만 2~3문장 이내로 간결하게 작성하라."
+                : " 답변은 상세하게, 배경 설명과 예시까지 포함해 친절하게 작성하라.";
     }
 
     // ✅ [추가] 첫 메시지 기반 채팅방 제목 자동 생성
@@ -367,14 +434,17 @@ public class ChatService {
         // 여기서 일차로 질문을 분류
         ChatType resolvedType = intentClassifier.classify(request.message());
         boolean isGeneralChat = resolvedType == ChatType.GENERAL;
-        // 내가 가지고 있는 재고 사용
-        boolean useInventory = !isGeneralChat && intentClassifier.wantsToUseInventory(request.message());
-        List<Ingredient> userIngredients = isGeneralChat
+        boolean inventoryIntent = intentClassifier.wantsToUseInventory(request.message());
+        // 내가 가지고 있는 재고 사용 (RECIPE 분기)
+        boolean useInventory = !isGeneralChat && inventoryIntent;
+        // GENERAL 분기에서 '내가 가진 재료 뭐 있어?' 같은 재고 조회 질문
+        boolean inventoryListQuery = isGeneralChat && inventoryIntent;
+        List<Ingredient> userIngredients = (isGeneralChat && !inventoryListQuery)
                 ? List.of()
                 : ingredientRepository.findAllByUserIdAndStatus(userId, IngredientStatus.ACTIVE);
 
-        log.info("chat intent userId={}, type={}, useInventory={}, activeIngredientCount={}",
-                userId, resolvedType, useInventory, userIngredients.size());
+        log.info("chat intent userId={}, type={}, useInventory={}, inventoryListQuery={}, activeIngredientCount={}",
+                userId, resolvedType, useInventory, inventoryListQuery, userIngredients.size());
 
         String aiText;
         ChatMessageResponse.AiPayloadResponse aiPayload;
@@ -383,9 +453,33 @@ public class ChatService {
 
         if (isGeneralChat) {
             boolean useGrounding = intentClassifier.needsWebSearch(request.message());
-            String systemPrompt = useGrounding
-                    ? "친절하게 한국어로 답변해줘. 최신 정보가 필요한 질문에는 구글 검색 결과를 활용하고, 답변 끝에 참고한 출처 URL을 함께 적어줘."
-                    : "친절하게 한국어로 답변해줘.";
+            String systemPrompt;
+            if (inventoryListQuery) {
+                String ownedList = userIngredients.stream()
+                        .map(Ingredient::getName)
+                        .collect(Collectors.joining(", "));
+                if (ownedList.isBlank()) {
+                    systemPrompt = """
+                            친절하게 한국어로 답변해줘.
+                            사용자가 본인의 보유 식재료(재고)를 물었으나, 등록된 재료가 없다.
+                            "현재 등록된 식재료가 없습니다"라고 안내하고, 등록을 권유하는 한 줄을 덧붙여라.
+                            절대 임의로 재료를 만들어 답하지 마라.
+                            """;
+                } else {
+                    systemPrompt = """
+                            친절하게 한국어로 답변해줘.
+                            사용자가 본인의 보유 식재료(재고)를 묻고 있다. 아래 "보유 재료" 목록만 근거로
+                            사실 그대로 나열·요약하고, 목록에 없는 재료는 절대 추가하지 마라.
+                            보유 재료: %s
+                            """.formatted(ownedList);
+                }
+            } else {
+                systemPrompt = useGrounding
+                        ? "친절하게 한국어로 답변해줘. 최신 정보가 필요한 질문에는 구글 검색 결과를 활용하고, 답변 끝에 참고한 출처 URL을 함께 적어줘."
+                        : "친절하게 한국어로 답변해줘.";
+            }
+
+            systemPrompt = systemPrompt + responseStyleDirective(loadSettingValues(userId));
 
             try {
                 ChatClient.ChatClientRequestSpec spec = this.chatClient.prompt()
@@ -417,21 +511,7 @@ public class ChatService {
                     .map(i -> normalizeIngredientName(i.getName()))
                     .collect(Collectors.toSet());
 
-            /*
-            AI 세팅 받는데
-             */
-            ChatMessageRequest.AiSettingRequest settingValues = request.aiSetting();
-            if (settingValues == null) {
-                AiSetting setting = aiSettingRepository.findByUserId(userId).orElse(null);
-                if (setting != null) {
-                    settingValues = new ChatMessageRequest.AiSettingRequest(
-                            "간단".equals(setting.getResponseStyle()),
-                            setting.isPriorityExpiration(),
-                            setting.isPriorityNutrition(),
-                            setting.isPriorityFrequent(),
-                            setting.isProvideExtraInfo());
-                }
-            }
+            AiSettingSaveRequest settingValues = loadSettingValues(userId);
             UserProfile profile = userRepository.findById(userId)
                     .map(User::getProfile)
                     .orElse(null);
@@ -442,11 +522,12 @@ public class ChatService {
 
             String aiResponseJson;
             try {
+                RetrievalAugmentationAdvisor ragAdvisor = selectRagAdvisor(request.message());
                 aiResponseJson = this.chatClient.prompt()
                         .system(systemPrompt)
                         .user(request.message())
-                        .advisors(chatMemoryAdvisor, selectRagAdvisor(request.message()))
                         .advisors(a -> a
+                                .advisors(chatMemoryAdvisor, ragAdvisor)
                                 .param(ChatMemory.CONVERSATION_ID, String.valueOf(roomId))
                                 .param(VectorStoreDocumentRetriever.FILTER_EXPRESSION,
                                         "type == '%s'".formatted(resolvedType.vectorStoreType())))

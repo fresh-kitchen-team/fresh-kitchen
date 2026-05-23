@@ -28,7 +28,7 @@ public class AiSetting {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    // 영양 정보
+    // 추가 영양 정보
     @Column(name = "provide_extra_info", nullable = false)
     private boolean provideExtraInfo;
 
@@ -58,5 +58,17 @@ public class AiSetting {
 
     public static AiSetting createDefault(User user) {
         return new AiSetting(user);
+    }
+
+    public void update(boolean provideExtraInfo,
+                       boolean priorityExpiration,
+                       boolean priorityNutrition,
+                       boolean priorityFrequent,
+                       String responseStyle) {
+        this.provideExtraInfo = provideExtraInfo;
+        this.priorityExpiration = priorityExpiration;
+        this.priorityNutrition = priorityNutrition;
+        this.priorityFrequent = priorityFrequent;
+        this.responseStyle = responseStyle;
     }
 }
