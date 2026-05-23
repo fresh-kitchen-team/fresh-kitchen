@@ -2,8 +2,8 @@ package com.example.freshkitchen.presentation.inquiry;
 
 import com.example.freshkitchen.application.inquiry.usecase.GetInquiryDetailUseCase;
 import com.example.freshkitchen.application.inquiry.usecase.GetInquiryListUseCase;
-import com.example.freshkitchen.application.inquiry.usecase.InquiryCategory;
-import com.example.freshkitchen.application.inquiry.usecase.InquiryType;
+import com.example.freshkitchen.domain.inquiry.enums.InquiryCategory;
+import com.example.freshkitchen.domain.inquiry.enums.InquiryType;
 import com.example.freshkitchen.application.inquiry.usecase.SendInquiryUseCase;
 import com.example.freshkitchen.global.response.ApiResponse;
 import com.example.freshkitchen.presentation.inquiry.dto.InquiryResponse;

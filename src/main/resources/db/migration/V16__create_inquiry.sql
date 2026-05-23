@@ -20,7 +20,13 @@ CREATE TABLE inquiry (
     CONSTRAINT ck_inquiry_category
         CHECK (category IN ('RECIPE', 'AI', 'OTHER')),
     CONSTRAINT ck_inquiry_status
-        CHECK (status IN ('PENDING', 'ANSWERED'))
+        CHECK (status IN ('PENDING', 'ANSWERED')),
+    CONSTRAINT ck_inquiry_answered_consistency
+        CHECK (
+            (status = 'ANSWERED' AND admin_reply IS NOT NULL AND answered_at IS NOT NULL)
+            OR
+            (status = 'PENDING' AND admin_reply IS NULL AND answered_at IS NULL)
+        )
 );
 
 CREATE INDEX idx_inquiry_user_id ON inquiry (user_id);

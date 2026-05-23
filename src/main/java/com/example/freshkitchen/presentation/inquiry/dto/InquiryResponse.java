@@ -1,7 +1,7 @@
 package com.example.freshkitchen.presentation.inquiry.dto;
 
-import com.example.freshkitchen.application.inquiry.usecase.InquiryCategory;
-import com.example.freshkitchen.application.inquiry.usecase.InquiryType;
+import com.example.freshkitchen.domain.inquiry.enums.InquiryCategory;
+import com.example.freshkitchen.domain.inquiry.enums.InquiryType;
 import com.example.freshkitchen.domain.inquiry.entity.Inquiry;
 import com.example.freshkitchen.domain.inquiry.enums.InquiryStatus;
 import io.swagger.v3.oas.annotations.media.Schema;

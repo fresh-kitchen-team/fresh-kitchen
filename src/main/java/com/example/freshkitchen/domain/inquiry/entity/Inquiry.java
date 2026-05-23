@@ -1,7 +1,7 @@
 package com.example.freshkitchen.domain.inquiry.entity;
 
-import com.example.freshkitchen.application.inquiry.usecase.InquiryCategory;
-import com.example.freshkitchen.application.inquiry.usecase.InquiryType;
+import com.example.freshkitchen.domain.inquiry.enums.InquiryCategory;
+import com.example.freshkitchen.domain.inquiry.enums.InquiryType;
 import com.example.freshkitchen.domain.common.entity.BaseTimeEntity;
 import com.example.freshkitchen.domain.inquiry.enums.InquiryStatus;
 import jakarta.persistence.Column;
@@ -76,6 +76,9 @@ public class Inquiry extends BaseTimeEntity {
     }
 
     public void answer(String reply) {
+        if (this.status == InquiryStatus.ANSWERED) {
+            throw new IllegalStateException("inquiry already answered: id=" + this.id);
+        }
         requireNonBlank(reply, "adminReply");
         this.adminReply = reply;
         this.status = InquiryStatus.ANSWERED;

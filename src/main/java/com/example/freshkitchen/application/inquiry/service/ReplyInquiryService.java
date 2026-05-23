@@ -31,7 +31,8 @@ public class ReplyInquiryService implements ReplyInquiryUseCase {
     @Override
     @Transactional
     public void reply(Command command) {
-        Inquiry inquiry = inquiryRepository.findById(command.inquiryId())
+        // 비관적 잠금으로 동시 답변 방지 (SELECT ... FOR UPDATE)
+        Inquiry inquiry = inquiryRepository.findByIdForUpdate(command.inquiryId())
                 .orElseThrow(() -> new InquiryException(InquiryErrorCode.INQUIRY_NOT_FOUND));
 
         if (inquiry.getStatus() == InquiryStatus.ANSWERED) {

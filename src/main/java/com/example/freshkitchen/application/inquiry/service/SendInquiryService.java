@@ -2,7 +2,7 @@ package com.example.freshkitchen.application.inquiry.service;
 
 import com.example.freshkitchen.application.inquiry.exception.InquiryErrorCode;
 import com.example.freshkitchen.application.inquiry.exception.InquiryException;
-import com.example.freshkitchen.application.inquiry.usecase.InquiryType;
+import com.example.freshkitchen.domain.inquiry.enums.InquiryType;
 import com.example.freshkitchen.application.inquiry.usecase.SendInquiryUseCase;
 import com.example.freshkitchen.domain.inquiry.entity.Inquiry;
 import com.example.freshkitchen.domain.inquiry.repository.InquiryRepository;
