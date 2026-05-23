@@ -66,9 +66,9 @@ public class SendInquiryService implements SendInquiryUseCase {
             log.info("문의 이메일 발송 완료 — inquiryId={}, userId={}, type={}, category={}",
                     inquiry.getId(), command.userId(), command.type(), command.category());
         } catch (MailException | MessagingException e) {
+            // 메일 실패해도 DB 저장은 유지 — 문의 내역은 보존
             log.error("문의 이메일 발송 실패 — inquiryId={}, userId={}, type={}, category={}",
                     inquiry.getId(), command.userId(), command.type(), command.category(), e);
-            throw new InquiryException(InquiryErrorCode.MAIL_SEND_FAILED, e);
         }
 
         return inquiry.getId();

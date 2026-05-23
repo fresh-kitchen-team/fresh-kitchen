@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Map;
@@ -20,7 +22,6 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class ReplyInquiryService implements ReplyInquiryUseCase {
 
     private final InquiryRepository inquiryRepository;
@@ -28,6 +29,7 @@ public class ReplyInquiryService implements ReplyInquiryUseCase {
     private final FcmMessageSender fcmMessageSender;
 
     @Override
+    @Transactional
     public void reply(Command command) {
         Inquiry inquiry = inquiryRepository.findById(command.inquiryId())
                 .orElseThrow(() -> new InquiryException(InquiryErrorCode.INQUIRY_NOT_FOUND));
@@ -38,32 +40,46 @@ public class ReplyInquiryService implements ReplyInquiryUseCase {
 
         inquiry.answer(command.reply());
 
-        sendNotification(inquiry);
+        // FCM은 트랜잭션 커밋 후 발송 — DB 커넥션 점유 방지
+        Long inquiryId = inquiry.getId();
+        Long userId = inquiry.getUserId();
+        String adminReply = inquiry.getAdminReply();
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                sendNotification(inquiryId, userId, adminReply);
+            }
+        });
     }
 
-    private void sendNotification(Inquiry inquiry) {
-        List<String> tokens = userFcmTokenRepository
-                .findByUser_IdIn(List.of(inquiry.getUserId()))
-                .stream()
-                .map(UserFcmToken::getTokenValue)
-                .toList();
+    private void sendNotification(Long inquiryId, Long userId, String adminReply) {
+        try {
+            List<String> tokens = userFcmTokenRepository
+                    .findByUser_IdIn(List.of(userId))
+                    .stream()
+                    .map(UserFcmToken::getTokenValue)
+                    .toList();
 
-        if (tokens.isEmpty()) {
-            log.info("FCM 토큰 없음, 알림 미발송 — inquiryId={}, userId={}",
-                    inquiry.getId(), inquiry.getUserId());
-            return;
+            if (tokens.isEmpty()) {
+                log.info("FCM 토큰 없음, 알림 미발송 — inquiryId={}, userId={}",
+                        inquiryId, userId);
+                return;
+            }
+
+            String title = "문의 답변이 도착했어요";
+            String body = truncate(adminReply, 100);
+
+            FcmMessageSender.SendResult result = fcmMessageSender.sendToTokens(
+                    tokens, title, body,
+                    Map.of("type", "INQUIRY_REPLY", "inquiryId", String.valueOf(inquiryId))
+            );
+
+            log.info("문의 답변 FCM 발송 — inquiryId={}, success={}, failure={}",
+                    inquiryId, result.successCount(), result.failureCount());
+        } catch (Exception e) {
+            // FCM 실패해도 답변 저장은 이미 커밋됨
+            log.error("FCM 발송 실패 — inquiryId={}, userId={}", inquiryId, userId, e);
         }
-
-        String title = "문의 답변이 도착했어요";
-        String body = truncate(inquiry.getAdminReply(), 100);
-
-        FcmMessageSender.SendResult result = fcmMessageSender.sendToTokens(
-                tokens, title, body,
-                Map.of("type", "INQUIRY_REPLY", "inquiryId", String.valueOf(inquiry.getId()))
-        );
-
-        log.info("문의 답변 FCM 발송 — inquiryId={}, success={}, failure={}",
-                inquiry.getId(), result.successCount(), result.failureCount());
     }
 
     private static String truncate(String text, int maxLength) {
