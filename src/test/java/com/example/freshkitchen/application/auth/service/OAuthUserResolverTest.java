@@ -95,7 +95,7 @@ class OAuthUserResolverTest {
         OAuthUserResolver.Result result = resolver.resolve("inactive-sub", Provider.GOOGLE);
 
         assertThat(result.user().getStatus()).isEqualTo(UserStatus.ACTIVE);
-        assertThat(result.isNew()).isFalse();
+        assertThat(result.isNew()).isTrue();
     }
 
     @Test

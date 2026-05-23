@@ -4,7 +4,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface SendInquiryUseCase {
 
-    void send(Command command);
+    Long send(Command command);
 
     record Command(
             Long userId,
