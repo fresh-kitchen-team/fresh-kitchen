@@ -269,24 +269,36 @@ public class ChatService {
               조리기·부치기·데치기·전자레인지/오븐 가열 등 **열을 가하거나 조리 과정**이 최소 1단계 이상 포함되어야 한다.
               "그대로 먹는다", "씻어서 먹는다", "껍질만 까서 먹는다", "잘라서 먹는다" 같이
               **조리 없이 날것/생식 그대로 섭취하는 추천은 절대 하지 마라.** (샐러드도 드레싱 만들기·데치기 등 조리 단계가 있을 때만 허용)
-            - 보유 재료만으로 제대로 된 요리가 어렵다면, 흔하게 구할 수 있는 재료(양파·마늘·달걀·우유·밀가루·간장·설탕 등)를
-              **적극적으로 추가**해 한 끼로 먹을 수 있는 정식 메뉴를 구성하라. 추가한 재료는 missingIngredients에 담는다.
-              사용자가 "다른 재료 추가해도 됨" 같은 명시를 하지 않아도 위 원칙을 기본으로 적용한다.
-            - 사용자가 단순히 "내 재료로 메뉴 추천", "할 수 있는 음식" 정도로만 짧게 물어봐도
-              위 규칙(조리 필수 + 보충 재료 허용)을 동일하게 적용해 답하라.
+            - **(중요) 보유 재료만으로 만들 수 있는 레시피만 추천하라.** 보유 재료에 없는 주재료(채소·과일·고기·생선·달걀·유제품·면·곡류·두부·해산물 등)는
+              절대 레시피에 사용하지 마라. 즉, recipes[i].ingredients 안의 **모든 항목은 "보유 재료" 목록에 있어야 한다.**
+              예외: 누구나 가지고 있다고 가정해도 되는 **보편 양념·기름·물**(소금·후추·설탕·식용유·물) 정도만 보유 여부 무관하게 사용 가능하다.
+              그 외 양념(간장·고추장·된장·참기름·다진마늘 등)도 보유 재료에 없으면 사용하지 마라.
+            - 보유 재료만으로 제대로 된 조리가 가능한 레시피가 정말 없으면, recipes를 빈 배열로 두지 말고
+              **보유 재료를 활용한 가장 단순한 조리(예: 굽기·데치기·졸이기 등) 1~2가지**를 만들어라.
+              그래도 진짜 불가능하면 tips에 "보유 재료만으로는 조리 가능한 메뉴가 부족합니다. 재료를 더 추가해 주세요."라고 안내하고
+              missingIngredients에 추천에 필요한 재료 후보를 담아라. **임의로 보충 재료를 끌어와 레시피를 만들지 마라.**
+            - missingIngredients는 원칙적으로 비어 있어야 한다. 위 규칙대로 보유 재료만으로 구성한 레시피라면 missing은 자연스럽게 비게 된다.
+            - 사용자가 단순히 "내 재료로 메뉴 추천", "할 수 있는 음식", "지금 있는 재료로 할 수 있는 메뉴" 정도로만 짧게 물어봐도
+              위 규칙(조리 필수 + **보유 재료만 사용**)을 동일하게 적용해 답하라.
             포맷:
             {"recipes":[{"name":"","ingredients":[],"steps":[],"time":""}],"tips":[],"missingIngredients":[]}
             """;
 
     private String buildSystemPrompt(AiSettingSaveRequest setting, UserProfile profile,
-                                     String userIngredients, boolean inventoryRequestedButEmpty) {
+                                     String userIngredients) {
         StringBuilder sb = new StringBuilder(RECIPE_SYSTEM_PROMPT_PREFIX);
 
         if (userIngredients != null && !userIngredients.isBlank()) {
             sb.append("보유 재료: ").append(userIngredients).append('\n');
-        } else if (inventoryRequestedButEmpty) {
-            sb.append("사용자가 본인 재료로 만들 수 있는 메뉴를 물었지만 등록된 재료가 없다. ")
-                    .append("이 사실을 한 줄 안내(tips에 포함)하고, 보편적으로 인기 있는 일반 레시피를 추천하라.\n");
+            sb.append("""
+                    ## 보유 재료 규칙(반드시 준수)
+                    - 위 "보유 재료" 목록은 매 요청마다 최신 DB 상태로 새로 주입되며, 이 목록이 단일 진실 원천(single source of truth)이다.
+                    - 이전 대화(과거 user/AI 메시지)에서 언급되었던 재료라도, 현재 "보유 재료" 목록에 없으면 사용자가 보유하지 않은 것으로 간주하라.
+                      사용자가 그 재료를 소비·삭제했을 수 있으므로 절대 보유한 것으로 다루지 마라.
+                    - 따라서 과거 추천 레시피의 주재료를 그대로 재사용하지 말고, 반드시 현재 "보유 재료"만을 기반으로 레시피를 새로 구성하라.
+                    - 사용자가 "방금 그거 말고", "다른 거", "또 추천" 등 후속 요청을 해도 동일하게 이 규칙을 적용한다.
+                    - 현재 "보유 재료" 목록에 없는 재료를 레시피의 주재료로 쓰지 마라. 부득이 보충 재료로 추가할 때는 반드시 missingIngredients에 담는다.
+                    """);
         }
 
         if (profile != null) {
@@ -558,71 +570,88 @@ public class ChatService {
                     .map(User::getProfile)
                     .orElse(null);
             boolean inventoryRequestedButEmpty = useInventory && userIngredients.isEmpty();
-            String systemPrompt = buildSystemPrompt(settingValues, profile, ingredientList, inventoryRequestedButEmpty);
 
-            searchSimilarDocuments(request.message(), resolvedType.vectorStoreType());
-
-            String aiResponseJson;
-            try {
-                RetrievalAugmentationAdvisor ragAdvisor = selectRagAdvisor(request.message());
-                aiResponseJson = this.chatClient.prompt()
-                        .system(systemPrompt)
-                        .user(request.message())
-                        .advisors(a -> a
-                                .advisors(chatMemoryAdvisor, ragAdvisor)
-                                .param(ChatMemory.CONVERSATION_ID, String.valueOf(roomId))
-                                .param(VectorStoreDocumentRetriever.FILTER_EXPRESSION,
-                                        "type == '%s'".formatted(resolvedType.vectorStoreType())))
-                        .call()
-                        .content();
-            } catch (ChatException e) {
-                throw new ChatException(ChatErrorCode.GEMINI_QUOTA_EXCEEDED);
-            }
-
-            String cleanJson = cleanJsonResponse(aiResponseJson);
-            ChatMessageResponse.AiPayloadResponse parsed = tryParsePayload(cleanJson);
-
-            if (parsed != null && parsed.recipes() != null) {
-                Set<String> missing = parsed.recipes().stream()
-                        .flatMap(recipe -> recipe.ingredients() == null
-                                ? Stream.<String>empty()
-                                : recipe.ingredients().stream())
-                        .map(ChatService::stripQuantityAndParens)
-                        .filter(ingredient -> !ingredient.isBlank())
-                        .filter(ingredient -> !isOwnedIngredient(ingredient, ownedIngredientNames))
-                        .collect(Collectors.toCollection(LinkedHashSet::new));
-
-                LinkedHashMap<Long, ChatMessageResponse.MatchedItemResponse> matched = new LinkedHashMap<>();
-                parsed.recipes().stream()
-                        .flatMap(recipe -> recipe.ingredients() == null
-                                ? Stream.<String>empty()
-                                : recipe.ingredients().stream())
-                        .map(ChatService::stripQuantityAndParens)
-                        .filter(ingredient -> !ingredient.isBlank())
-                        .forEach(ingredient -> {
-                            Ingredient owned = findMatchedOwnedIngredient(ingredient, userIngredients);
-                            if (owned != null) {
-                                matched.putIfAbsent(owned.getId(),
-                                        new ChatMessageResponse.MatchedItemResponse(owned.getId(), owned.getName()));
-                            }
-                        });
-
+            if (inventoryRequestedButEmpty) {
+                log.info("RECIPE 분기지만 보유 재고 없음 — LLM 호출 생략, 안내 응답 반환 userId={}", userId);
                 aiPayload = new ChatMessageResponse.AiPayloadResponse(
-                        parsed.recipes(),
-                        parsed.tips(),
-                        new ArrayList<>(missing),
-                        new ArrayList<>(matched.values()));
+                        List.of(),
+                        List.of("현재 등록된 식재료가 없습니다. 식재료를 먼저 등록한 뒤 다시 시도해 주세요."),
+                        List.of(),
+                        List.of());
+                try {
+                    storedAiPayload = objectMapper.writeValueAsString(aiPayload);
+                } catch (Exception e) {
+                    log.error("aiPayload 직렬화 실패");
+                    storedAiPayload = "{\"recipes\":[],\"tips\":[\"현재 등록된 식재료가 없습니다. 식재료를 먼저 등록한 뒤 다시 시도해 주세요.\"],\"missingIngredients\":[],\"matchedItems\":[]}";
+                }
+                aiText = storedAiPayload;
             } else {
-                aiPayload = new ChatMessageResponse.AiPayloadResponse(List.of(), List.of(), List.of(), List.of());
-            }
+                String systemPrompt = buildSystemPrompt(settingValues, profile, ingredientList);
 
-            try {
-                storedAiPayload = objectMapper.writeValueAsString(aiPayload);
-            } catch (Exception e) {
-                log.error("aiPayload 직렬화 실패");
-                storedAiPayload = cleanJson;
+                searchSimilarDocuments(request.message(), resolvedType.vectorStoreType());
+
+                String aiResponseJson;
+                try {
+                    RetrievalAugmentationAdvisor ragAdvisor = selectRagAdvisor(request.message());
+                    aiResponseJson = this.chatClient.prompt()
+                            .system(systemPrompt)
+                            .user(request.message())
+                            .advisors(a -> a
+                                    .advisors(chatMemoryAdvisor, ragAdvisor)
+                                    .param(ChatMemory.CONVERSATION_ID, String.valueOf(roomId))
+                                    .param(VectorStoreDocumentRetriever.FILTER_EXPRESSION,
+                                            "type == '%s'".formatted(resolvedType.vectorStoreType())))
+                            .call()
+                            .content();
+                } catch (ChatException e) {
+                    throw new ChatException(ChatErrorCode.GEMINI_QUOTA_EXCEEDED);
+                }
+
+                String cleanJson = cleanJsonResponse(aiResponseJson);
+                ChatMessageResponse.AiPayloadResponse parsed = tryParsePayload(cleanJson);
+
+                if (parsed != null && parsed.recipes() != null) {
+                    Set<String> missing = parsed.recipes().stream()
+                            .flatMap(recipe -> recipe.ingredients() == null
+                                    ? Stream.<String>empty()
+                                    : recipe.ingredients().stream())
+                            .map(ChatService::stripQuantityAndParens)
+                            .filter(ingredient -> !ingredient.isBlank())
+                            .filter(ingredient -> !isOwnedIngredient(ingredient, ownedIngredientNames))
+                            .collect(Collectors.toCollection(LinkedHashSet::new));
+
+                    LinkedHashMap<Long, ChatMessageResponse.MatchedItemResponse> matched = new LinkedHashMap<>();
+                    parsed.recipes().stream()
+                            .flatMap(recipe -> recipe.ingredients() == null
+                                    ? Stream.<String>empty()
+                                    : recipe.ingredients().stream())
+                            .map(ChatService::stripQuantityAndParens)
+                            .filter(ingredient -> !ingredient.isBlank())
+                            .forEach(ingredient -> {
+                                Ingredient owned = findMatchedOwnedIngredient(ingredient, userIngredients);
+                                if (owned != null) {
+                                    matched.putIfAbsent(owned.getId(),
+                                            new ChatMessageResponse.MatchedItemResponse(owned.getId(), owned.getName()));
+                                }
+                            });
+
+                    aiPayload = new ChatMessageResponse.AiPayloadResponse(
+                            parsed.recipes(),
+                            parsed.tips(),
+                            new ArrayList<>(missing),
+                            new ArrayList<>(matched.values()));
+                } else {
+                    aiPayload = new ChatMessageResponse.AiPayloadResponse(List.of(), List.of(), List.of(), List.of());
+                }
+
+                try {
+                    storedAiPayload = objectMapper.writeValueAsString(aiPayload);
+                } catch (Exception e) {
+                    log.error("aiPayload 직렬화 실패");
+                    storedAiPayload = cleanJson;
+                }
+                aiText = storedAiPayload;
             }
-            aiText = storedAiPayload;
         }
 
         long previousMessageCount = messageRepository.countByRoomId(roomId);
