@@ -725,12 +725,20 @@ public class ChatService {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND));
 
+        Long ownerId = chatRoom.getUser().getId();
+        Set<String> currentOwnedNames = ingredientRepository
+                .findAllByUserIdAndStatus(ownerId, IngredientStatus.ACTIVE).stream()
+                .map(i -> normalizeIngredientName(i.getName()))
+                .collect(Collectors.toSet());
+
         List<ChatHistoryResponse.MessageResponse> messages = chatRoom.getMessages().stream()
                 .map(m -> {
                     ChatMessageResponse.AiPayloadResponse aiPayload = null;
                     if (m.getAiPayload() != null && !m.getAiPayload().isBlank()) {
                         try {
-                            aiPayload = objectMapper.readValue(m.getAiPayload(), ChatMessageResponse.AiPayloadResponse.class);
+                            ChatMessageResponse.AiPayloadResponse parsed =
+                                    objectMapper.readValue(m.getAiPayload(), ChatMessageResponse.AiPayloadResponse.class);
+                            aiPayload = recalculateMissing(parsed, currentOwnedNames);
                         } catch (Exception e) {
                             log.error("aiPayload 파싱 실패: {}", m.getAiPayload());
                             aiPayload = new ChatMessageResponse.AiPayloadResponse(List.of(), List.of(), List.of(), List.of());
@@ -742,6 +750,35 @@ public class ChatService {
                 .collect(Collectors.toList());
 
         return new ChatHistoryResponse(chatRoom.getTitle(), messages);
+    }
+
+    /**
+     * 저장된 aiPayload의 missingIngredients를 현재 보유 식재료 기준으로 재계산한다.
+     * 소비/폐기된 식재료는 currentOwnedNames에 없으므로 missing에 자동 포함된다.
+     */
+    private ChatMessageResponse.AiPayloadResponse recalculateMissing(
+            ChatMessageResponse.AiPayloadResponse original,
+            Set<String> currentOwnedNames
+    ) {
+        if (original == null || original.recipes() == null || original.recipes().isEmpty()) {
+            return original;
+        }
+
+        Set<String> recalculated = original.recipes().stream()
+                .flatMap(recipe -> recipe.ingredients() == null
+                        ? Stream.<String>empty()
+                        : recipe.ingredients().stream())
+                .map(ChatService::stripQuantityAndParens)
+                .filter(ingredient -> !ingredient.isBlank())
+                .filter(ingredient -> !isOwnedIngredient(ingredient, currentOwnedNames))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        return new ChatMessageResponse.AiPayloadResponse(
+                original.recipes(),
+                original.tips(),
+                new ArrayList<>(recalculated),
+                original.matchedItems()
+        );
     }
 
     @Transactional
