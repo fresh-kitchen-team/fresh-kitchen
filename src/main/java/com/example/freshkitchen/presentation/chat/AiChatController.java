@@ -5,12 +5,14 @@ import com.example.freshkitchen.global.response.ApiResponse;
 import com.example.freshkitchen.global.security.JwtAuthentication;
 import com.example.freshkitchen.presentation.chat.dto.request.AiSettingSaveRequest;
 import com.example.freshkitchen.presentation.chat.dto.request.ChatMessageRequest;
+import com.example.freshkitchen.presentation.chat.dto.request.ConsumeItemsRequest;
 import com.example.freshkitchen.presentation.chat.dto.request.UpdateRoomTitleRequest;
 import com.example.freshkitchen.presentation.chat.dto.response.AiSettingResponse;
 import com.example.freshkitchen.presentation.chat.dto.response.ChatHistoryResponse;
 import com.example.freshkitchen.presentation.chat.dto.response.ChatMessageResponse;
 import com.example.freshkitchen.presentation.chat.dto.response.ChatRoomListResponse;
 import com.example.freshkitchen.presentation.chat.dto.response.ChatRoomResponse;
+import com.example.freshkitchen.presentation.chat.dto.response.ConsumeItemsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -96,6 +98,17 @@ public class AiChatController {
         Long userId = getLoginUserId();
         chatService.deleteRoom(userId, roomId);
         return ApiResponse.success();
+    }
+
+    @Operation(summary = "AI 채팅 재료 일괄 소비",
+            description = "AI 응답의 matchedItems에서 선택된 itemId들을 소비 처리합니다. 처리 불가한 항목은 skipped로 반환됩니다.")
+    @PatchMapping("/consume")
+    public ResponseEntity<ApiResponse<ConsumeItemsResponse>> consumeItems(
+            @Valid @RequestBody ConsumeItemsRequest request
+    ) {
+        Long userId = getLoginUserId();
+        ConsumeItemsResponse response = chatService.bulkConsume(userId, request.itemIds());
+        return ApiResponse.success(response);
     }
 
 

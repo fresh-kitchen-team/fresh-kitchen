@@ -11,8 +11,10 @@ import com.example.freshkitchen.domain.chat.repository.AiSettingRepository;
 import com.example.freshkitchen.domain.chat.repository.ChatMessageRepository;
 import com.example.freshkitchen.domain.chat.repository.ChatRoomRepository;
 import com.example.freshkitchen.domain.chat.intent.IntentClassifier;
+import com.example.freshkitchen.application.ingredient.usecase.ConsumeIngredientUseCase;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
+import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
 import com.example.freshkitchen.domain.user.entity.User;
 import com.example.freshkitchen.domain.user.entity.UserProfile;
@@ -26,6 +28,7 @@ import com.example.freshkitchen.presentation.chat.dto.response.ChatHistoryRespon
 import com.example.freshkitchen.presentation.chat.dto.response.ChatMessageResponse;
 import com.example.freshkitchen.presentation.chat.dto.response.ChatRoomListResponse;
 import com.example.freshkitchen.presentation.chat.dto.response.ChatRoomResponse;
+import com.example.freshkitchen.presentation.chat.dto.response.ConsumeItemsResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -47,8 +50,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -74,6 +79,7 @@ public class ChatService {
     private final AiSettingRepository aiSettingRepository;
     private final IngredientRepository ingredientRepository;
     private final IntentClassifier intentClassifier;
+    private final ConsumeIngredientUseCase consumeIngredientUseCase;
     private final ChatMemory chatMemory;
     private final MessageChatMemoryAdvisor chatMemoryAdvisor;
 
@@ -82,6 +88,7 @@ public class ChatService {
                        ChatMessageRepository messageRepository, AiSettingRepository aiSettingRepository,
                        IngredientRepository ingredientRepository,
                        IntentClassifier intentClassifier,
+                       ConsumeIngredientUseCase consumeIngredientUseCase,
                        ChatMemory chatMemory) {
         this.objectMapper = objectMapper;
         this.vectorStore = vectorStore;
@@ -91,6 +98,7 @@ public class ChatService {
         this.aiSettingRepository = aiSettingRepository;
         this.ingredientRepository = ingredientRepository;
         this.intentClassifier = intentClassifier;
+        this.consumeIngredientUseCase = consumeIngredientUseCase;
         this.chatMemory = chatMemory;
         this.chatMemoryAdvisor = MessageChatMemoryAdvisor.builder(chatMemory).build();
 
@@ -257,6 +265,15 @@ public class ChatService {
               보유 재료 정보가 없거나, ingredients가 전부 보유 재료에 있으면 [].
             - 보유 재료가 있으면 그것을 최대한 활용하라. 일반적인 양념·기름 등 흔한 재료는
               보유 여부와 무관하게 ingredients에 포함하되, 보유 재료에 없으면 missingIngredients로 분리한다.
+            - 반드시 "조리"가 필요한 요리만 추천하라. 즉 steps에는 굽기·볶기·찌기·끓이기·삶기·튀기기·
+              조리기·부치기·데치기·전자레인지/오븐 가열 등 **열을 가하거나 조리 과정**이 최소 1단계 이상 포함되어야 한다.
+              "그대로 먹는다", "씻어서 먹는다", "껍질만 까서 먹는다", "잘라서 먹는다" 같이
+              **조리 없이 날것/생식 그대로 섭취하는 추천은 절대 하지 마라.** (샐러드도 드레싱 만들기·데치기 등 조리 단계가 있을 때만 허용)
+            - 보유 재료만으로 제대로 된 요리가 어렵다면, 흔하게 구할 수 있는 재료(양파·마늘·달걀·우유·밀가루·간장·설탕 등)를
+              **적극적으로 추가**해 한 끼로 먹을 수 있는 정식 메뉴를 구성하라. 추가한 재료는 missingIngredients에 담는다.
+              사용자가 "다른 재료 추가해도 됨" 같은 명시를 하지 않아도 위 원칙을 기본으로 적용한다.
+            - 사용자가 단순히 "내 재료로 메뉴 추천", "할 수 있는 음식" 정도로만 짧게 물어봐도
+              위 규칙(조리 필수 + 보충 재료 허용)을 동일하게 적용해 답하라.
             포맷:
             {"recipes":[{"name":"","ingredients":[],"steps":[],"time":""}],"tips":[],"missingIngredients":[]}
             """;
@@ -417,6 +434,31 @@ public class ChatService {
         return false;
     }
 
+    private static Ingredient findMatchedOwnedIngredient(String recipeIngredient, List<Ingredient> ownedIngredients) {
+        if (recipeIngredient == null || recipeIngredient.isBlank() || ownedIngredients.isEmpty()) {
+            return null;
+        }
+        String normalized = normalizeIngredientName(recipeIngredient);
+        if (normalized.isBlank()) {
+            return null;
+        }
+        for (Ingredient owned : ownedIngredients) {
+            if (normalizeIngredientName(owned.getName()).equals(normalized)) {
+                return owned;
+            }
+        }
+        for (Ingredient owned : ownedIngredients) {
+            String ownedNormalized = normalizeIngredientName(owned.getName());
+            if (ownedNormalized.length() < 2) {
+                continue;
+            }
+            if (normalized.contains(ownedNormalized) || ownedNormalized.contains(normalized)) {
+                return owned;
+            }
+        }
+        return null;
+    }
+
     private ChatMessageResponse.AiPayloadResponse tryParsePayload(String json) {
         try {
             return objectMapper.readValue(json, ChatMessageResponse.AiPayloadResponse.class);
@@ -550,12 +592,28 @@ public class ChatService {
                         .filter(ingredient -> !isOwnedIngredient(ingredient, ownedIngredientNames))
                         .collect(Collectors.toCollection(LinkedHashSet::new));
 
+                LinkedHashMap<Long, ChatMessageResponse.MatchedItemResponse> matched = new LinkedHashMap<>();
+                parsed.recipes().stream()
+                        .flatMap(recipe -> recipe.ingredients() == null
+                                ? Stream.<String>empty()
+                                : recipe.ingredients().stream())
+                        .map(ChatService::stripQuantityAndParens)
+                        .filter(ingredient -> !ingredient.isBlank())
+                        .forEach(ingredient -> {
+                            Ingredient owned = findMatchedOwnedIngredient(ingredient, userIngredients);
+                            if (owned != null) {
+                                matched.putIfAbsent(owned.getId(),
+                                        new ChatMessageResponse.MatchedItemResponse(owned.getId(), owned.getName()));
+                            }
+                        });
+
                 aiPayload = new ChatMessageResponse.AiPayloadResponse(
                         parsed.recipes(),
                         parsed.tips(),
-                        new ArrayList<>(missing));
+                        new ArrayList<>(missing),
+                        new ArrayList<>(matched.values()));
             } else {
-                aiPayload = new ChatMessageResponse.AiPayloadResponse(List.of(), List.of(), List.of());
+                aiPayload = new ChatMessageResponse.AiPayloadResponse(List.of(), List.of(), List.of(), List.of());
             }
 
             try {
@@ -646,7 +704,7 @@ public class ChatService {
                             aiPayload = objectMapper.readValue(m.getAiPayload(), ChatMessageResponse.AiPayloadResponse.class);
                         } catch (Exception e) {
                             log.error("aiPayload 파싱 실패: {}", m.getAiPayload());
-                            aiPayload = new ChatMessageResponse.AiPayloadResponse(List.of(), List.of(), List.of());
+                            aiPayload = new ChatMessageResponse.AiPayloadResponse(List.of(), List.of(), List.of(), List.of());
                         }
                     }
                     return new ChatHistoryResponse.MessageResponse(
@@ -678,6 +736,31 @@ public class ChatService {
 
         chatRoomRepository.delete(chatRoom);
         chatMemory.clear(String.valueOf(roomId));
+    }
+
+    @Transactional
+    public ConsumeItemsResponse bulkConsume(Long userId, List<Long> itemIds) {
+        List<Long> consumed = new ArrayList<>();
+        List<ConsumeItemsResponse.SkippedItem> skipped = new ArrayList<>();
+        LocalDate consumedAt = null;
+
+        for (Long itemId : itemIds) {
+            if (itemId == null) {
+                skipped.add(new ConsumeItemsResponse.SkippedItem(null, "itemId must not be null"));
+                continue;
+            }
+            try {
+                ConsumeIngredientUseCase.ConsumeResult result =
+                        consumeIngredientUseCase.consume(new ConsumeIngredientUseCase.Command(itemId, userId));
+                consumed.add(itemId);
+                consumedAt = result.consumedAt();
+            } catch (IngredientException e) {
+                log.info("bulkConsume skip itemId={} reason={}", itemId, e.getErrorCode().code());
+                skipped.add(new ConsumeItemsResponse.SkippedItem(itemId, e.getErrorCode().code()));
+            }
+        }
+
+        return new ConsumeItemsResponse(consumedAt, consumed, skipped);
     }
 
 }

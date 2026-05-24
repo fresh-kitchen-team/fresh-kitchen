@@ -88,7 +88,7 @@ public class ItemController {
         return ApiResponse.success();
     }
 
-    @PatchMapping("/{itemId}/consume")
+        @PatchMapping("/{itemId}/consume")
     public ResponseEntity<ApiResponse<ItemResponse.Consume>> consume(
             @AuthenticationPrincipal Long userId,
             @PathVariable @Positive Long itemId
