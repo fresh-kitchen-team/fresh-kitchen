@@ -1,12 +1,12 @@
 package com.example.freshkitchen.application.inquiry.usecase;
 
-import com.example.freshkitchen.domain.inquiry.entity.Inquiry;
+import com.example.freshkitchen.application.inquiry.dto.InquiryResult;
 
 import java.util.List;
 
 public interface GetInquiryListUseCase {
 
-    List<Inquiry> getList(Command command);
+    List<InquiryResult> getList(Command command);
 
     record Command(Long userId) {
     }

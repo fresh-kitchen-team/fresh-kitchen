@@ -74,11 +74,9 @@ public class InquiryController {
     public ResponseEntity<ApiResponse<List<InquiryResponse.Summary>>> getList(
             @Parameter(hidden = true) @AuthenticationPrincipal Long userId
     ) {
-        return ApiResponse.success(
-                InquiryResponse.Summary.from(
-                        getInquiryListUseCase.getList(new GetInquiryListUseCase.Command(userId))
-                )
-        );
+        return ApiResponse.success(InquiryResponse.Summary.from(
+                getInquiryListUseCase.getList(new GetInquiryListUseCase.Command(userId))
+        ));
     }
 
     @Operation(summary = "문의 상세 조회", description = "문의 내용과 관리자 답변을 조회합니다")
@@ -87,12 +85,10 @@ public class InquiryController {
             @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @PathVariable Long inquiryId
     ) {
-        return ApiResponse.success(
-                InquiryResponse.Detail.from(
-                        getInquiryDetailUseCase.getDetail(
-                                new GetInquiryDetailUseCase.Command(userId, inquiryId)
-                        )
+        return ApiResponse.success(InquiryResponse.Detail.from(
+                getInquiryDetailUseCase.getDetail(
+                        new GetInquiryDetailUseCase.Command(userId, inquiryId)
                 )
-        );
+        ));
     }
 }

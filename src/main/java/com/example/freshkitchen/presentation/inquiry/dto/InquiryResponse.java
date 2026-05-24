@@ -1,9 +1,9 @@
 package com.example.freshkitchen.presentation.inquiry.dto;
 
+import com.example.freshkitchen.application.inquiry.dto.InquiryResult;
 import com.example.freshkitchen.domain.inquiry.enums.InquiryCategory;
-import com.example.freshkitchen.domain.inquiry.enums.InquiryType;
-import com.example.freshkitchen.domain.inquiry.entity.Inquiry;
 import com.example.freshkitchen.domain.inquiry.enums.InquiryStatus;
+import com.example.freshkitchen.domain.inquiry.enums.InquiryType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.OffsetDateTime;
@@ -23,22 +23,22 @@ public final class InquiryResponse {
             @Schema(description = "상태") InquiryStatus status,
             @Schema(description = "작성일") OffsetDateTime createdAt
     ) {
-        public static Summary from(Inquiry inquiry) {
-            String preview = inquiry.getContent().length() > 50
-                    ? inquiry.getContent().substring(0, 50) + "…"
-                    : inquiry.getContent();
+        public static Summary from(InquiryResult result) {
+            String preview = result.content().length() > 50
+                    ? result.content().substring(0, 50) + "…"
+                    : result.content();
             return new Summary(
-                    inquiry.getId(),
-                    inquiry.getType(),
-                    inquiry.getCategory(),
+                    result.id(),
+                    result.type(),
+                    result.category(),
                     preview,
-                    inquiry.getStatus(),
-                    inquiry.getCreatedAt()
+                    result.status(),
+                    result.createdAt()
             );
         }
 
-        public static List<Summary> from(List<Inquiry> inquiries) {
-            return inquiries.stream().map(Summary::from).toList();
+        public static List<Summary> from(List<InquiryResult> results) {
+            return results.stream().map(Summary::from).toList();
         }
     }
 
@@ -54,17 +54,17 @@ public final class InquiryResponse {
             @Schema(description = "답변 시각") OffsetDateTime answeredAt,
             @Schema(description = "작성일") OffsetDateTime createdAt
     ) {
-        public static Detail from(Inquiry inquiry) {
+        public static Detail from(InquiryResult result) {
             return new Detail(
-                    inquiry.getId(),
-                    inquiry.getType(),
-                    inquiry.getCategory(),
-                    inquiry.getContent(),
-                    inquiry.getImageUrl(),
-                    inquiry.getStatus(),
-                    inquiry.getAdminReply(),
-                    inquiry.getAnsweredAt(),
-                    inquiry.getCreatedAt()
+                    result.id(),
+                    result.type(),
+                    result.category(),
+                    result.content(),
+                    result.imageUrl(),
+                    result.status(),
+                    result.adminReply(),
+                    result.answeredAt(),
+                    result.createdAt()
             );
         }
     }

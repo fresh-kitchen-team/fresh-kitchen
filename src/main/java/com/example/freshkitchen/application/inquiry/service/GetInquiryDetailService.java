@@ -1,5 +1,6 @@
 package com.example.freshkitchen.application.inquiry.service;
 
+import com.example.freshkitchen.application.inquiry.dto.InquiryResult;
 import com.example.freshkitchen.application.inquiry.exception.InquiryErrorCode;
 import com.example.freshkitchen.application.inquiry.exception.InquiryException;
 import com.example.freshkitchen.application.inquiry.usecase.GetInquiryDetailUseCase;
@@ -17,7 +18,7 @@ public class GetInquiryDetailService implements GetInquiryDetailUseCase {
     private final InquiryRepository inquiryRepository;
 
     @Override
-    public Inquiry getDetail(Command command) {
+    public InquiryResult getDetail(Command command) {
         Inquiry inquiry = inquiryRepository.findById(command.inquiryId())
                 .orElseThrow(() -> new InquiryException(InquiryErrorCode.INQUIRY_NOT_FOUND));
 
@@ -25,6 +26,6 @@ public class GetInquiryDetailService implements GetInquiryDetailUseCase {
             throw new InquiryException(InquiryErrorCode.INQUIRY_NOT_FOUND);
         }
 
-        return inquiry;
+        return InquiryResult.from(inquiry);
     }
 }

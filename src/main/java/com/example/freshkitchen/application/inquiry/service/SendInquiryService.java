@@ -1,7 +1,5 @@
 package com.example.freshkitchen.application.inquiry.service;
 
-import com.example.freshkitchen.application.inquiry.exception.InquiryErrorCode;
-import com.example.freshkitchen.application.inquiry.exception.InquiryException;
 import com.example.freshkitchen.domain.inquiry.enums.InquiryType;
 import com.example.freshkitchen.application.inquiry.usecase.SendInquiryUseCase;
 import com.example.freshkitchen.domain.inquiry.entity.Inquiry;
@@ -16,11 +14,12 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class SendInquiryService implements SendInquiryUseCase {
 
     private final JavaMailSender mailSender;
@@ -28,6 +27,7 @@ public class SendInquiryService implements SendInquiryUseCase {
     private final InquiryRepository inquiryRepository;
 
     @Override
+    @Transactional
     public Long send(Command command) {
         // 1. DB 저장
         Inquiry inquiry = inquiryRepository.save(Inquiry.create(new Inquiry.CreateCommand(
@@ -38,7 +38,19 @@ public class SendInquiryService implements SendInquiryUseCase {
                 null // image URL은 현재 S3 업로드 미사용, 메일 첨부만
         )));
 
-        // 2. 메일 발송
+        // 2. 메일 발송은 트랜잭션 커밋 후 — DB 커넥션 점유 방지
+        Long inquiryId = inquiry.getId();
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                sendMail(command, inquiryId);
+            }
+        });
+
+        return inquiryId;
+    }
+
+    private void sendMail(Command command, Long inquiryId) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, command.image() != null);
@@ -49,7 +61,7 @@ public class SendInquiryService implements SendInquiryUseCase {
 
             helper.setTo(inquiryProperties.getAdminEmail());
             helper.setSubject(prefix + " " + sanitize(command.category().name()));
-            helper.setText(buildBody(command, inquiry.getId()));
+            helper.setText(buildBody(command, inquiryId));
 
             if (command.image() != null && !command.image().isEmpty()) {
                 String originalFilename = command.image().getOriginalFilename();
@@ -64,14 +76,12 @@ public class SendInquiryService implements SendInquiryUseCase {
 
             mailSender.send(mimeMessage);
             log.info("문의 이메일 발송 완료 — inquiryId={}, userId={}, type={}, category={}",
-                    inquiry.getId(), command.userId(), command.type(), command.category());
+                    inquiryId, command.userId(), command.type(), command.category());
         } catch (MailException | MessagingException e) {
-            // 메일 실패해도 DB 저장은 유지 — 문의 내역은 보존
+            // 메일 실패해도 DB 저장은 이미 커밋됨 — 문의 내역은 보존
             log.error("문의 이메일 발송 실패 — inquiryId={}, userId={}, type={}, category={}",
-                    inquiry.getId(), command.userId(), command.type(), command.category(), e);
+                    inquiryId, command.userId(), command.type(), command.category(), e);
         }
-
-        return inquiry.getId();
     }
 
     private static String sanitize(String value) {

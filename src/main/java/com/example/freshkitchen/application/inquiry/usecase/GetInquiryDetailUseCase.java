@@ -1,10 +1,10 @@
 package com.example.freshkitchen.application.inquiry.usecase;
 
-import com.example.freshkitchen.domain.inquiry.entity.Inquiry;
+import com.example.freshkitchen.application.inquiry.dto.InquiryResult;
 
 public interface GetInquiryDetailUseCase {
 
-    Inquiry getDetail(Command command);
+    InquiryResult getDetail(Command command);
 
     record Command(Long userId, Long inquiryId) {
     }
