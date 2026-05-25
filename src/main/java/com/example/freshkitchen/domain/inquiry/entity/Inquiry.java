@@ -76,9 +76,6 @@ public class Inquiry extends BaseTimeEntity {
     }
 
     public void answer(String reply) {
-        if (this.status == InquiryStatus.ANSWERED) {
-            throw new IllegalStateException("inquiry already answered: id=" + this.id);
-        }
         requireNonBlank(reply, "adminReply");
         this.adminReply = reply;
         this.status = InquiryStatus.ANSWERED;
