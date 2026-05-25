@@ -9,6 +9,7 @@ import com.example.freshkitchen.domain.inquiry.repository.InquiryRepository;
 import com.example.freshkitchen.domain.user.entity.UserFcmToken;
 import com.example.freshkitchen.domain.user.repository.UserFcmTokenRepository;
 import com.example.freshkitchen.infrastructure.fcm.FcmMessageSender;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,9 @@ public class ReplyInquiryService implements ReplyInquiryUseCase {
     @Override
     @Transactional
     public void reply(Command command) {
+        if (command == null) throw new BusinessValidationException("command must not be null");
+        if (command.inquiryId() == null) throw new BusinessValidationException("inquiryId must not be null");
+
         // 비관적 잠금으로 동시 답변 방지 (SELECT ... FOR UPDATE)
         Inquiry inquiry = inquiryRepository.findByIdForUpdate(command.inquiryId())
                 .orElseThrow(() -> new InquiryException(InquiryErrorCode.INQUIRY_NOT_FOUND));

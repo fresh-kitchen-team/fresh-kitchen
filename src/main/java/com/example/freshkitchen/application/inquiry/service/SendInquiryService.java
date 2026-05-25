@@ -7,6 +7,7 @@ import com.example.freshkitchen.domain.inquiry.repository.InquiryRepository;
 import com.example.freshkitchen.infrastructure.inquiry.InquiryProperties;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.MailException;
@@ -29,6 +30,12 @@ public class SendInquiryService implements SendInquiryUseCase {
     @Override
     @Transactional
     public Long send(Command command) {
+        if (command == null) throw new BusinessValidationException("command must not be null");
+        if (command.userId() == null) throw new BusinessValidationException("userId must not be null");
+        if (command.type() == null) throw new BusinessValidationException("type must not be null");
+        if (command.category() == null) throw new BusinessValidationException("category must not be null");
+        if (command.content() == null || command.content().isBlank()) throw new BusinessValidationException("content must not be blank");
+
         // 1. DB 저장
         Inquiry inquiry = inquiryRepository.save(Inquiry.create(new Inquiry.CreateCommand(
                 command.userId(),

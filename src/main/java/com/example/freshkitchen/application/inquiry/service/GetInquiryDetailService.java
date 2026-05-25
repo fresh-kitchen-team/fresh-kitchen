@@ -6,6 +6,7 @@ import com.example.freshkitchen.application.inquiry.exception.InquiryException;
 import com.example.freshkitchen.application.inquiry.usecase.GetInquiryDetailUseCase;
 import com.example.freshkitchen.domain.inquiry.entity.Inquiry;
 import com.example.freshkitchen.domain.inquiry.repository.InquiryRepository;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,10 @@ public class GetInquiryDetailService implements GetInquiryDetailUseCase {
 
     @Override
     public InquiryResult getDetail(Command command) {
+        if (command == null) throw new BusinessValidationException("command must not be null");
+        if (command.userId() == null) throw new BusinessValidationException("userId must not be null");
+        if (command.inquiryId() == null) throw new BusinessValidationException("inquiryId must not be null");
+
         Inquiry inquiry = inquiryRepository.findById(command.inquiryId())
                 .orElseThrow(() -> new InquiryException(InquiryErrorCode.INQUIRY_NOT_FOUND));
 
