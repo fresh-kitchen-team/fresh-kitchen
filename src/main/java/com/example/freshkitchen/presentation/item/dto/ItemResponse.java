@@ -48,7 +48,7 @@ public final class ItemResponse {
                     response.catalogId(),
                     response.storageId(),
                     response.storageType(),
-                    response.catalogCategory(),
+                    resolveCategory(response.catalogCategory()),
                     response.expiresAt(),
                     resolveEmoji(response.emoji()),
                     response.registeredAt(),
@@ -64,7 +64,7 @@ public final class ItemResponse {
                     response.catalogId(),
                     response.storageId(),
                     response.storageType(),
-                    response.catalogCategory(),
+                    resolveCategory(response.catalogCategory()),
                     response.expiresAt(),
                     resolveEmoji(response.emoji()),
                     response.registeredAt(),
@@ -103,5 +103,12 @@ public final class ItemResponse {
             return DEFAULT_EMOJI;
         }
         return emoji;
+    }
+
+    private static CatalogCategory resolveCategory(CatalogCategory category) {
+        if (category == null) {
+            return CatalogCategory.ETC;
+        }
+        return category;
     }
 }

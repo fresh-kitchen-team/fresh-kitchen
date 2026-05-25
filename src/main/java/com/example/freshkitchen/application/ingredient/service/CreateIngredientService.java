@@ -1,10 +1,12 @@
 package com.example.freshkitchen.application.ingredient.service;
 
+import com.example.freshkitchen.application.ingredient.dto.IngredientDto;
 import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientUseCase;
+import com.example.freshkitchen.application.ingredient.usecase.ResolveIngredientDefaultsUseCase;
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
-import com.example.freshkitchen.domain.catalog.repository.IngredientCatalogRepository;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
+import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
@@ -15,20 +17,24 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class CreateIngredientService implements CreateIngredientUseCase {
 
     private final IngredientRepository ingredientRepository;
-    private final IngredientCatalogRepository ingredientCatalogRepository;
     private final DefaultStorageService defaultStorageService;
+    private final IngredientCatalogMappingService ingredientCatalogMappingService;
+    private final ResolveIngredientDefaultsUseCase resolveIngredientDefaultsUseCase;
     private final EntityManager entityManager;
 
     @Override
     public Long create(Command command) {
         Storage storage = resolveStorage(command.userId(), command.storageType());
-        IngredientCatalog catalog = resolveCatalog(command.catalogId());
+        IngredientCatalog catalog = ingredientCatalogMappingService.resolve(command.catalogId(), command.name());
+        ExpiryMapping expiry = resolveExpiry(command, catalog, storage.getStorageType());
         User user = entityManager.getReference(User.class, command.userId());
 
         Ingredient ingredient = Ingredient.create(new Ingredient.CreateCommand(
@@ -37,8 +43,8 @@ public class CreateIngredientService implements CreateIngredientUseCase {
                 catalog,
                 command.name(),
                 command.registeredAt(),
-                command.expiresAt(),
-                command.expirySourceType(),
+                expiry.expiresAt(),
+                expiry.expirySourceType(),
                 command.note(),
                 command.sourceType()
         ));
@@ -53,11 +59,29 @@ public class CreateIngredientService implements CreateIngredientUseCase {
                 .orElseThrow(() -> new IngredientException(IngredientErrorCode.STORAGE_NOT_FOUND));
     }
 
-    private IngredientCatalog resolveCatalog(Long catalogId) {
-        if (catalogId == null) {
-            return null;
+    private ExpiryMapping resolveExpiry(Command command, IngredientCatalog catalog, StorageType storageType) {
+        if (command.expiresAt() != null) {
+            ExpirySourceType sourceType = command.expirySourceType() != null
+                    ? command.expirySourceType()
+                    : ExpirySourceType.MANUAL;
+            return new ExpiryMapping(command.expiresAt(), sourceType);
         }
-        return ingredientCatalogRepository.findById(catalogId)
-                .orElseThrow(() -> new IngredientException(IngredientErrorCode.CATALOG_NOT_FOUND));
+        if (catalog == null || command.registeredAt() == null) {
+            return new ExpiryMapping(null, ExpirySourceType.UNKNOWN);
+        }
+
+        IngredientDto.DefaultsResponse defaults = resolveIngredientDefaultsUseCase.resolve(
+                new ResolveIngredientDefaultsUseCase.Query(catalog.getId(), catalog.getCategory(), storageType)
+        );
+        if (defaults.shelfLifeDays() == null) {
+            return new ExpiryMapping(null, ExpirySourceType.UNKNOWN);
+        }
+        return new ExpiryMapping(command.registeredAt().plusDays(defaults.shelfLifeDays()), ExpirySourceType.POLICY);
+    }
+
+    private record ExpiryMapping(
+            LocalDate expiresAt,
+            ExpirySourceType expirySourceType
+    ) {
     }
 }
