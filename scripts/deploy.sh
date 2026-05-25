@@ -36,6 +36,14 @@ export LEGAL_TERMS_URL
 LEGAL_PRIVACY_URL=$(aws ssm get-parameter --name "/fresh-kitchen/LEGAL_PRIVACY_URL" --with-decryption --query Parameter.Value --output text --region "$AWS_REGION")
 export LEGAL_PRIVACY_URL
 
+# FCM 푸시 알림 설정 — 없으면 application.yml 기본값/컨테이너 기본값 사용
+FCM_FIREBASE_CREDENTIALS_LOCATION=$(aws ssm get-parameter --name "/fresh-kitchen/FCM_FIREBASE_CREDENTIALS_LOCATION" --query Parameter.Value --output text --region "$AWS_REGION" 2>/dev/null || echo "classpath:firebase/firebase.json")
+export FCM_FIREBASE_CREDENTIALS_LOCATION
+FCM_EXPIRING_NOTIFICATION_CRON=$(aws ssm get-parameter --name "/fresh-kitchen/FCM_EXPIRING_NOTIFICATION_CRON" --query Parameter.Value --output text --region "$AWS_REGION" 2>/dev/null || echo "0 0 9 * * *")
+export FCM_EXPIRING_NOTIFICATION_CRON
+FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD=$(aws ssm get-parameter --name "/fresh-kitchen/FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD" --query Parameter.Value --output text --region "$AWS_REGION" 2>/dev/null || echo "1")
+export FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD
+
 
 echo "------------------ 서버 배포 시작 --------------------------------"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
