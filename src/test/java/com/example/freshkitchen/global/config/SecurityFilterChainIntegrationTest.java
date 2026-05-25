@@ -13,6 +13,7 @@ import com.example.freshkitchen.application.inquiry.usecase.GetInquiryDetailUseC
 import com.example.freshkitchen.application.inquiry.usecase.GetInquiryListUseCase;
 import com.example.freshkitchen.application.inquiry.usecase.ReplyInquiryUseCase;
 import com.example.freshkitchen.application.inquiry.usecase.SendInquiryUseCase;
+import com.example.freshkitchen.application.user.usecase.RegisterFcmTokenUseCase;
 import com.example.freshkitchen.application.legal.usecase.AgreeTermsUseCase;
 import com.example.freshkitchen.application.legal.usecase.GetTermsAgreementUseCase;
 import com.example.freshkitchen.application.chat.usecase.CreateChatRoomUseCase;
@@ -220,7 +221,7 @@ class SecurityFilterChainIntegrationTest {
     private ExpiringIngredientNotificationService expiringIngredientNotificationService;
 
     @MockitoBean
-    private com.example.freshkitchen.application.user.usecase.RegisterFcmTokenUseCase registerFcmTokenUseCase;
+    private RegisterFcmTokenUseCase registerFcmTokenUseCase;
 
     @MockitoBean
     private LogoutUseCase logoutUseCase;
