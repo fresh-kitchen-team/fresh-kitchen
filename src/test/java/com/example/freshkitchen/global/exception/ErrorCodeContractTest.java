@@ -223,6 +223,18 @@ class ErrorCodeContractTest {
     @Test
     void inquiryErrorCode_contractMatchesSpecification() {
         assertContract(
+                InquiryErrorCode.INQUIRY_NOT_FOUND,
+                HttpStatus.NOT_FOUND,
+                "INQUIRY-404-1",
+                "inquiry not found"
+        );
+        assertContract(
+                InquiryErrorCode.ALREADY_ANSWERED,
+                HttpStatus.CONFLICT,
+                "INQUIRY-409-1",
+                "inquiry already answered"
+        );
+        assertContract(
                 InquiryErrorCode.MAIL_SEND_FAILED,
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "INQUIRY-500-1",

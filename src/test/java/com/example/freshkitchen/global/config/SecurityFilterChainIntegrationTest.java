@@ -8,7 +8,12 @@ import com.example.freshkitchen.application.auth.usecase.LogoutUseCase;
 import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
 import com.example.freshkitchen.application.analytics.usecase.GetAnalyticsSummaryUseCase;
 import com.example.freshkitchen.application.analytics.usecase.ListExpiringItemsUseCase;
+import com.example.freshkitchen.application.alarm.service.ExpiringIngredientNotificationService;
+import com.example.freshkitchen.application.inquiry.usecase.GetInquiryDetailUseCase;
+import com.example.freshkitchen.application.inquiry.usecase.GetInquiryListUseCase;
+import com.example.freshkitchen.application.inquiry.usecase.ReplyInquiryUseCase;
 import com.example.freshkitchen.application.inquiry.usecase.SendInquiryUseCase;
+import com.example.freshkitchen.application.user.usecase.RegisterFcmTokenUseCase;
 import com.example.freshkitchen.application.legal.usecase.AgreeTermsUseCase;
 import com.example.freshkitchen.application.legal.usecase.GetTermsAgreementUseCase;
 import com.example.freshkitchen.application.chat.usecase.CreateChatRoomUseCase;
@@ -202,6 +207,21 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private InquiryProperties inquiryProperties;
+
+    @MockitoBean
+    private GetInquiryListUseCase getInquiryListUseCase;
+
+    @MockitoBean
+    private GetInquiryDetailUseCase getInquiryDetailUseCase;
+
+    @MockitoBean
+    private ReplyInquiryUseCase replyInquiryUseCase;
+
+    @MockitoBean
+    private ExpiringIngredientNotificationService expiringIngredientNotificationService;
+
+    @MockitoBean
+    private RegisterFcmTokenUseCase registerFcmTokenUseCase;
 
     @MockitoBean
     private LogoutUseCase logoutUseCase;

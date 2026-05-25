@@ -120,9 +120,10 @@ FCM 메시지에는 `notification`(시스템 알림 UI용)과 `data`(앱 라우�
 
 ## 5. 알림 종류별 라우팅 규칙
 
-| `type` | 이동 화면 | 추가 처리 |
-|---|---|---|
-| `INGREDIENT_EXPIRING` | 식재료 목록 화면 | `ingredientIds` 항목 강조 표시 (옵션) |
+| `type` | 이동 화면 | data 키 | 추가 처리 |
+|---|---|---|---|
+| `INGREDIENT_EXPIRING` | 식재료 목록 화면 | `ingredientIds`, `asOf` | 항목 강조 표시 (옵션) |
+| `INQUIRY_REPLY` | 문의 상세 화면 | `inquiryId` | `GET /api/v1/inquiries/{inquiryId}`로 답변 조회 |
 
 > 향후 알림 종류 추가 시 이 표에 행 추가. 미정의 `type`이 오면 홈 화면으로 기본 라우팅 권장.
 
@@ -331,3 +332,4 @@ Authorization: Bearer {accessToken}
 | 날짜 | 버전 | 내용 |
 |---|---|---|
 | 2026-05-20 | 1.0 | 최초 작성 — INGREDIENT_EXPIRING |
+| 2026-05-24 | 1.1 | INQUIRY_REPLY 알림 타입 추가 |
