@@ -71,7 +71,7 @@ public class ListExpiringItemsService implements ListExpiringItemsUseCase {
 
     private AnalyticsDto.ExpiringItem toExpiringItem(Ingredient ingredient, LocalDate today) {
         IngredientCatalog catalog = ingredient.getCatalog();
-        CatalogCategory cc = catalog != null ? catalog.getCategory() : null;
+        CatalogCategory cc = ingredient.getCategory();
         DisplayCategory dc = DisplayCategory.from(cc);
         String emoji = (catalog != null && catalog.getEmoji() != null && !catalog.getEmoji().isBlank())
                 ? catalog.getEmoji() : DEFAULT_EMOJI;

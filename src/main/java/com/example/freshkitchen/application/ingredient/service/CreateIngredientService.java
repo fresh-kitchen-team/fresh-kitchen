@@ -4,6 +4,7 @@ import com.example.freshkitchen.application.ingredient.dto.IngredientDto;
 import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.ResolveIngredientDefaultsUseCase;
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
+import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
@@ -34,13 +35,15 @@ public class CreateIngredientService implements CreateIngredientUseCase {
     public Long create(Command command) {
         Storage storage = resolveStorage(command.userId(), command.storageType());
         IngredientCatalog catalog = ingredientCatalogMappingService.resolve(command.catalogId(), command.name());
-        ExpiryMapping expiry = resolveExpiry(command, catalog, storage.getStorageType());
+        CatalogCategory category = resolveCategory(command.category(), catalog);
+        ExpiryMapping expiry = resolveExpiry(command, catalog, category, storage.getStorageType());
         User user = entityManager.getReference(User.class, command.userId());
 
         Ingredient ingredient = Ingredient.create(new Ingredient.CreateCommand(
                 user,
                 storage,
                 catalog,
+                category,
                 command.name(),
                 command.registeredAt(),
                 expiry.expiresAt(),
@@ -52,6 +55,16 @@ public class CreateIngredientService implements CreateIngredientUseCase {
         return ingredientRepository.save(ingredient).getId();
     }
 
+    private CatalogCategory resolveCategory(CatalogCategory requestedCategory, IngredientCatalog catalog) {
+        if (requestedCategory != null) {
+            return requestedCategory;
+        }
+        if (catalog != null) {
+            return catalog.getCategory();
+        }
+        return CatalogCategory.ETC;
+    }
+
     private Storage resolveStorage(Long userId, StorageType storageType) {
         return defaultStorageService.ensureDefaultStorages(userId).stream()
                 .filter(storage -> storage.getStorageType() == storageType)
@@ -59,19 +72,19 @@ public class CreateIngredientService implements CreateIngredientUseCase {
                 .orElseThrow(() -> new IngredientException(IngredientErrorCode.STORAGE_NOT_FOUND));
     }
 
-    private ExpiryMapping resolveExpiry(Command command, IngredientCatalog catalog, StorageType storageType) {
+    private ExpiryMapping resolveExpiry(Command command, IngredientCatalog catalog, CatalogCategory category, StorageType storageType) {
         if (command.expiresAt() != null) {
             ExpirySourceType sourceType = command.expirySourceType() != null
                     ? command.expirySourceType()
                     : ExpirySourceType.MANUAL;
             return new ExpiryMapping(command.expiresAt(), sourceType);
         }
-        if (catalog == null || command.registeredAt() == null) {
+        if (command.registeredAt() == null) {
             return new ExpiryMapping(null, ExpirySourceType.UNKNOWN);
         }
 
         IngredientDto.DefaultsResponse defaults = resolveIngredientDefaultsUseCase.resolve(
-                new ResolveIngredientDefaultsUseCase.Query(catalog.getId(), catalog.getCategory(), storageType)
+                new ResolveIngredientDefaultsUseCase.Query(catalog != null ? catalog.getId() : null, category, storageType)
         );
         if (defaults.shelfLifeDays() == null) {
             return new ExpiryMapping(null, ExpirySourceType.UNKNOWN);

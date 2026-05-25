@@ -112,9 +112,7 @@ public class GetAnalyticsSummaryService implements GetAnalyticsSummaryUseCase {
         }
 
         for (Ingredient ingredient : ingredients) {
-            CatalogCategory cc = ingredient.getCatalog() != null
-                    ? ingredient.getCatalog().getCategory()
-                    : null;
+            CatalogCategory cc = ingredient.getCategory();
             DisplayCategory dc = DisplayCategory.from(cc);
             int[] counts = map.get(dc);
             counts[0]++;
@@ -142,8 +140,7 @@ public class GetAnalyticsSummaryService implements GetAnalyticsSummaryUseCase {
     }
 
     private static DisplayCategory resolveDisplayCategory(Ingredient ingredient) {
-        CatalogCategory cc = ingredient.getCatalog() != null
-                ? ingredient.getCatalog().getCategory() : null;
+        CatalogCategory cc = ingredient.getCategory();
         return DisplayCategory.from(cc);
     }
 

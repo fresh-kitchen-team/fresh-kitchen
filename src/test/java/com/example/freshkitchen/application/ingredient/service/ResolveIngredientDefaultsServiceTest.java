@@ -64,7 +64,7 @@ class ResolveIngredientDefaultsServiceTest extends PostgreSqlTestContainerSuppor
     }
 
     @Test
-    void resolve_usesCatalogCategoryForCategoryRuleFallback() {
+    void resolve_usesQueryCategoryForCategoryRuleFallback() {
         IngredientCatalog catalog = persistCatalog("Apple", CatalogCategory.FRUIT, StorageType.PANTRY);
         persistCategoryExpiryRule(CatalogCategory.FRUIT, StorageType.PANTRY, 5, "catalog-category-rule");
         persistCategoryExpiryRule(CatalogCategory.VEGETABLE, StorageType.PANTRY, 2, "query-category-rule");
@@ -75,8 +75,8 @@ class ResolveIngredientDefaultsServiceTest extends PostgreSqlTestContainerSuppor
 
         assertEquals(catalog.getId(), result.catalogId());
         assertEquals(StorageType.PANTRY, result.defaultStorageType());
-        assertEquals(5, result.shelfLifeDays());
-        assertEquals("catalog-category-rule", result.referenceNote());
+        assertEquals(2, result.shelfLifeDays());
+        assertEquals("query-category-rule", result.referenceNote());
     }
 
     @Test

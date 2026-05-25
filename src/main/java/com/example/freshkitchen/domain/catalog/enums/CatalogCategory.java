@@ -8,5 +8,6 @@ public enum CatalogCategory {
     DAIRY,
     SAUCE,
     DRINK,
+    GRAIN,
     ETC
 }

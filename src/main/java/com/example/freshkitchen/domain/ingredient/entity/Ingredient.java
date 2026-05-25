@@ -1,6 +1,7 @@
 package com.example.freshkitchen.domain.ingredient.entity;
 
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
+import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.common.entity.BaseTimeEntity;
 import com.example.freshkitchen.domain.image.entity.IngredientImage;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
@@ -53,6 +54,10 @@ public class Ingredient extends BaseTimeEntity {
     @JoinColumn(name = "catalog_id")
     private IngredientCatalog catalog;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false, length = 30)
+    private CatalogCategory category;
+
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
@@ -95,6 +100,7 @@ public class Ingredient extends BaseTimeEntity {
             User user,
             Storage storage,
             IngredientCatalog catalog,
+            CatalogCategory category,
             String name,
             LocalDate registeredAt,
             LocalDate expiresAt,
@@ -105,6 +111,7 @@ public class Ingredient extends BaseTimeEntity {
         this.user = requireNonNull(user, "user");
         this.storage = requireOwnedStorage(user, storage);
         this.catalog = catalog;
+        this.category = requireNonNull(category, "category");
         this.name = requireNonBlank(name, "name");
         this.registeredAt = registeredAt;
         this.expiresAt = expiresAt;
@@ -120,6 +127,7 @@ public class Ingredient extends BaseTimeEntity {
                 command.user(),
                 command.storage(),
                 command.catalog(),
+                command.category(),
                 command.name(),
                 command.registeredAt(),
                 command.expiresAt(),
@@ -137,6 +145,9 @@ public class Ingredient extends BaseTimeEntity {
         }
         if (command.catalogSet()) {
             this.catalog = command.catalog();
+        }
+        if (command.category() != null) {
+            this.category = requireNonNull(command.category(), "category");
         }
         if (command.name() != null) {
             this.name = requireNonBlank(command.name(), "name");
@@ -251,6 +262,7 @@ public class Ingredient extends BaseTimeEntity {
             User user,
             Storage storage,
             IngredientCatalog catalog,
+            CatalogCategory category,
             String name,
             LocalDate registeredAt,
             LocalDate expiresAt,
@@ -258,12 +270,61 @@ public class Ingredient extends BaseTimeEntity {
             String note,
             IngredientSourceType sourceType
     ) {
+        public CreateCommand(
+                User user,
+                Storage storage,
+                IngredientCatalog catalog,
+                String name,
+                LocalDate registeredAt,
+                LocalDate expiresAt,
+                ExpirySourceType expirySourceType,
+                String note,
+                IngredientSourceType sourceType
+        ) {
+            this(user, storage, catalog, resolveCategory(null, catalog), name, registeredAt, expiresAt, expirySourceType, note, sourceType);
+        }
+
+        public CreateCommand(
+                User user,
+                Storage storage,
+                IngredientCatalog catalog,
+                CatalogCategory category,
+                String name,
+                LocalDate registeredAt,
+                LocalDate expiresAt,
+                ExpirySourceType expirySourceType,
+                String note,
+                IngredientSourceType sourceType
+        ) {
+            this.user = user;
+            this.storage = storage;
+            this.catalog = catalog;
+            this.category = resolveCategory(category, catalog);
+            this.name = name;
+            this.registeredAt = registeredAt;
+            this.expiresAt = expiresAt;
+            this.expirySourceType = expirySourceType;
+            this.note = note;
+            this.sourceType = sourceType;
+        }
+
+        private static CatalogCategory resolveCategory(CatalogCategory category, IngredientCatalog catalog) {
+            if (category != null) {
+                return category;
+            }
+            if (catalog != null) {
+                return catalog.getCategory();
+            }
+            return CatalogCategory.ETC;
+        }
+
     }
 
     public record UpdateCommand(
             Storage storage,
             IngredientCatalog catalog,
             boolean catalogSet,
+            CatalogCategory category,
             String name,
             LocalDate registeredAt,
             boolean registeredAtSet,

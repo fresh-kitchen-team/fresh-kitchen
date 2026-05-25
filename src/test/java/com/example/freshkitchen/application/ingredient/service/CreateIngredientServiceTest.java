@@ -2,6 +2,7 @@ package com.example.freshkitchen.application.ingredient.service;
 
 import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientUseCase;
 import com.example.freshkitchen.domain.catalog.entity.CatalogExpiryRule;
+import com.example.freshkitchen.domain.catalog.entity.CategoryExpiryRule;
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
@@ -78,6 +79,7 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
         assertEquals("Tomato", ingredient.getName());
         assertEquals(storage.getId(), ingredient.getStorage().getId());
         assertEquals(catalog.getId(), ingredient.getCatalog().getId());
+        assertEquals(CatalogCategory.VEGETABLE, ingredient.getCategory());
         assertEquals("salad", ingredient.getNote());
     }
 
@@ -108,13 +110,46 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
 
         assertEquals(storage.getId(), ingredient.getStorage().getId());
         assertEquals(catalog.getId(), ingredient.getCatalog().getId());
+        assertEquals(CatalogCategory.VEGETABLE, ingredient.getCategory());
         assertEquals(LocalDate.of(2026, 5, 8), ingredient.getExpiresAt());
         assertEquals(ExpirySourceType.POLICY, ingredient.getExpirySourceType());
     }
 
     @Test
-    void create_allowsUnmappedCatalogAndKeepsExpiryUnknown() {
+    void create_usesRequestedCategoryForUnmappedCatalogAndAppliesCategoryExpiryRule() {
         User user = persistUser("unmapped-catalog-user", Provider.GOOGLE);
+        persistStorage(user, StorageType.FRIDGE, "Fridge");
+        persistCategoryExpiryRule(CatalogCategory.GRAIN, StorageType.FRIDGE, 5);
+
+        Long ingredientId = createIngredientUseCase.create(new CreateIngredientUseCase.Command(
+                user.getId(),
+                StorageType.FRIDGE,
+                null,
+                CatalogCategory.GRAIN,
+                "Unknown food",
+                LocalDate.of(2026, 5, 1),
+                null,
+                ExpirySourceType.MANUAL,
+                null,
+                IngredientSourceType.MANUAL
+        ));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Ingredient ingredient = ingredientRepository.findByIdAndUserId(ingredientId, user.getId())
+                .orElseThrow();
+
+        assertEquals("Unknown food", ingredient.getName());
+        assertNull(ingredient.getCatalog());
+        assertEquals(CatalogCategory.GRAIN, ingredient.getCategory());
+        assertEquals(LocalDate.of(2026, 5, 6), ingredient.getExpiresAt());
+        assertEquals(ExpirySourceType.POLICY, ingredient.getExpirySourceType());
+    }
+
+    @Test
+    void create_defaultsCategoryToEtcWhenCatalogAndRequestedCategoryAreMissing() {
+        User user = persistUser("default-category-user", Provider.GOOGLE);
         persistStorage(user, StorageType.FRIDGE, "Fridge");
 
         Long ingredientId = createIngredientUseCase.create(new CreateIngredientUseCase.Command(
@@ -135,8 +170,8 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
         Ingredient ingredient = ingredientRepository.findByIdAndUserId(ingredientId, user.getId())
                 .orElseThrow();
 
-        assertEquals("Unknown food", ingredient.getName());
         assertNull(ingredient.getCatalog());
+        assertEquals(CatalogCategory.ETC, ingredient.getCategory());
         assertNull(ingredient.getExpiresAt());
         assertEquals(ExpirySourceType.UNKNOWN, ingredient.getExpirySourceType());
     }
@@ -284,6 +319,17 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
                         storageType,
                         shelfLifeDays,
                         "test rule"
+                )
+        ));
+    }
+
+    private void persistCategoryExpiryRule(CatalogCategory category, StorageType storageType, int shelfLifeDays) {
+        entityManager.persist(CategoryExpiryRule.create(
+                new CategoryExpiryRule.CreateCommand(
+                        category,
+                        storageType,
+                        shelfLifeDays,
+                        "test category rule"
                 )
         ));
     }
