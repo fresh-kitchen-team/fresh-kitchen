@@ -189,7 +189,7 @@
 |------|-------------|------|---------|------|
 | `INQUIRY_NOT_FOUND` | `404` | `INQUIRY-404-1` | `inquiry not found` | 문의를 찾을 수 없음 |
 | `ALREADY_ANSWERED` | `409` | `INQUIRY-409-1` | `inquiry already answered` | 이미 답변된 문의에 중복 답변 시도 |
-| `MAIL_SEND_FAILED` | `500` | `INQUIRY-500-1` | `failed to send inquiry email` | 문의 이메일 발송 실패 (SMTP 오류 등) |
+| `MAIL_SEND_FAILED` | `500` | `INQUIRY-500-1` | `failed to send inquiry email` | 문의 이메일 발송 실패 — 현재 클라이언트 응답으로 내려가지 않음 (서버 로그만 기록) |
 
 ### 6.4 UserErrorCode
 

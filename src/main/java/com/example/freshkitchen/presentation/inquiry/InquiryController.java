@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -66,7 +67,7 @@ public class InquiryController {
         Long inquiryId = sendInquiryUseCase.send(new SendInquiryUseCase.Command(
                 userId, type, category, content, image
         ));
-        return ApiResponse.success(new InquiryResponse.Created(inquiryId));
+        return ApiResponse.success(HttpStatus.CREATED, new InquiryResponse.Created(inquiryId));
     }
 
     @Operation(summary = "내 문의 목록", description = "로그인한 사용자의 문의/신고 내역을 최신순으로 조회합니다")

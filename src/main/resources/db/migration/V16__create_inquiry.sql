@@ -29,5 +29,5 @@ CREATE TABLE inquiry (
         )
 );
 
-CREATE INDEX idx_inquiry_user_id ON inquiry (user_id);
-CREATE INDEX idx_inquiry_status  ON inquiry (status);
+CREATE INDEX idx_inquiry_user_id_created_at_desc ON inquiry (user_id, created_at DESC);
+CREATE INDEX idx_inquiry_status ON inquiry (status);
