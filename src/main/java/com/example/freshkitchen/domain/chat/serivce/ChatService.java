@@ -611,35 +611,15 @@ public class ChatService {
                 ChatMessageResponse.AiPayloadResponse parsed = tryParsePayload(cleanJson);
 
                 if (parsed != null && parsed.recipes() != null) {
-                    Set<String> missing = parsed.recipes().stream()
-                            .flatMap(recipe -> recipe.ingredients() == null
-                                    ? Stream.<String>empty()
-                                    : recipe.ingredients().stream())
-                            .map(ChatService::stripQuantityAndParens)
-                            .filter(ingredient -> !ingredient.isBlank())
-                            .filter(ingredient -> !isOwnedIngredient(ingredient, ownedIngredientNames))
-                            .collect(Collectors.toCollection(LinkedHashSet::new));
-
-                    LinkedHashMap<Long, ChatMessageResponse.MatchedItemResponse> matched = new LinkedHashMap<>();
-                    parsed.recipes().stream()
-                            .flatMap(recipe -> recipe.ingredients() == null
-                                    ? Stream.<String>empty()
-                                    : recipe.ingredients().stream())
-                            .map(ChatService::stripQuantityAndParens)
-                            .filter(ingredient -> !ingredient.isBlank())
-                            .forEach(ingredient -> {
-                                Ingredient owned = findMatchedOwnedIngredient(ingredient, userIngredients);
-                                if (owned != null) {
-                                    matched.putIfAbsent(owned.getId(),
-                                            new ChatMessageResponse.MatchedItemResponse(owned.getId(), owned.getName()));
-                                }
-                            });
+                    List<String> missing = collectMissingIngredients(parsed.recipes(), ownedIngredientNames);
+                    List<ChatMessageResponse.MatchedItemResponse> matched =
+                            collectMatchedItems(parsed.recipes(), userIngredients);
 
                     aiPayload = new ChatMessageResponse.AiPayloadResponse(
                             parsed.recipes(),
                             parsed.tips(),
-                            new ArrayList<>(missing),
-                            new ArrayList<>(matched.values()));
+                            missing,
+                            matched);
                 } else {
                     aiPayload = new ChatMessageResponse.AiPayloadResponse(List.of(), List.of(), List.of(), List.of());
                 }
@@ -726,16 +706,8 @@ public class ChatService {
                 .orElseThrow(() -> new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND));
 
         Long ownerId = chatRoom.getUser().getId();
-        var activeIngredients = ingredientRepository
+        List<Ingredient> activeIngredients = ingredientRepository
                 .findAllByUserIdAndStatus(ownerId, IngredientStatus.ACTIVE);
-
-        Set<String> currentOwnedNames = activeIngredients.stream()
-                .map(i -> normalizeIngredientName(i.getName()))
-                .collect(Collectors.toSet());
-
-        Set<Long> currentOwnedIds = activeIngredients.stream()
-                .map(Ingredient::getId)
-                .collect(Collectors.toSet());
 
         List<ChatHistoryResponse.MessageResponse> messages = chatRoom.getMessages().stream()
                 .map(m -> {
@@ -744,7 +716,7 @@ public class ChatService {
                         try {
                             ChatMessageResponse.AiPayloadResponse parsed =
                                     objectMapper.readValue(m.getAiPayload(), ChatMessageResponse.AiPayloadResponse.class);
-                            aiPayload = recalculateMissing(parsed, currentOwnedNames, currentOwnedIds);
+                            aiPayload = recalculateAgainstCurrentInventory(parsed, activeIngredients);
                         } catch (Exception e) {
                             log.error("aiPayload 파싱 실패: {}", m.getAiPayload());
                             aiPayload = new ChatMessageResponse.AiPayloadResponse(List.of(), List.of(), List.of(), List.of());
@@ -759,40 +731,69 @@ public class ChatService {
     }
 
     /**
-     * 저장된 aiPayload를 현재 보유 식재료 기준으로 재계산한다.
-     * - missingIngredients: 보유하지 않은 재료만 포함
-     * - matchedItems: 현재 ACTIVE 상태인 itemId만 필터링
+     * 저장된 aiPayload를 현재 보유 식재료 기준으로 매번 다시 해석한다.
+     * - missingIngredients: 현재 보유하지 않은 재료만 포함.
+     * - matchedItems: 레시피 재료명을 현재 ACTIVE 보유 목록과 다시 매칭해 새로 빌드.
+     *   소비된 itemId는 사라지고, 같은 이름으로 재추가된 재료는 새 itemId로 다시 나타난다.
      */
-    private ChatMessageResponse.AiPayloadResponse recalculateMissing(
+    private ChatMessageResponse.AiPayloadResponse recalculateAgainstCurrentInventory(
             ChatMessageResponse.AiPayloadResponse original,
-            Set<String> currentOwnedNames,
-            Set<Long> currentOwnedIds
+            List<Ingredient> currentOwnedIngredients
     ) {
         if (original == null || original.recipes() == null || original.recipes().isEmpty()) {
             return original;
         }
 
-        Set<String> recalculated = original.recipes().stream()
+        Set<String> currentOwnedNames = currentOwnedIngredients.stream()
+                .map(i -> normalizeIngredientName(i.getName()))
+                .collect(Collectors.toSet());
+
+        List<String> missing = collectMissingIngredients(original.recipes(), currentOwnedNames);
+        List<ChatMessageResponse.MatchedItemResponse> matched =
+                collectMatchedItems(original.recipes(), currentOwnedIngredients);
+
+        return new ChatMessageResponse.AiPayloadResponse(
+                original.recipes(),
+                original.tips(),
+                missing,
+                matched
+        );
+    }
+
+    private static List<String> collectMissingIngredients(
+            List<ChatMessageResponse.RecipeResponse> recipes,
+            Set<String> ownedNormalizedNames
+    ) {
+        Set<String> missing = recipes.stream()
                 .flatMap(recipe -> recipe.ingredients() == null
                         ? Stream.<String>empty()
                         : recipe.ingredients().stream())
                 .map(ChatService::stripQuantityAndParens)
                 .filter(ingredient -> !ingredient.isBlank())
-                .filter(ingredient -> !isOwnedIngredient(ingredient, currentOwnedNames))
+                .filter(ingredient -> !isOwnedIngredient(ingredient, ownedNormalizedNames))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+        return new ArrayList<>(missing);
+    }
 
-        List<ChatMessageResponse.MatchedItemResponse> filteredItems = original.matchedItems() == null
-                ? List.of()
-                : original.matchedItems().stream()
-                        .filter(item -> currentOwnedIds.contains(item.itemId()))
-                        .toList();
-
-        return new ChatMessageResponse.AiPayloadResponse(
-                original.recipes(),
-                original.tips(),
-                new ArrayList<>(recalculated),
-                filteredItems
-        );
+    private static List<ChatMessageResponse.MatchedItemResponse> collectMatchedItems(
+            List<ChatMessageResponse.RecipeResponse> recipes,
+            List<Ingredient> ownedIngredients
+    ) {
+        LinkedHashMap<Long, ChatMessageResponse.MatchedItemResponse> matched = new LinkedHashMap<>();
+        recipes.stream()
+                .flatMap(recipe -> recipe.ingredients() == null
+                        ? Stream.<String>empty()
+                        : recipe.ingredients().stream())
+                .map(ChatService::stripQuantityAndParens)
+                .filter(ingredient -> !ingredient.isBlank())
+                .forEach(ingredient -> {
+                    Ingredient owned = findMatchedOwnedIngredient(ingredient, ownedIngredients);
+                    if (owned != null) {
+                        matched.putIfAbsent(owned.getId(),
+                                new ChatMessageResponse.MatchedItemResponse(owned.getId(), owned.getName()));
+                    }
+                });
+        return new ArrayList<>(matched.values());
     }
 
     @Transactional
