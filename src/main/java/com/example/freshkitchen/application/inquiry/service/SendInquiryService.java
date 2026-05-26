@@ -71,12 +71,13 @@ public class SendInquiryService implements SendInquiryUseCase {
                     command.content(),
                     imageUrl
             )));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             if (objectKey != null) {
                 try {
                     imageStorage.delete(new MultipartImageStoragePort.DeleteCommand(objectKey));
                     log.info("DB 저장 실패로 업로드 이미지 보상 삭제 — objectKey={}", objectKey);
-                } catch (Exception deleteEx) {
+                } catch (RuntimeException deleteEx) {
+                    e.addSuppressed(deleteEx);
                     log.error("업로드 이미지 보상 삭제 실패 — objectKey={}", objectKey, deleteEx);
                 }
             }
