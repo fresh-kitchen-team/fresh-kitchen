@@ -119,6 +119,19 @@ IntentClassifier {
                    동시에 주입된 경우에도 matchedItems는 오직 **현 시점의 IngredientRepository 보유 항목**
                    기준으로만 채운다(저장 레시피에 적힌 재료명이라는 이유로 임의의 itemId를 만들어
                    넣지 않는다).
+                e) **재추가(re-register) 동작**: 사용자가 이전에 소비/삭제한 재료(예: "망고")를
+                   같은 세션 안에서 다시 등록하면, IngredientRepository에는 **새 itemId** 를 가진 ACTIVE
+                   row가 새로 생긴다. 따라서 그 이후의 응답에서 같은 이름("망고")이 레시피 재료로
+                   사용되면 matchedItems에 **새로 생성된 itemId** 로 다시 나타나야 한다.
+                   이전 소비된 itemId(예: 100)를 재사용하지 말고, 항상 **방금 DB에서 새로 조회한 ACTIVE
+                   row의 id**(예: 101)로 채운다. 다시 추가된 망고도 "다시 등장한다"는 사용자 기대를
+                   동일 세션·동일 채팅방·이전 채팅 히스토리 전체에서 일관되게 보장한다.
+                f) **채팅 히스토리(과거 메시지 다시 보기)** 의 matchedItems 도 같은 규칙을 따른다.
+                   서버는 채팅방을 다시 열 때마다 저장된 과거 응답의 `matchedItems` 를 단순히 그대로
+                   돌려주지 말고, 그 시점의 IngredientRepository 보유 ACTIVE row 와 이름 기준으로 다시
+                   해석해 itemId를 갱신한다. 그래서 (i) 그동안 소비된 itemId는 사라지고,
+                   (ii) 같은 이름으로 새로 등록된 재료가 있으면 새 itemId가 다시 채워져, UI에서도
+                   현재 누를 수 있는 보유 항목으로 보이게 한다.
             응답은 반드시 "RECIPE" 또는 "GENERAL" 한 단어로만 답하라. 다른 텍스트 금지.
             """;
 
