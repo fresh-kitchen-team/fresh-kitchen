@@ -2,7 +2,6 @@ package com.example.freshkitchen.application.inquiry.service;
 
 import com.example.freshkitchen.application.image.port.MultipartImageStoragePort;
 import com.example.freshkitchen.application.inquiry.usecase.SendInquiryUseCase;
-import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.inquiry.entity.Inquiry;
 import com.example.freshkitchen.domain.inquiry.enums.InquiryCategory;
 import com.example.freshkitchen.domain.inquiry.enums.InquiryType;
@@ -150,13 +149,11 @@ class SendInquiryServiceTest {
                 .willThrow(new RuntimeException("DB constraint violation"));
 
         // when & then
-        try {
-            service.send(new SendInquiryUseCase.Command(
-                    1L, InquiryType.INQUIRY, InquiryCategory.RECIPE, "test", image
-            ));
-        } catch (RuntimeException e) {
-            // expected
-        }
+        org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () ->
+                service.send(new SendInquiryUseCase.Command(
+                        1L, InquiryType.INQUIRY, InquiryCategory.RECIPE, "test", image
+                ))
+        );
 
         verify(imageStorage).delete(argThat(cmd ->
                 cmd.objectKey().equals("images/1/inquiry/uuid.jpg")

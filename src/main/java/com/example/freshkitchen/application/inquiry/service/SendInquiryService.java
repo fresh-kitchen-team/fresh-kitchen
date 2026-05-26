@@ -55,7 +55,7 @@ public class SendInquiryService implements SendInquiryUseCase {
                 );
                 imageUrl = stored.imageUrl();
                 objectKey = stored.objectKey();
-            } catch (Exception e) {
+            } catch (java.io.IOException | RuntimeException e) {
                 log.error("문의 이미지 업로드 실패 — userId={}", command.userId(), e);
                 // 이미지 업로드 실패해도 문의 자체는 저장
             }
