@@ -726,9 +726,15 @@ public class ChatService {
                 .orElseThrow(() -> new ChatException(ChatErrorCode.CHAT_ROOM_NOT_FOUND));
 
         Long ownerId = chatRoom.getUser().getId();
-        Set<String> currentOwnedNames = ingredientRepository
-                .findAllByUserIdAndStatus(ownerId, IngredientStatus.ACTIVE).stream()
+        var activeIngredients = ingredientRepository
+                .findAllByUserIdAndStatus(ownerId, IngredientStatus.ACTIVE);
+
+        Set<String> currentOwnedNames = activeIngredients.stream()
                 .map(i -> normalizeIngredientName(i.getName()))
+                .collect(Collectors.toSet());
+
+        Set<Long> currentOwnedIds = activeIngredients.stream()
+                .map(Ingredient::getId)
                 .collect(Collectors.toSet());
 
         List<ChatHistoryResponse.MessageResponse> messages = chatRoom.getMessages().stream()
@@ -738,7 +744,7 @@ public class ChatService {
                         try {
                             ChatMessageResponse.AiPayloadResponse parsed =
                                     objectMapper.readValue(m.getAiPayload(), ChatMessageResponse.AiPayloadResponse.class);
-                            aiPayload = recalculateMissing(parsed, currentOwnedNames);
+                            aiPayload = recalculateMissing(parsed, currentOwnedNames, currentOwnedIds);
                         } catch (Exception e) {
                             log.error("aiPayload 파싱 실패: {}", m.getAiPayload());
                             aiPayload = new ChatMessageResponse.AiPayloadResponse(List.of(), List.of(), List.of(), List.of());
@@ -753,12 +759,14 @@ public class ChatService {
     }
 
     /**
-     * 저장된 aiPayload의 missingIngredients를 현재 보유 식재료 기준으로 재계산한다.
-     * 소비/폐기된 식재료는 currentOwnedNames에 없으므로 missing에 자동 포함된다.
+     * 저장된 aiPayload를 현재 보유 식재료 기준으로 재계산한다.
+     * - missingIngredients: 보유하지 않은 재료만 포함
+     * - matchedItems: 현재 ACTIVE 상태인 itemId만 필터링
      */
     private ChatMessageResponse.AiPayloadResponse recalculateMissing(
             ChatMessageResponse.AiPayloadResponse original,
-            Set<String> currentOwnedNames
+            Set<String> currentOwnedNames,
+            Set<Long> currentOwnedIds
     ) {
         if (original == null || original.recipes() == null || original.recipes().isEmpty()) {
             return original;
@@ -773,11 +781,17 @@ public class ChatService {
                 .filter(ingredient -> !isOwnedIngredient(ingredient, currentOwnedNames))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
+        List<ChatMessageResponse.MatchedItemResponse> filteredItems = original.matchedItems() == null
+                ? List.of()
+                : original.matchedItems().stream()
+                        .filter(item -> currentOwnedIds.contains(item.itemId()))
+                        .toList();
+
         return new ChatMessageResponse.AiPayloadResponse(
                 original.recipes(),
                 original.tips(),
                 new ArrayList<>(recalculated),
-                original.matchedItems()
+                filteredItems
         );
     }
 
