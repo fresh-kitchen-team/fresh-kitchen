@@ -1,5 +1,7 @@
 package com.example.freshkitchen.application.inquiry.service;
 
+import com.example.freshkitchen.application.image.port.MultipartImageStoragePort;
+import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.inquiry.enums.InquiryType;
 import com.example.freshkitchen.application.inquiry.usecase.SendInquiryUseCase;
 import com.example.freshkitchen.domain.inquiry.entity.Inquiry;
@@ -26,6 +28,7 @@ public class SendInquiryService implements SendInquiryUseCase {
     private final JavaMailSender mailSender;
     private final InquiryProperties inquiryProperties;
     private final InquiryRepository inquiryRepository;
+    private final MultipartImageStoragePort imageStorage;
 
     @Override
     @Transactional
@@ -36,16 +39,36 @@ public class SendInquiryService implements SendInquiryUseCase {
         if (command.category() == null) throw new BusinessValidationException("category must not be null");
         if (command.content() == null || command.content().isBlank()) throw new BusinessValidationException("content must not be blank");
 
-        // 1. DB 저장
+        // 1. 이미지 S3 업로드 (있는 경우)
+        String imageUrl = null;
+        if (command.image() != null && !command.image().isEmpty()) {
+            try {
+                MultipartImageStoragePort.StoredImage stored = imageStorage.store(
+                        new MultipartImageStoragePort.Command(
+                                command.userId(),
+                                ImageKind.INQUIRY,
+                                command.image().getOriginalFilename(),
+                                command.image().getContentType(),
+                                command.image().getBytes()
+                        )
+                );
+                imageUrl = stored.imageUrl();
+            } catch (Exception e) {
+                log.error("문의 이미지 업로드 실패 — userId={}", command.userId(), e);
+                // 이미지 업로드 실패해도 문의 자체는 저장
+            }
+        }
+
+        // 2. DB 저장
         Inquiry inquiry = inquiryRepository.save(Inquiry.create(new Inquiry.CreateCommand(
                 command.userId(),
                 command.type(),
                 command.category(),
                 command.content(),
-                null // image URL은 현재 S3 업로드 미사용, 메일 첨부만
+                imageUrl
         )));
 
-        // 2. 메일 발송은 트랜잭션 커밋 후 — DB 커넥션 점유 방지
+        // 3. 메일 발송은 트랜잭션 커밋 후 — DB 커넥션 점유 방지
         Long inquiryId = inquiry.getId();
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
