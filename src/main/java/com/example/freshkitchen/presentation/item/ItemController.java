@@ -14,6 +14,7 @@ import com.example.freshkitchen.presentation.item.dto.ItemResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -72,7 +73,7 @@ public class ItemController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<ItemResponse.Item>>> list(
             @AuthenticationPrincipal Long userId,
-            @RequestParam(required = false) String name
+            @RequestParam(required = false) @Size(max = 100) String name
     ) {
         return ApiResponse.success(ItemResponse.fromSummaries(
                 listIngredientsUseCase.list(new ListIngredientsUseCase.Query(userId, name)),
