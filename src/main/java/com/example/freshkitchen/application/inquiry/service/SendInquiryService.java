@@ -39,8 +39,9 @@ public class SendInquiryService implements SendInquiryUseCase {
         if (command.category() == null) throw new BusinessValidationException("category must not be null");
         if (command.content() == null || command.content().isBlank()) throw new BusinessValidationException("content must not be blank");
 
-        // 1. 이미지 S3 업로드 (있는 경우)
+        // 1. 이미지 업로드 (있는 경우)
         String imageUrl = null;
+        String objectKey = null;
         if (command.image() != null && !command.image().isEmpty()) {
             try {
                 MultipartImageStoragePort.StoredImage stored = imageStorage.store(
@@ -53,20 +54,34 @@ public class SendInquiryService implements SendInquiryUseCase {
                         )
                 );
                 imageUrl = stored.imageUrl();
+                objectKey = stored.objectKey();
             } catch (Exception e) {
                 log.error("문의 이미지 업로드 실패 — userId={}", command.userId(), e);
                 // 이미지 업로드 실패해도 문의 자체는 저장
             }
         }
 
-        // 2. DB 저장
-        Inquiry inquiry = inquiryRepository.save(Inquiry.create(new Inquiry.CreateCommand(
-                command.userId(),
-                command.type(),
-                command.category(),
-                command.content(),
-                imageUrl
-        )));
+        // 2. DB 저장 — 실패 시 업로드된 이미지 보상 삭제
+        Inquiry inquiry;
+        try {
+            inquiry = inquiryRepository.save(Inquiry.create(new Inquiry.CreateCommand(
+                    command.userId(),
+                    command.type(),
+                    command.category(),
+                    command.content(),
+                    imageUrl
+            )));
+        } catch (Exception e) {
+            if (objectKey != null) {
+                try {
+                    imageStorage.delete(new MultipartImageStoragePort.DeleteCommand(objectKey));
+                    log.info("DB 저장 실패로 업로드 이미지 보상 삭제 — objectKey={}", objectKey);
+                } catch (Exception deleteEx) {
+                    log.error("업로드 이미지 보상 삭제 실패 — objectKey={}", objectKey, deleteEx);
+                }
+            }
+            throw e;
+        }
 
         // 3. 메일 발송은 트랜잭션 커밋 후 — DB 커넥션 점유 방지
         Long inquiryId = inquiry.getId();
