@@ -50,7 +50,7 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
 
         Long ingredientId = createIngredientUseCase.create(new CreateIngredientUseCase.Command(
                 user.getId(),
-                storage.getId(),
+                StorageType.FRIDGE,
                 catalog.getId(),
                 "Tomato",
                 null,
@@ -73,27 +73,30 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
     }
 
     @Test
-    void create_rejectsStorageNotOwnedByUser() {
+    void create_mapsStorageTypeToAuthenticatedUsersStorage() {
         User owner = persistUser("owner-user", Provider.GOOGLE);
         User otherUser = persistUser("other-user", Provider.KAKAO);
-        Storage storage = persistStorage(otherUser, StorageType.FRIDGE, "Other fridge");
+        Storage ownerStorage = persistStorage(owner, StorageType.FRIDGE, "Owner fridge");
+        persistStorage(otherUser, StorageType.FRIDGE, "Other fridge");
 
-        IngredientException exception = assertThrows(
-                IngredientException.class,
-                () -> createIngredientUseCase.create(new CreateIngredientUseCase.Command(
-                        owner.getId(),
-                        storage.getId(),
-                        null,
-                        "Onion",
-                        null,
-                        null,
-                        ExpirySourceType.UNKNOWN,
-                        null,
-                        IngredientSourceType.MANUAL
-                ))
-        );
+        Long ingredientId = createIngredientUseCase.create(new CreateIngredientUseCase.Command(
+                owner.getId(),
+                StorageType.FRIDGE,
+                null,
+                "Onion",
+                null,
+                null,
+                ExpirySourceType.UNKNOWN,
+                null,
+                IngredientSourceType.MANUAL
+        ));
 
-        assertEquals("storage not found", exception.getMessage());
+        entityManager.flush();
+        entityManager.clear();
+
+        Ingredient ingredient = ingredientRepository.findByIdAndUserId(ingredientId, owner.getId())
+                .orElseThrow();
+        assertEquals(ownerStorage.getId(), ingredient.getStorage().getId());
     }
 
     @Test
@@ -105,7 +108,7 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
                 IngredientException.class,
                 () -> createIngredientUseCase.create(new CreateIngredientUseCase.Command(
                         user.getId(),
-                        storage.getId(),
+                        StorageType.PANTRY,
                         Long.MAX_VALUE,
                         "Sauce",
                         null,
@@ -122,11 +125,11 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
     @Test
     void create_bootstrapsMissingDefaultStoragesBeforePersistingIngredient() {
         User user = persistUser("bootstrap-user", Provider.GOOGLE);
-        Storage pantry = persistStorage(user, StorageType.PANTRY, "Pantry");
+        persistStorage(user, StorageType.PANTRY, "Pantry");
 
         Long ingredientId = createIngredientUseCase.create(new CreateIngredientUseCase.Command(
                 user.getId(),
-                pantry.getId(),
+                StorageType.FREEZER,
                 null,
                 "Soy sauce",
                 null,
@@ -146,9 +149,10 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
                 """, Long.class)
                 .setParameter("userId", user.getId())
                 .getSingleResult());
-        assertEquals("Soy sauce", ingredientRepository.findByIdAndUserId(ingredientId, user.getId())
-                .orElseThrow()
-                .getName());
+        Ingredient ingredient = ingredientRepository.findByIdAndUserId(ingredientId, user.getId())
+                .orElseThrow();
+        assertEquals("Soy sauce", ingredient.getName());
+        assertEquals(StorageType.FREEZER, ingredient.getStorage().getStorageType());
     }
 
     private User persistUser(String providerUserId, Provider provider) {

@@ -4,6 +4,7 @@ import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientU
 import com.example.freshkitchen.application.ingredient.usecase.UpdateIngredientUseCase;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
+import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.NotBlank;
@@ -22,7 +23,7 @@ public final class IngredientRequest {
     }
 
     public record Create(
-            @NotNull @Positive Long storageId,
+            @NotNull StorageType storageType,
             @Positive Long catalogId,
             @NotBlank @Size(max = NAME_MAX_LENGTH) String name,
             LocalDate registeredAt,
@@ -35,7 +36,7 @@ public final class IngredientRequest {
         public CreateIngredientUseCase.Command toCommand(Long userId) {
             return new CreateIngredientUseCase.Command(
                     userId,
-                    storageId,
+                    storageType,
                     catalogId,
                     name,
                     registeredAt,
