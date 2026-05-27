@@ -3,8 +3,10 @@ package com.example.freshkitchen.presentation.chat;
 import com.example.freshkitchen.domain.chat.serivce.ChatService;
 import com.example.freshkitchen.global.response.ApiResponse;
 import com.example.freshkitchen.global.security.JwtAuthentication;
+import com.example.freshkitchen.presentation.chat.dto.request.AiSettingSaveRequest;
 import com.example.freshkitchen.presentation.chat.dto.request.ChatMessageRequest;
 import com.example.freshkitchen.presentation.chat.dto.request.UpdateRoomTitleRequest;
+import com.example.freshkitchen.presentation.chat.dto.response.AiSettingResponse;
 import com.example.freshkitchen.presentation.chat.dto.response.ChatHistoryResponse;
 import com.example.freshkitchen.presentation.chat.dto.response.ChatMessageResponse;
 import com.example.freshkitchen.presentation.chat.dto.response.ChatRoomListResponse;
@@ -69,6 +71,23 @@ public class AiChatController {
         return ApiResponse.success(response);
     }
 
+    @Operation(summary = "AI 설정 저장", description = "사용자의 AI 응답 옵션(말투/우선순위/추가정보)을 저장합니다.")
+    @PatchMapping("/ai-setting")
+    public ResponseEntity<ApiResponse<AiSettingResponse>> saveAiSetting(
+            @Valid @RequestBody AiSettingSaveRequest request) {
+        Long userId = getLoginUserId();
+        AiSettingResponse response = chatService.saveAiSetting(userId, request);
+        return ApiResponse.success(response);
+    }
+
+    @Operation(summary = "AI 설정 조회", description = "사용자의 저장된 AI 응답 옵션을 조회합니다.")
+    @GetMapping("/ai-setting")
+    public ResponseEntity<ApiResponse<AiSettingResponse>> getAiSetting() {
+        Long userId = getLoginUserId();
+        AiSettingResponse response = chatService.getAiSetting(userId);
+        return ApiResponse.success(response);
+    }
+
     @Operation(summary = "채팅방 삭제", description = "채팅방을 삭제합니다.")
     @DeleteMapping("/delete/room/{roomId}")
     public ResponseEntity<ApiResponse<Void>> deleteRoom(
@@ -78,7 +97,6 @@ public class AiChatController {
         chatService.deleteRoom(userId, roomId);
         return ApiResponse.success();
     }
-
 
     private Long getLoginUserId() {
         JwtAuthentication authentication = (JwtAuthentication) SecurityContextHolder

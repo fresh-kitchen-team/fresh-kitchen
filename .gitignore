@@ -44,3 +44,9 @@ out/
 
 *secret*
 src/main/resources/application-local.yml
+src/main/resources/firebase/firebase.json
+### Firebase service account credentials ###
+src/main/resources/firebase/*.json
+src/main/java/**/firebase/*-firebase-adminsdk-*.json
+*-firebase-adminsdk-*.json
+src/main/resources/firebase/firebase.json

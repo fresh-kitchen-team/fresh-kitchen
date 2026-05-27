@@ -126,6 +126,30 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Ingredient> findAllByUserIdAndStatusAndNameContaining(Long userId, IngredientStatus status, String name) {
+        String escapedName = name
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
+
+        return entityManager.createQuery("""
+                select ingredient
+                from Ingredient ingredient
+                join fetch ingredient.storage
+                left join fetch ingredient.catalog
+                where ingredient.user.id = :userId
+                  and ingredient.status = :status
+                  and lower(ingredient.name) like lower(concat('%', :name, '%')) escape '\\'
+                order by ingredient.id asc
+                """, Ingredient.class)
+                .setParameter("userId", userId)
+                .setParameter("status", status)
+                .setParameter("name", escapedName)
+                .getResultList();
+    }
+
+    @Override
     @Transactional
     public Optional<Ingredient> findByIdAndUserIdAndStatusWithImagesForUpdate(
             Long ingredientId,

@@ -1,4 +1,4 @@
-package com.example.freshkitchen.application.inquiry.usecase;
+package com.example.freshkitchen.domain.inquiry.enums;
 
 public enum InquiryCategory {
     RECIPE,
