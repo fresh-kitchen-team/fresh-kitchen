@@ -159,6 +159,18 @@ class ErrorCodeContractTest {
                 "USER-404-1",
                 "user not found"
         );
+        assertContract(
+                UserErrorCode.ALREADY_INACTIVE,
+                HttpStatus.CONFLICT,
+                "USER-409-1",
+                "user is already inactive"
+        );
+        assertContract(
+                UserErrorCode.HARD_DELETE_DISABLED,
+                HttpStatus.FORBIDDEN,
+                "USER-403-1",
+                "hard delete is not allowed in this environment"
+        );
     }
 
     @Test
@@ -171,6 +183,7 @@ class ErrorCodeContractTest {
         assertContract(OAuthErrorCode.INVALID_ID_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-7", "invalid id token");
         assertContract(OAuthErrorCode.PROVIDER_NOT_SUPPORTED, HttpStatus.BAD_REQUEST, "AUTH-400-1", "oauth provider not supported");
         assertContract(OAuthErrorCode.OAUTH_PROVIDER_UNAVAILABLE, HttpStatus.SERVICE_UNAVAILABLE, "AUTH-503-1", "oauth provider unavailable");
+        assertContract(OAuthErrorCode.USER_RESOLUTION_FAILED, HttpStatus.INTERNAL_SERVER_ERROR, "AUTH-500-1", "failed to resolve user during oauth login");
     }
 
     @Test
@@ -181,6 +194,7 @@ class ErrorCodeContractTest {
         assertContract(JwtErrorCode.UNSUPPORTED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-4", "unsupported token");
         assertContract(JwtErrorCode.EMPTY_CLAIMS, HttpStatus.UNAUTHORIZED, "AUTH-401-5", "token claims are empty");
         assertContract(JwtErrorCode.NOT_YET_VALID_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-6", "token is not yet valid");
+        assertContract(JwtErrorCode.BLACKLISTED_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-9", "token has been invalidated by logout");
         assertContract(JwtErrorCode.INVALID_REFRESH_TOKEN, HttpStatus.UNAUTHORIZED, "AUTH-401-8", "invalid or expired refresh token");
     }
 
@@ -208,6 +222,18 @@ class ErrorCodeContractTest {
 
     @Test
     void inquiryErrorCode_contractMatchesSpecification() {
+        assertContract(
+                InquiryErrorCode.INQUIRY_NOT_FOUND,
+                HttpStatus.NOT_FOUND,
+                "INQUIRY-404-1",
+                "inquiry not found"
+        );
+        assertContract(
+                InquiryErrorCode.ALREADY_ANSWERED,
+                HttpStatus.CONFLICT,
+                "INQUIRY-409-1",
+                "inquiry already answered"
+        );
         assertContract(
                 InquiryErrorCode.MAIL_SEND_FAILED,
                 HttpStatus.INTERNAL_SERVER_ERROR,

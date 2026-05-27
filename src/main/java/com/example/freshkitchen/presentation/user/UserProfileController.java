@@ -1,5 +1,6 @@
 package com.example.freshkitchen.presentation.user;
 
+import com.example.freshkitchen.application.user.usecase.DeleteUserUseCase;
 import com.example.freshkitchen.application.user.usecase.GetUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.DeleteUserProfileUseCase;
 import com.example.freshkitchen.application.user.usecase.UpdateUserProfileUseCase;
@@ -29,6 +30,7 @@ public class UserProfileController {
     private final GetUserProfileUseCase getUserProfileUseCase;
     private final UpdateUserProfileUseCase updateUserProfileUseCase;
     private final DeleteUserProfileUseCase deleteUserProfileUseCase;
+    private final DeleteUserUseCase deleteUserUseCase;
 
     @Operation(summary = "내 프로필 조회")
     @GetMapping("/profile")
@@ -59,6 +61,15 @@ public class UserProfileController {
             @Parameter(hidden = true) @AuthenticationPrincipal Long userId
     ) {
         deleteUserProfileUseCase.delete(new DeleteUserProfileUseCase.Command(userId));
+        return ApiResponse.success();
+    }
+
+    @Operation(summary = "회원 탈퇴", description = "계정을 비활성화(소프트 삭제)합니다")
+    @DeleteMapping
+    public ResponseEntity<ApiResponse<Void>> deleteUser(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId
+    ) {
+        deleteUserUseCase.delete(new DeleteUserUseCase.Command(userId));
         return ApiResponse.success();
     }
 }

@@ -21,6 +21,11 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Firebase credentials 복원
+        run: |
+          mkdir -p src/main/resources/firebase
+          echo "${{ secrets.FIREBASE_CREDENTIALS_B64 }}" | base64 -d > src/main/resources/firebase/firebase.json
+
       - name: 테스트 및 빌드하기
         env:
           DB_URL: ${{ secrets.DB_URL }}
@@ -62,6 +67,16 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
           IMAGE_STORAGE_S3_PUBLIC_BASE_URL: ${{ secrets.IMAGE_STORAGE_S3_PUBLIC_BASE_URL }}
+          KAKAO_APP_KEY: ${{ secrets.KAKAO_APP_KEY }}
+          GOOGLE_PROJECT_ID: ${{ secrets.GOOGLE_PROJECT_ID }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          INQUIRY_ADMIN_EMAIL: ${{ secrets.INQUIRY_ADMIN_EMAIL }}
+          LEGAL_TERMS_URL: ${{ secrets.LEGAL_TERMS_URL }}
+          LEGAL_PRIVACY_URL: ${{ secrets.LEGAL_PRIVACY_URL }}
+          FCM_FIREBASE_CREDENTIALS_LOCATION: ${{ secrets.FCM_FIREBASE_CREDENTIALS_LOCATION || 'classpath:firebase/firebase.json' }}
+          FCM_EXPIRING_NOTIFICATION_CRON: ${{ secrets.FCM_EXPIRING_NOTIFICATION_CRON || '0 0 9 * * *' }}
+          FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD: ${{ secrets.FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD || '1' }}
         run: |
           # 이미지 빌드 & Push
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -91,6 +106,16 @@ jobs:
             "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
             "AWS_REGION=$AWS_REGION" \
             "IMAGE_STORAGE_S3_PUBLIC_BASE_URL=$IMAGE_STORAGE_S3_PUBLIC_BASE_URL" \
+            "KAKAO_APP_KEY=$KAKAO_APP_KEY" \
+            "GOOGLE_PROJECT_ID=$GOOGLE_PROJECT_ID" \
+            "MAIL_USERNAME=$MAIL_USERNAME" \
+            "MAIL_PASSWORD=$MAIL_PASSWORD" \
+            "INQUIRY_ADMIN_EMAIL=$INQUIRY_ADMIN_EMAIL" \
+            "LEGAL_TERMS_URL=$LEGAL_TERMS_URL" \
+            "LEGAL_PRIVACY_URL=$LEGAL_PRIVACY_URL" \
+            "FCM_FIREBASE_CREDENTIALS_LOCATION=$FCM_FIREBASE_CREDENTIALS_LOCATION" \
+            "FCM_EXPIRING_NOTIFICATION_CRON=\"$FCM_EXPIRING_NOTIFICATION_CRON\"" \
+            "FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD=$FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD" \
             > scripts/.env
 
           chmod +x scripts/deploy.sh

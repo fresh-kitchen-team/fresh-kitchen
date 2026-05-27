@@ -3,6 +3,7 @@ package com.example.freshkitchen.global.config;
 import com.example.freshkitchen.global.security.infrastructure.JwtAuthenticationEntryPoint;
 import com.example.freshkitchen.global.security.infrastructure.JwtAuthenticationFilter;
 import com.example.freshkitchen.global.security.infrastructure.JwtTokenProvider;
+import com.example.freshkitchen.infrastructure.auth.AccessTokenBlacklistRepository;
 import com.example.freshkitchen.infrastructure.image.LocalImageStorageProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,8 @@ public class SecurityConfig {
             "/add-vector-store",
 
             "/api/v1/auth/dev-login",
+            "/api/v1/tips/storage",
+            "/api/v1/tips/recycling",
     };
 
     private static final String[] PUBLIC_GET_ONLY_ENDPOINTS = {
@@ -45,6 +48,7 @@ public class SecurityConfig {
     };
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final AccessTokenBlacklistRepository accessTokenBlacklistRepository;
     private final ObjectMapper objectMapper;
     private final LocalImageStorageProperties localImageStorageProperties;
 
@@ -70,7 +74,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider);
+        return new JwtAuthenticationFilter(jwtTokenProvider, accessTokenBlacklistRepository);
     }
 
     @Bean

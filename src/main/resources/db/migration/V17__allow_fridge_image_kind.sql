@@ -3,4 +3,4 @@ ALTER TABLE image_asset
 
 ALTER TABLE image_asset
     ADD CONSTRAINT ck_image_asset_kind
-        CHECK (kind IN ('INGREDIENT', 'RECEIPT', 'FRIDGE'));
+        CHECK (kind IN ('INGREDIENT', 'RECEIPT', 'INQUIRY', 'FRIDGE'));

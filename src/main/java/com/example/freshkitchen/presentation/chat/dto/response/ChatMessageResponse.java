@@ -18,7 +18,8 @@ public record ChatMessageResponse(
     public record AiPayloadResponse(
             List<RecipeResponse> recipes,
             List<String> tips,
-            List<String> missingIngredients
+            List<String> missingIngredients,
+            List<MatchedItemResponse> matchedItems
     ) {}
 
     public record RecipeResponse(
@@ -26,6 +27,11 @@ public record ChatMessageResponse(
             List<String> ingredients,
             List<String> steps,
             String time
+    ) {}
+
+    public record MatchedItemResponse(
+            Long itemId,
+            String name
     ) {}
 
 

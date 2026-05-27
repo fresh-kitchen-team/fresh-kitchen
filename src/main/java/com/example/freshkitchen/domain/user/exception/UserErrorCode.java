@@ -5,7 +5,9 @@ import org.springframework.http.HttpStatus;
 
 public enum UserErrorCode implements ErrorCode {
 
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER-404-1", "user not found");
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER-404-1", "user not found"),
+    ALREADY_INACTIVE(HttpStatus.CONFLICT, "USER-409-1", "user is already inactive"),
+    HARD_DELETE_DISABLED(HttpStatus.FORBIDDEN, "USER-403-1", "hard delete is not allowed in this environment");
 
     private final HttpStatus status;
     private final String code;
