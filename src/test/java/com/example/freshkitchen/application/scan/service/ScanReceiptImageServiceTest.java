@@ -2,12 +2,11 @@ package com.example.freshkitchen.application.scan.service;
 
 import com.example.freshkitchen.application.image.usecase.StoreMultipartImageAssetUseCase;
 import com.example.freshkitchen.application.scan.dto.ScanDto;
+import com.example.freshkitchen.application.scan.port.ScanAiAnalysisPort;
 import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
-import com.example.freshkitchen.infrastructure.ai.AiServerClient;
-import com.example.freshkitchen.infrastructure.ai.dto.ReceiptOcrResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -15,13 +14,13 @@ import org.mockito.InOrder;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.lang.reflect.Method;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -33,6 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -42,18 +42,18 @@ class ScanReceiptImageServiceTest {
 
     private final StoreMultipartImageAssetUseCase storeMultipartImageAssetUseCase =
             mock(StoreMultipartImageAssetUseCase.class);
-    private final AiServerClient aiServerClient = mock(AiServerClient.class);
+    private final ScanAiAnalysisPort scanAiAnalysisPort = mock(ScanAiAnalysisPort.class);
     private final Clock clock = Clock.fixed(
             LocalDate.of(2026, 5, 13).atStartOfDay().toInstant(ZoneOffset.UTC),
             ZoneOffset.UTC
     );
     private final ScanReceiptImageService service =
-            new ScanReceiptImageService(storeMultipartImageAssetUseCase, aiServerClient, clock);
+            new ScanReceiptImageService(storeMultipartImageAssetUseCase, scanAiAnalysisPort, clock);
     private final OffsetDateTime createdAt = OffsetDateTime.parse("2026-05-01T14:20:30+09:00");
 
     @Test
     void scan_storesReceiptImageAndReturnsOcrMetadata() {
-        MockMultipartFile file = new MockMultipartFile("file", "receipt.jpg", "image/jpeg", "image".getBytes());
+        MockMultipartFile file = new MockMultipartFile("file", " receipt.jpg ", "image/jpeg", "image".getBytes());
         when(storeMultipartImageAssetUseCase.store(any(StoreMultipartImageAssetUseCase.Command.class)))
                 .thenReturn(new StoreMultipartImageAssetUseCase.Result(
                         11L,
@@ -62,10 +62,13 @@ class ScanReceiptImageServiceTest {
                         "https://cdn.example.com/images/1/receipt/receipt.jpg",
                         createdAt
                 ));
-        when(aiServerClient.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class)))
-                .thenReturn(new ReceiptOcrResponse(
+        when(scanAiAnalysisPort.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class)))
+                .thenReturn(new ScanAiAnalysisPort.ReceiptOcr(
                         LocalDate.of(2026, 5, 1),
-                        Arrays.asList("Egg", "Milk")
+                        List.of(
+                                new ScanAiAnalysisPort.ReceiptIngredient("Egg", "ETC"),
+                                new ScanAiAnalysisPort.ReceiptIngredient("Milk", "DAIRY")
+                        )
                 ));
 
         ScanDto.ReceiptImageScanResponse response = service.scan(
@@ -74,11 +77,15 @@ class ScanReceiptImageServiceTest {
 
         assertAll(
                 () -> assertEquals(ScanDto.ScanType.RECEIPT_IMAGE, response.scanType()),
+                () -> assertEquals(11L, response.imageAsset().imageAssetId()),
+                () -> assertEquals(ImageKind.RECEIPT, response.imageAsset().kind()),
                 () -> assertEquals(LocalDate.of(2026, 5, 1), response.purchasedAt()),
                 () -> assertEquals(ScanDto.ReceiptPurchaseDateSourceType.OCR, response.purchasedAtSourceType()),
                 () -> assertEquals("Egg", response.recognizedItems().get(0).name()),
+                () -> assertEquals("ETC", response.recognizedItems().get(0).category()),
                 () -> assertEquals(LocalDate.of(2026, 5, 1), response.recognizedItems().get(0).registeredAt()),
                 () -> assertEquals("Milk", response.recognizedItems().get(1).name()),
+                () -> assertEquals("DAIRY", response.recognizedItems().get(1).category()),
                 () -> assertEquals(2, response.recognizedItems().size()),
                 () -> assertEquals(createdAt, response.createdAt())
         );
@@ -90,10 +97,10 @@ class ScanReceiptImageServiceTest {
         assertEquals("image/jpeg", captor.getValue().contentType());
         assertArrayEquals("image".getBytes(), captor.getValue().content());
         ArgumentCaptor<byte[]> contentCaptor = ArgumentCaptor.forClass(byte[].class);
-        verify(aiServerClient).extractReceiptIngredients(eq("receipt.jpg"), contentCaptor.capture());
+        verify(scanAiAnalysisPort).extractReceiptIngredients(eq("receipt.jpg"), contentCaptor.capture());
         assertArrayEquals("image".getBytes(), contentCaptor.getValue());
-        InOrder inOrder = inOrder(aiServerClient, storeMultipartImageAssetUseCase);
-        inOrder.verify(aiServerClient).extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class));
+        InOrder inOrder = inOrder(scanAiAnalysisPort, storeMultipartImageAssetUseCase);
+        inOrder.verify(scanAiAnalysisPort).extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class));
         inOrder.verify(storeMultipartImageAssetUseCase).store(any(StoreMultipartImageAssetUseCase.Command.class));
     }
 
@@ -108,10 +115,10 @@ class ScanReceiptImageServiceTest {
                         "https://cdn.example.com/images/1/receipt/receipt.jpg",
                         createdAt
                 ));
-        when(aiServerClient.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class)))
-                .thenReturn(new ReceiptOcrResponse(
+        when(scanAiAnalysisPort.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class)))
+                .thenReturn(new ScanAiAnalysisPort.ReceiptOcr(
                         null,
-                        List.of("Egg")
+                        List.of(new ScanAiAnalysisPort.ReceiptIngredient("Egg", "ETC"))
                 ));
 
         ScanDto.ReceiptImageScanResponse response = service.scan(
@@ -132,7 +139,7 @@ class ScanReceiptImageServiceTest {
     void scan_doesNotStoreImageAssetWhenReceiptOcrFails() {
         MockMultipartFile file = new MockMultipartFile("file", "receipt.jpg", "image/jpeg", "image".getBytes());
         RuntimeException failure = new RuntimeException("ocr server unavailable");
-        when(aiServerClient.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class))).thenThrow(failure);
+        when(scanAiAnalysisPort.extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class))).thenThrow(failure);
 
         RuntimeException thrown = assertThrows(
                 RuntimeException.class,
@@ -140,7 +147,7 @@ class ScanReceiptImageServiceTest {
         );
 
         assertEquals(failure, thrown);
-        verify(aiServerClient).extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class));
+        verify(scanAiAnalysisPort).extractReceiptIngredients(eq("receipt.jpg"), any(byte[].class));
         verifyNoInteractions(storeMultipartImageAssetUseCase);
     }
 
@@ -154,7 +161,23 @@ class ScanReceiptImageServiceTest {
         );
 
         assertEquals("userId must not be null", thrown.getMessage());
-        verifyNoInteractions(aiServerClient, storeMultipartImageAssetUseCase);
+        verifyNoInteractions(scanAiAnalysisPort, storeMultipartImageAssetUseCase);
+    }
+
+    @Test
+    void scan_doesNotReadFileWhenOriginalFilenameIsBlank() throws Exception {
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getOriginalFilename()).thenReturn("   ");
+
+        BusinessValidationException thrown = assertThrows(
+                BusinessValidationException.class,
+                () -> service.scan(new ScanReceiptImageUseCase.Command(1L, file))
+        );
+
+        assertEquals("originalFilename must not be blank", thrown.getMessage());
+        verify(file, never()).getBytes();
+        verifyNoInteractions(scanAiAnalysisPort, storeMultipartImageAssetUseCase);
     }
 
     @Test

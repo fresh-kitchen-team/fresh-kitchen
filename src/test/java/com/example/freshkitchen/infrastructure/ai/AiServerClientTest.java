@@ -48,21 +48,24 @@ class AiServerClientTest {
                 .andExpect(header("X-Request-Id", org.hamcrest.Matchers.notNullValue()))
                 .andRespond(withSuccess("""
                         {
-                          "bestMatch": "Bibimbap",
+                          "bestMatch": " Bibimbap ",
+                          "category": " ETC ",
                           "confidence": 0.95,
                           "top3": [
-                            {"name": "Bibimbap", "confidence": 0.95},
-                            {"name": "Fried rice", "confidence": 0.03}
+                            {"name": " Bibimbap ", "confidence": 0.95},
+                            {"name": " Fried rice ", "confidence": 0.03}
                           ],
-                          "source": "gemini"
+                          "source": " gemini "
                         }
                         """, MediaType.APPLICATION_JSON));
 
         FoodClassificationResponse response = client.classifyFood(imageFile());
 
         assertEquals("Bibimbap", response.bestMatch());
+        assertEquals("ETC", response.category());
         assertEquals(0.95, response.confidence());
         assertEquals("Bibimbap", response.top3().get(0).name());
+        assertEquals("Fried rice", response.top3().get(1).name());
         assertEquals("gemini", response.source());
         assertNull(response.geminiReason());
         assertNull(response.autoSaved());
@@ -80,16 +83,23 @@ class AiServerClientTest {
                 .andRespond(withSuccess("""
                         {
                           "purchasedAt": "2026-05-01",
-                          "ingredients": ["두부", "계란", "김치"]
+                          "ingredients": [
+                            {"name": " 두부 ", "category": " ETC "},
+                            {"name": " 계란 ", "category": " ETC "},
+                            {"name": " 김치 ", "category": " VEGETABLE "}
+                          ]
                         }
                         """, MediaType.APPLICATION_JSON));
 
         ReceiptOcrResponse response = client.extractReceiptIngredients(imageFile());
 
         assertEquals(LocalDate.of(2026, 5, 1), response.purchasedAt());
-        assertEquals("두부", response.ingredients().get(0));
-        assertEquals("계란", response.ingredients().get(1));
-        assertEquals("김치", response.ingredients().get(2));
+        assertEquals("두부", response.ingredients().get(0).name());
+        assertEquals("ETC", response.ingredients().get(0).category());
+        assertEquals("계란", response.ingredients().get(1).name());
+        assertEquals("ETC", response.ingredients().get(1).category());
+        assertEquals("김치", response.ingredients().get(2).name());
+        assertEquals("VEGETABLE", response.ingredients().get(2).category());
         server.verify();
     }
 
@@ -104,15 +114,20 @@ class AiServerClientTest {
                 .andRespond(withSuccess("""
                         {
                           "purchasedAt": null,
-                          "ingredients": ["두부", "김치"]
+                          "ingredients": [
+                            {"name": "두부", "category": "ETC"},
+                            {"name": "김치", "category": "VEGETABLE"}
+                          ]
                         }
                         """, MediaType.APPLICATION_JSON));
 
         ReceiptOcrResponse response = client.extractReceiptIngredients(imageFile());
 
         assertNull(response.purchasedAt());
-        assertEquals("두부", response.ingredients().get(0));
-        assertEquals("김치", response.ingredients().get(1));
+        assertEquals("두부", response.ingredients().get(0).name());
+        assertEquals("ETC", response.ingredients().get(0).category());
+        assertEquals("김치", response.ingredients().get(1).name());
+        assertEquals("VEGETABLE", response.ingredients().get(1).category());
         server.verify();
     }
 
@@ -126,21 +141,16 @@ class AiServerClientTest {
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("""
                         {
-                          "objects": [
-                            {
-                              "name": "Apple",
-                              "confidence": 80.0,
-                              "box": {"x1": 1, "y1": 2, "x2": 30, "y2": 40}
-                            }
+                          "items": [
+                            {"name": " Apple ", "category": " FRUIT "}
                           ]
                         }
                         """, MediaType.APPLICATION_JSON));
 
         FridgeDetectionResponse response = client.detectFridgeObjects(imageFile());
 
-        assertEquals("Apple", response.objects().get(0).name());
-        assertEquals(80.0, response.objects().get(0).confidence());
-        assertEquals(30.0, response.objects().get(0).box().x2());
+        assertEquals("Apple", response.items().get(0).name());
+        assertEquals("FRUIT", response.items().get(0).category());
         server.verify();
     }
 
@@ -190,7 +200,7 @@ class AiServerClientTest {
 
         server.expect(once(), requestTo("https://ai.example.com/internal/v1/receipt-ocr"))
                 .andRespond(withSuccess("""
-                        {"purchasedAt": "2026-05-01", "ingredients": ["두부", null, "김치"]}
+                        {"purchasedAt": "2026-05-01", "ingredients": [{"name": "두부", "category": "ETC"}, null]}
                         """, MediaType.APPLICATION_JSON));
 
         AiServerException exception = assertThrows(
@@ -210,7 +220,7 @@ class AiServerClientTest {
 
         server.expect(once(), requestTo("https://ai.example.com/internal/v1/receipt-ocr"))
                 .andRespond(withSuccess("""
-                        {"purchasedAt": "2026-05-01", "ingredients": ["두부", " "]}
+                        {"purchasedAt": "2026-05-01", "ingredients": [{"name": " ", "category": "ETC"}]}
                         """, MediaType.APPLICATION_JSON));
 
         AiServerException exception = assertThrows(
@@ -223,7 +233,7 @@ class AiServerClientTest {
     }
 
     @Test
-    void detectFridgeObjects_mapsMissingObjectsToAiResponseInvalid() {
+    void detectFridgeObjects_mapsMissingItemsToAiResponseInvalid() {
         RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         AiServerClient client = new AiServerClient(builder.build(), "service-token");
@@ -248,7 +258,7 @@ class AiServerClientTest {
 
         server.expect(once(), requestTo("https://ai.example.com/internal/v1/fridge-detection"))
                 .andRespond(withSuccess("""
-                        {"objects": [null]}
+                        {"items": [null]}
                         """, MediaType.APPLICATION_JSON));
 
         AiServerException exception = assertThrows(
@@ -340,6 +350,29 @@ class AiServerClientTest {
     }
 
     @Test
+    void classifyFood_mapsBlankRequiredStringFieldToAiResponseInvalid() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiServerClient client = new AiServerClient(builder.build(), "service-token");
+
+        server.expect(once(), requestTo("https://ai.example.com/internal/v1/food-classification"))
+                .andRespond(withSuccess("""
+                        {
+                          "bestMatch": " ",
+                          "category": "ETC",
+                          "confidence": 0.95,
+                          "top3": [{"name": "Bibimbap", "confidence": 0.95}],
+                          "source": "gemini"
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        AiServerException exception = assertThrows(AiServerException.class, () -> client.classifyFood(imageFile()));
+
+        assertEquals(AiServerErrorCode.AI_RESPONSE_INVALID, exception.getErrorCode());
+        server.verify();
+    }
+
+    @Test
     void classifyFood_mapsNullTop3ItemToAiResponseInvalid() {
         RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
@@ -349,8 +382,32 @@ class AiServerClientTest {
                 .andRespond(withSuccess("""
                         {
                           "bestMatch": "Bibimbap",
+                          "category": "ETC",
                           "confidence": 0.95,
                           "top3": [null],
+                          "source": "gemini"
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        AiServerException exception = assertThrows(AiServerException.class, () -> client.classifyFood(imageFile()));
+
+        assertEquals(AiServerErrorCode.AI_RESPONSE_INVALID, exception.getErrorCode());
+        server.verify();
+    }
+
+    @Test
+    void classifyFood_mapsBlankTop3NameToAiResponseInvalid() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiServerClient client = new AiServerClient(builder.build(), "service-token");
+
+        server.expect(once(), requestTo("https://ai.example.com/internal/v1/food-classification"))
+                .andRespond(withSuccess("""
+                        {
+                          "bestMatch": "Bibimbap",
+                          "category": "ETC",
+                          "confidence": 0.95,
+                          "top3": [{"name": " ", "confidence": 0.95}],
                           "source": "gemini"
                         }
                         """, MediaType.APPLICATION_JSON));
