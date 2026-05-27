@@ -21,7 +21,13 @@ public class ListIngredientsService implements ListIngredientsUseCase {
 
     @Override
     public List<IngredientDto.SummaryResponse> list(Query query) {
-        return ingredientRepository.findAllByUserIdAndStatus(query.userId(), IngredientStatus.ACTIVE).stream()
+        var ingredients = (query.name() != null && !query.name().isBlank())
+                ? ingredientRepository.findAllByUserIdAndStatusAndNameContaining(
+                        query.userId(), IngredientStatus.ACTIVE, query.name().trim())
+                : ingredientRepository.findAllByUserIdAndStatus(
+                        query.userId(), IngredientStatus.ACTIVE);
+
+        return ingredients.stream()
                 .map(ingredient -> IngredientDto.SummaryResponse.from(ingredient, imageAssetUrlResolver))
                 .toList();
     }
