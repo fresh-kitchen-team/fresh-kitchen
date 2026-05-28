@@ -2,16 +2,13 @@ package com.example.freshkitchen.application.scan.service;
 
 import com.example.freshkitchen.application.image.usecase.StoreMultipartImageAssetUseCase;
 import com.example.freshkitchen.application.scan.dto.ScanDto;
+import com.example.freshkitchen.application.scan.port.ScanAiAnalysisPort;
 import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
-import com.example.freshkitchen.global.exception.BusinessValidationException;
-import com.example.freshkitchen.infrastructure.ai.AiServerClient;
-import com.example.freshkitchen.infrastructure.ai.dto.ReceiptOcrResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
@@ -22,15 +19,20 @@ import java.util.Objects;
 public class ScanReceiptImageService implements ScanReceiptImageUseCase {
 
     private final StoreMultipartImageAssetUseCase storeMultipartImageAssetUseCase;
-    private final AiServerClient aiServerClient;
+    private final ScanAiAnalysisPort scanAiAnalysisPort;
     private final Clock clock;
 
     @Override
     public ScanDto.ReceiptImageScanResponse scan(Command command) {
-        validate(command);
-        byte[] content = bytes(command.file());
-        ReceiptOcrResponse receiptOcr = aiServerClient.extractReceiptIngredients(
-                command.file().getOriginalFilename(),
+        MultipartFile file = ScanFileProcessor.validateCommand(
+                command,
+                ScanReceiptImageUseCase.Command::userId,
+                ScanReceiptImageUseCase.Command::file
+        );
+        String originalFilename = ScanFileProcessor.originalFilename(file);
+        byte[] content = ScanFileProcessor.bytes(file);
+        ScanAiAnalysisPort.ReceiptOcr receiptOcr = scanAiAnalysisPort.extractReceiptIngredients(
+                originalFilename,
                 content
         );
         LocalDate purchasedAt = purchasedAt(receiptOcr);
@@ -38,14 +40,20 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
                 new StoreMultipartImageAssetUseCase.Command(
                         command.userId(),
                         ImageKind.RECEIPT,
-                        command.file().getOriginalFilename(),
-                        command.file().getContentType(),
+                        originalFilename,
+                        file.getContentType(),
                         content
                 )
         );
 
         return new ScanDto.ReceiptImageScanResponse(
                 ScanDto.ScanType.RECEIPT_IMAGE,
+                new ScanDto.ImageAssetSummary(
+                        imageAsset.imageAssetId(),
+                        imageAsset.kind(),
+                        imageAsset.storageProvider(),
+                        imageAsset.imageUrl()
+                ),
                 purchasedAt,
                 sourceType(receiptOcr),
                 recognizedItems(receiptOcr, purchasedAt),
@@ -53,26 +61,14 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
         );
     }
 
-    private static void validate(Command command) {
-        if (command == null) {
-            throw new BusinessValidationException("command must not be null");
-        }
-        if (command.userId() == null) {
-            throw new BusinessValidationException("userId must not be null");
-        }
-        if (command.file() == null || command.file().isEmpty()) {
-            throw new BusinessValidationException("file must not be empty");
-        }
-    }
-
-    private LocalDate purchasedAt(ReceiptOcrResponse receiptOcr) {
+    private LocalDate purchasedAt(ScanAiAnalysisPort.ReceiptOcr receiptOcr) {
         if (receiptOcr.purchasedAt() != null) {
             return receiptOcr.purchasedAt();
         }
         return LocalDate.now(clock);
     }
 
-    private static ScanDto.ReceiptPurchaseDateSourceType sourceType(ReceiptOcrResponse receiptOcr) {
+    private static ScanDto.ReceiptPurchaseDateSourceType sourceType(ScanAiAnalysisPort.ReceiptOcr receiptOcr) {
         if (receiptOcr.purchasedAt() != null) {
             return ScanDto.ReceiptPurchaseDateSourceType.OCR;
         }
@@ -80,22 +76,16 @@ public class ScanReceiptImageService implements ScanReceiptImageUseCase {
     }
 
     private static List<ScanDto.ReceiptRecognizedItem> recognizedItems(
-            ReceiptOcrResponse receiptOcr,
+            ScanAiAnalysisPort.ReceiptOcr receiptOcr,
             LocalDate purchasedAt
     ) {
         return receiptOcr.ingredients().stream()
                 .filter(Objects::nonNull)
-                .map(String::trim)
-                .filter(name -> !name.isEmpty())
-                .map(name -> new ScanDto.ReceiptRecognizedItem(name, purchasedAt))
+                .map(item -> new ScanDto.ReceiptRecognizedItem(
+                        item.name().trim(),
+                        item.category(),
+                        purchasedAt
+                ))
                 .toList();
-    }
-
-    private static byte[] bytes(MultipartFile file) {
-        try {
-            return file.getBytes();
-        } catch (IOException e) {
-            throw new BusinessValidationException("failed to read image file", e);
-        }
     }
 }

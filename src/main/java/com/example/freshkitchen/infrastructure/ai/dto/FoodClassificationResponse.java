@@ -7,6 +7,7 @@ import java.util.List;
 public record FoodClassificationResponse(
         @JsonAlias("best_match")
         String bestMatch,
+        String category,
         Double confidence,
         @JsonAlias({"top_3", "top3"})
         List<FoodCandidate> top3,

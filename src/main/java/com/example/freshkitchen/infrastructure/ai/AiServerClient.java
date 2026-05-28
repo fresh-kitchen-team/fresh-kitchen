@@ -1,5 +1,6 @@
 package com.example.freshkitchen.infrastructure.ai;
 
+import com.example.freshkitchen.application.scan.port.ScanAiAnalysisPort;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
 import com.example.freshkitchen.infrastructure.ai.dto.FoodClassificationResponse;
 import com.example.freshkitchen.infrastructure.ai.dto.FridgeDetectionResponse;
@@ -25,7 +26,7 @@ import java.time.Duration;
 import java.util.UUID;
 
 @Component
-public class AiServerClient {
+public class AiServerClient implements ScanAiAnalysisPort {
 
     private static final String FOOD_CLASSIFICATION_PATH = "/internal/v1/food-classification";
     private static final String RECEIPT_OCR_PATH = "/internal/v1/receipt-ocr";
@@ -46,40 +47,75 @@ public class AiServerClient {
 
     public FoodClassificationResponse classifyFood(MultipartFile file) {
         FoodClassificationResponse response = postMultipart(FOOD_CLASSIFICATION_PATH, file, FoodClassificationResponse.class);
-        validateFoodClassification(response);
-        return response;
+        return AiResponseProcessor.process(response);
     }
 
-    public FoodClassificationResponse classifyFood(String originalFilename, byte[] content) {
+    @Override
+    public ScanAiAnalysisPort.FoodClassification classifyFood(String originalFilename, byte[] content) {
         FoodClassificationResponse response = postMultipart(
                 FOOD_CLASSIFICATION_PATH,
                 multipartBody(originalFilename, content),
                 FoodClassificationResponse.class
         );
-        validateFoodClassification(response);
-        return response;
+        return toPortResponse(AiResponseProcessor.process(response));
     }
 
     public ReceiptOcrResponse extractReceiptIngredients(MultipartFile file) {
         ReceiptOcrResponse response = postMultipart(RECEIPT_OCR_PATH, file, ReceiptOcrResponse.class);
-        validateReceiptOcr(response);
-        return response;
+        return AiResponseProcessor.process(response);
     }
 
-    public ReceiptOcrResponse extractReceiptIngredients(String originalFilename, byte[] content) {
+    @Override
+    public ScanAiAnalysisPort.ReceiptOcr extractReceiptIngredients(String originalFilename, byte[] content) {
         ReceiptOcrResponse response = postMultipart(
                 RECEIPT_OCR_PATH,
                 multipartBody(originalFilename, content),
                 ReceiptOcrResponse.class
         );
-        validateReceiptOcr(response);
-        return response;
+        return toPortResponse(AiResponseProcessor.process(response));
     }
 
     public FridgeDetectionResponse detectFridgeObjects(MultipartFile file) {
         FridgeDetectionResponse response = postMultipart(FRIDGE_DETECTION_PATH, file, FridgeDetectionResponse.class);
-        validateFridgeDetection(response);
-        return response;
+        return AiResponseProcessor.process(response);
+    }
+
+    @Override
+    public ScanAiAnalysisPort.FridgeDetection detectFridgeObjects(String originalFilename, byte[] content) {
+        FridgeDetectionResponse response = postMultipart(
+                FRIDGE_DETECTION_PATH,
+                multipartBody(originalFilename, content),
+                FridgeDetectionResponse.class
+        );
+        return toPortResponse(AiResponseProcessor.process(response));
+    }
+
+    private static ScanAiAnalysisPort.FoodClassification toPortResponse(FoodClassificationResponse response) {
+        return new ScanAiAnalysisPort.FoodClassification(
+                response.bestMatch(),
+                response.category(),
+                response.confidence(),
+                response.top3().stream()
+                        .map(item -> new ScanAiAnalysisPort.FoodCandidate(item.name(), item.confidence()))
+                        .toList()
+        );
+    }
+
+    private static ScanAiAnalysisPort.ReceiptOcr toPortResponse(ReceiptOcrResponse response) {
+        return new ScanAiAnalysisPort.ReceiptOcr(
+                response.purchasedAt(),
+                response.ingredients().stream()
+                        .map(item -> new ScanAiAnalysisPort.ReceiptIngredient(item.name(), item.category()))
+                        .toList()
+        );
+    }
+
+    private static ScanAiAnalysisPort.FridgeDetection toPortResponse(FridgeDetectionResponse response) {
+        return new ScanAiAnalysisPort.FridgeDetection(
+                response.items().stream()
+                        .map(item -> new ScanAiAnalysisPort.DetectedItem(item.name(), item.category()))
+                        .toList()
+        );
     }
 
     private <T> T postMultipart(String path, MultipartFile file, Class<T> responseType) {
@@ -182,49 +218,5 @@ public class AiServerClient {
             current = current.getCause();
         }
         return false;
-    }
-
-    private static void validateFoodClassification(FoodClassificationResponse response) {
-        if (response == null
-                || response.bestMatch() == null
-                || response.confidence() == null
-                || response.top3() == null
-                || response.source() == null
-                || response.top3().stream().anyMatch(AiServerClient::isInvalidFoodCandidate)) {
-            throw new AiServerException(AiServerErrorCode.AI_RESPONSE_INVALID);
-        }
-    }
-
-    private static boolean isInvalidFoodCandidate(FoodClassificationResponse.FoodCandidate item) {
-        return item == null || item.name() == null || item.confidence() == null;
-    }
-
-    private static void validateReceiptOcr(ReceiptOcrResponse response) {
-        if (response == null
-                || response.ingredients() == null
-                || response.ingredients().stream().anyMatch(AiServerClient::isInvalidIngredientName)) {
-            throw new AiServerException(AiServerErrorCode.AI_RESPONSE_INVALID);
-        }
-    }
-
-    private static boolean isInvalidIngredientName(String name) {
-        return name == null || name.isBlank();
-    }
-
-    private static void validateFridgeDetection(FridgeDetectionResponse response) {
-        if (response == null || response.objects() == null || response.objects().stream().anyMatch(AiServerClient::isInvalidObject)) {
-            throw new AiServerException(AiServerErrorCode.AI_RESPONSE_INVALID);
-        }
-    }
-
-    private static boolean isInvalidObject(FridgeDetectionResponse.DetectedObject object) {
-        return object == null
-                || object.name() == null
-                || object.confidence() == null
-                || object.box() == null
-                || object.box().x1() == null
-                || object.box().y1() == null
-                || object.box().x2() == null
-                || object.box().y2() == null;
     }
 }

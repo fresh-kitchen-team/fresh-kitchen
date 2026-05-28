@@ -15,13 +15,15 @@ public final class ScanDto {
 
     public record RecognizedItem(
             String name,
+            String category,
             Double confidence
     ) {
     }
 
     public enum ScanType {
         INGREDIENT_IMAGE,
-        RECEIPT_IMAGE
+        RECEIPT_IMAGE,
+        FRIDGE_IMAGE
     }
 
     public enum ReceiptPurchaseDateSourceType {
@@ -31,8 +33,15 @@ public final class ScanDto {
 
     public record ReceiptRecognizedItem(
             String name,
+            String category,
             @JsonFormat(shape = JsonFormat.Shape.STRING)
             LocalDate registeredAt
+    ) {
+    }
+
+    public record DetectedItem(
+            String name,
+            String category
     ) {
     }
 
@@ -55,10 +64,20 @@ public final class ScanDto {
 
     public record ReceiptImageScanResponse(
             ScanType scanType,
+            ImageAssetSummary imageAsset,
             @JsonFormat(shape = JsonFormat.Shape.STRING)
             LocalDate purchasedAt,
             ReceiptPurchaseDateSourceType purchasedAtSourceType,
             List<ReceiptRecognizedItem> recognizedItems,
+            @JsonFormat(shape = JsonFormat.Shape.STRING)
+            OffsetDateTime createdAt
+    ) {
+    }
+
+    public record FridgeImageScanResponse(
+            ScanType scanType,
+            ImageAssetSummary imageAsset,
+            List<DetectedItem> detectedItems,
             @JsonFormat(shape = JsonFormat.Shape.STRING)
             OffsetDateTime createdAt
     ) {
