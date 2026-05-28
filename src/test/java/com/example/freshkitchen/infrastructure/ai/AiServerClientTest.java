@@ -73,6 +73,36 @@ class AiServerClientTest {
     }
 
     @Test
+    void classifyFood_acceptsGeminiFallbackAutoSavedPath() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        AiServerClient client = new AiServerClient(builder.build(), "service-token");
+
+        server.expect(once(), requestTo("https://ai.example.com/internal/v1/food-classification"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("""
+                        {
+                          "bestMatch": "Mango",
+                          "category": "FRUIT",
+                          "confidence": 72.4,
+                          "top3": [],
+                          "source": "gemini",
+                          "auto_saved": "dataset/auto_labeled/mango/auto_20260528.jpg"
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        FoodClassificationResponse response = client.classifyFood(imageFile());
+
+        assertEquals("Mango", response.bestMatch());
+        assertEquals("FRUIT", response.category());
+        assertEquals(72.4, response.confidence());
+        assertEquals(0, response.top3().size());
+        assertEquals("gemini", response.source());
+        assertEquals("dataset/auto_labeled/mango/auto_20260528.jpg", response.autoSaved());
+        server.verify();
+    }
+
+    @Test
     void extractReceiptIngredients_mapsSuccessfulResponse() {
         RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
