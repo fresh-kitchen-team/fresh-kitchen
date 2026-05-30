@@ -2,7 +2,6 @@ package com.example.freshkitchen.presentation.item.dto;
 
 import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.UpdateIngredientUseCase;
-import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
@@ -26,7 +25,6 @@ public final class ItemRequest {
     public record Create(
             @NotBlank @Size(max = NAME_MAX_LENGTH) String name,
             @NotNull StorageType storageType,
-            CatalogCategory category,
             LocalDate expiryDate,
             LocalDate purchaseDate,
             String memo,
@@ -38,7 +36,6 @@ public final class ItemRequest {
                     userId,
                     storageType,
                     null,
-                    category,
                     name,
                     purchaseDate != null ? purchaseDate : defaultPurchaseDate,
                     expiryDate,

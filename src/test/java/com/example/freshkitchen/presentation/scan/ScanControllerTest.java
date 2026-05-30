@@ -1,6 +1,7 @@
 package com.example.freshkitchen.presentation.scan;
 
 import com.example.freshkitchen.application.scan.dto.ScanDto;
+import com.example.freshkitchen.application.scan.usecase.ScanFridgeImageUseCase;
 import com.example.freshkitchen.application.scan.usecase.ScanIngredientImageUseCase;
 import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageKind;
@@ -37,6 +38,7 @@ class ScanControllerTest {
 
     private ScanIngredientImageUseCase scanIngredientImageUseCase;
     private ScanReceiptImageUseCase scanReceiptImageUseCase;
+    private ScanFridgeImageUseCase scanFridgeImageUseCase;
     private MockMvc mockMvc;
     private final OffsetDateTime createdAt = OffsetDateTime.parse("2026-05-01T14:20:30+09:00");
 
@@ -44,8 +46,13 @@ class ScanControllerTest {
     void setUp() {
         scanIngredientImageUseCase = mock(ScanIngredientImageUseCase.class);
         scanReceiptImageUseCase = mock(ScanReceiptImageUseCase.class);
+        scanFridgeImageUseCase = mock(ScanFridgeImageUseCase.class);
         mockMvc = MockMvcBuilders
-                .standaloneSetup(new ScanController(scanIngredientImageUseCase, scanReceiptImageUseCase))
+                .standaloneSetup(new ScanController(
+                        scanIngredientImageUseCase,
+                        scanReceiptImageUseCase,
+                        scanFridgeImageUseCase
+                ))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .build();
@@ -67,7 +74,7 @@ class ScanControllerTest {
                                 StorageProvider.S3,
                                 "https://cdn.example.com/images/1/ingredient/tomato.jpg"
                         ),
-                        List.of(new ScanDto.RecognizedItem("Tomato", 0.93)),
+                        List.of(new ScanDto.RecognizedItem("Tomato", "VEGETABLE", 0.93)),
                         createdAt
                 ));
         SecurityContextHolder.getContext().setAuthentication(new JwtAuthentication(1L, Role.USER));
@@ -85,6 +92,7 @@ class ScanControllerTest {
                 .andExpect(jsonPath("$.data.imageAsset.imageUrl")
                         .value("https://cdn.example.com/images/1/ingredient/tomato.jpg"))
                 .andExpect(jsonPath("$.data.recognizedItems[0].name").value("Tomato"))
+                .andExpect(jsonPath("$.data.recognizedItems[0].category").value("VEGETABLE"))
                 .andExpect(jsonPath("$.data.recognizedItems[0].confidence").value(0.93))
                 .andExpect(jsonPath("$.data.createdAt").value("2026-05-01T14:20:30+09:00"));
 
@@ -102,10 +110,17 @@ class ScanControllerTest {
         when(scanReceiptImageUseCase.scan(any(ScanReceiptImageUseCase.Command.class)))
                 .thenReturn(new ScanDto.ReceiptImageScanResponse(
                         ScanDto.ScanType.RECEIPT_IMAGE,
+                        new ScanDto.ImageAssetSummary(
+                                11L,
+                                ImageKind.RECEIPT,
+                                StorageProvider.S3,
+                                "https://cdn.example.com/images/1/receipt/receipt.jpg"
+                        ),
                         LocalDate.of(2026, 5, 1),
                         ScanDto.ReceiptPurchaseDateSourceType.OCR,
                         List.of(new ScanDto.ReceiptRecognizedItem(
                                 "Egg",
+                                "ETC",
                                 LocalDate.of(2026, 5, 1)
                         )),
                         createdAt
@@ -118,9 +133,14 @@ class ScanControllerTest {
                 .andExpect(jsonPath("$.data.purchasedAt").value("2026-05-01"))
                 .andExpect(jsonPath("$.data.purchasedAtSourceType").value("OCR"))
                 .andExpect(jsonPath("$.data.sourceType").doesNotExist())
-                .andExpect(jsonPath("$.data.imageAsset").doesNotExist())
+                .andExpect(jsonPath("$.data.imageAsset.imageAssetId").value(11))
+                .andExpect(jsonPath("$.data.imageAsset.kind").value("RECEIPT"))
+                .andExpect(jsonPath("$.data.imageAsset.storageProvider").value("S3"))
+                .andExpect(jsonPath("$.data.imageAsset.imageUrl")
+                        .value("https://cdn.example.com/images/1/receipt/receipt.jpg"))
                 .andExpect(jsonPath("$.data.storeName").doesNotExist())
                 .andExpect(jsonPath("$.data.recognizedItems[0].name").value("Egg"))
+                .andExpect(jsonPath("$.data.recognizedItems[0].category").value("ETC"))
                 .andExpect(jsonPath("$.data.recognizedItems[0].registeredAt").value("2026-05-01"))
                 .andExpect(jsonPath("$.data.recognizedItems[0].estimatedExpiresAt").doesNotExist())
                 .andExpect(jsonPath("$.data.recognizedItems[0].expirySourceType").doesNotExist())
@@ -131,6 +151,41 @@ class ScanControllerTest {
         ArgumentCaptor<ScanReceiptImageUseCase.Command> captor =
                 ArgumentCaptor.forClass(ScanReceiptImageUseCase.Command.class);
         verify(scanReceiptImageUseCase).scan(captor.capture());
+        assertEquals(1L, captor.getValue().userId());
+    }
+
+    @Test
+    void scanFridgeImage_returnsDetectedItemsWithImageAsset() throws Exception {
+        when(scanFridgeImageUseCase.scan(any(ScanFridgeImageUseCase.Command.class)))
+                .thenReturn(new ScanDto.FridgeImageScanResponse(
+                        ScanDto.ScanType.FRIDGE_IMAGE,
+                        new ScanDto.ImageAssetSummary(
+                                12L,
+                                ImageKind.FRIDGE,
+                                StorageProvider.S3,
+                                "https://cdn.example.com/images/1/fridge/fridge.jpg"
+                        ),
+                        List.of(new ScanDto.DetectedItem("계란", "ETC")),
+                        createdAt
+                ));
+        SecurityContextHolder.getContext().setAuthentication(new JwtAuthentication(1L, Role.USER));
+
+        mockMvc.perform(multipart("/api/v1/scan/fridge-image").file(imageFile()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.scanType").value("FRIDGE_IMAGE"))
+                .andExpect(jsonPath("$.data.imageAsset.imageAssetId").value(12))
+                .andExpect(jsonPath("$.data.imageAsset.kind").value("FRIDGE"))
+                .andExpect(jsonPath("$.data.imageAsset.storageProvider").value("S3"))
+                .andExpect(jsonPath("$.data.imageAsset.imageUrl")
+                        .value("https://cdn.example.com/images/1/fridge/fridge.jpg"))
+                .andExpect(jsonPath("$.data.detectedItems[0].name").value("계란"))
+                .andExpect(jsonPath("$.data.detectedItems[0].category").value("ETC"))
+                .andExpect(jsonPath("$.data.detectedItems[0].confidence").doesNotExist())
+                .andExpect(jsonPath("$.data.detectedItems[0].box").doesNotExist());
+
+        ArgumentCaptor<ScanFridgeImageUseCase.Command> captor =
+                ArgumentCaptor.forClass(ScanFridgeImageUseCase.Command.class);
+        verify(scanFridgeImageUseCase).scan(captor.capture());
         assertEquals(1L, captor.getValue().userId());
     }
 

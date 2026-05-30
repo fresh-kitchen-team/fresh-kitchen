@@ -1,6 +1,7 @@
 package com.example.freshkitchen.presentation.scan;
 
 import com.example.freshkitchen.application.scan.dto.ScanDto;
+import com.example.freshkitchen.application.scan.usecase.ScanFridgeImageUseCase;
 import com.example.freshkitchen.application.scan.usecase.ScanIngredientImageUseCase;
 import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase;
 import com.example.freshkitchen.global.response.ApiResponse;
@@ -22,6 +23,7 @@ public class ScanController {
 
     private final ScanIngredientImageUseCase scanIngredientImageUseCase;
     private final ScanReceiptImageUseCase scanReceiptImageUseCase;
+    private final ScanFridgeImageUseCase scanFridgeImageUseCase;
 
     @PostMapping(value = "/ingredient-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ScanDto.IngredientImageScanResponse>> scanIngredientImage(
@@ -40,6 +42,16 @@ public class ScanController {
     ) {
         return ApiResponse.success(scanReceiptImageUseCase.scan(
                 new ScanReceiptImageUseCase.Command(userId, file)
+        ));
+    }
+
+    @PostMapping(value = "/fridge-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<ScanDto.FridgeImageScanResponse>> scanFridgeImage(
+            @AuthenticationPrincipal Long userId,
+            @RequestPart("file") MultipartFile file
+    ) {
+        return ApiResponse.success(scanFridgeImageUseCase.scan(
+                new ScanFridgeImageUseCase.Command(userId, file)
         ));
     }
 }

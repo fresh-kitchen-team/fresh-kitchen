@@ -20,6 +20,8 @@ public interface IngredientRepositoryCustom {
 
     List<Ingredient> findAllByUserIdAndStatus(Long userId, IngredientStatus status);
 
+    List<Ingredient> findAllByUserIdAndStatusAndNameContaining(Long userId, IngredientStatus status, String name);
+
     Optional<Ingredient> findByIdAndUserIdAndStatusWithImagesForUpdate(
             Long ingredientId,
             Long userId,

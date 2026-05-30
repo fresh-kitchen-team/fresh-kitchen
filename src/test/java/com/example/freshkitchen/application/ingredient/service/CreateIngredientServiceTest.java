@@ -99,7 +99,7 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
                 null,
                 ExpirySourceType.MANUAL,
                 "salad",
-                IngredientSourceType.MANUAL
+                IngredientSourceType.PHOTO
         ));
 
         entityManager.flush();
@@ -116,7 +116,37 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
     }
 
     @Test
-    void create_usesRequestedCategoryForUnmappedCatalogAndAppliesCategoryExpiryRule() {
+    void create_doesNotMapManualIngredientByName() {
+        User user = persistUser("manual-no-mapping-user", Provider.GOOGLE);
+        persistStorage(user, StorageType.FRIDGE, "Fridge");
+        persistCatalog("Tomato", CatalogCategory.VEGETABLE, StorageType.FRIDGE);
+
+        Long ingredientId = createIngredientUseCase.create(new CreateIngredientUseCase.Command(
+                user.getId(),
+                StorageType.FRIDGE,
+                null,
+                "Tomato",
+                LocalDate.of(2026, 5, 1),
+                null,
+                ExpirySourceType.UNKNOWN,
+                null,
+                IngredientSourceType.MANUAL
+        ));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Ingredient ingredient = ingredientRepository.findByIdAndUserId(ingredientId, user.getId())
+                .orElseThrow();
+
+        assertNull(ingredient.getCatalog());
+        assertEquals(CatalogCategory.ETC, ingredient.getCategory());
+        assertNull(ingredient.getExpiresAt());
+        assertEquals(ExpirySourceType.UNKNOWN, ingredient.getExpirySourceType());
+    }
+
+    @Test
+    void create_usesRequestedCategoryForUnmappedScanCatalogAndAppliesCategoryExpiryRule() {
         User user = persistUser("unmapped-catalog-user", Provider.GOOGLE);
         persistStorage(user, StorageType.FRIDGE, "Fridge");
         persistCategoryExpiryRule(CatalogCategory.GRAIN, StorageType.FRIDGE, 5);
@@ -131,7 +161,7 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
                 null,
                 ExpirySourceType.MANUAL,
                 null,
-                IngredientSourceType.MANUAL
+                IngredientSourceType.RECEIPT
         ));
 
         entityManager.flush();
@@ -192,7 +222,7 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
                 LocalDate.of(2026, 5, 20),
                 ExpirySourceType.MANUAL,
                 null,
-                IngredientSourceType.MANUAL
+                IngredientSourceType.PHOTO
         ));
 
         entityManager.flush();

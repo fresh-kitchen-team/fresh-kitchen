@@ -8,7 +8,12 @@ import com.example.freshkitchen.application.auth.usecase.LogoutUseCase;
 import com.example.freshkitchen.application.auth.usecase.RefreshTokenUseCase;
 import com.example.freshkitchen.application.analytics.usecase.GetAnalyticsSummaryUseCase;
 import com.example.freshkitchen.application.analytics.usecase.ListExpiringItemsUseCase;
+import com.example.freshkitchen.application.alarm.service.ExpiringIngredientNotificationService;
+import com.example.freshkitchen.application.inquiry.usecase.GetInquiryDetailUseCase;
+import com.example.freshkitchen.application.inquiry.usecase.GetInquiryListUseCase;
+import com.example.freshkitchen.application.inquiry.usecase.ReplyInquiryUseCase;
 import com.example.freshkitchen.application.inquiry.usecase.SendInquiryUseCase;
+import com.example.freshkitchen.application.user.usecase.RegisterFcmTokenUseCase;
 import com.example.freshkitchen.application.legal.usecase.AgreeTermsUseCase;
 import com.example.freshkitchen.application.legal.usecase.GetTermsAgreementUseCase;
 import com.example.freshkitchen.application.chat.usecase.CreateChatRoomUseCase;
@@ -29,6 +34,7 @@ import com.example.freshkitchen.application.ingredient.usecase.ListIngredientsUs
 import com.example.freshkitchen.application.ingredient.usecase.ListStoragesUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.ResolveIngredientDefaultsUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.UpdateIngredientUseCase;
+import com.example.freshkitchen.application.scan.usecase.ScanFridgeImageUseCase;
 import com.example.freshkitchen.application.scan.usecase.ScanIngredientImageUseCase;
 import com.example.freshkitchen.application.scan.usecase.ScanReceiptImageUseCase;
 import com.example.freshkitchen.application.user.dto.UserProfileResult;
@@ -132,6 +138,9 @@ class SecurityFilterChainIntegrationTest {
     private ScanIngredientImageUseCase scanIngredientImageUseCase;
 
     @MockitoBean
+    private ScanFridgeImageUseCase scanFridgeImageUseCase;
+
+    @MockitoBean
     private ScanReceiptImageUseCase scanReceiptImageUseCase;
 
     @MockitoBean
@@ -202,6 +211,21 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private InquiryProperties inquiryProperties;
+
+    @MockitoBean
+    private GetInquiryListUseCase getInquiryListUseCase;
+
+    @MockitoBean
+    private GetInquiryDetailUseCase getInquiryDetailUseCase;
+
+    @MockitoBean
+    private ReplyInquiryUseCase replyInquiryUseCase;
+
+    @MockitoBean
+    private ExpiringIngredientNotificationService expiringIngredientNotificationService;
+
+    @MockitoBean
+    private RegisterFcmTokenUseCase registerFcmTokenUseCase;
 
     @MockitoBean
     private LogoutUseCase logoutUseCase;

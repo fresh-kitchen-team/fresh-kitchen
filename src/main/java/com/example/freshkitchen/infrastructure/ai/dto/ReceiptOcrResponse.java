@@ -8,6 +8,12 @@ import java.util.List;
 public record ReceiptOcrResponse(
         @JsonFormat(shape = JsonFormat.Shape.STRING)
         LocalDate purchasedAt,
-        List<String> ingredients
+        List<IngredientItem> ingredients
 ) {
+
+    public record IngredientItem(
+            String name,
+            String category
+    ) {
+    }
 }

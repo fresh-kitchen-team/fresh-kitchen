@@ -8,6 +8,7 @@ import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
+import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
@@ -34,7 +35,7 @@ public class CreateIngredientService implements CreateIngredientUseCase {
     @Override
     public Long create(Command command) {
         Storage storage = resolveStorage(command.userId(), command.storageType());
-        IngredientCatalog catalog = ingredientCatalogMappingService.resolve(command.catalogId(), command.name());
+        IngredientCatalog catalog = resolveCatalog(command);
         CatalogCategory category = resolveCategory(command.category(), catalog);
         ExpiryMapping expiry = resolveExpiry(command, catalog, category, storage.getStorageType());
         User user = entityManager.getReference(User.class, command.userId());
@@ -53,6 +54,13 @@ public class CreateIngredientService implements CreateIngredientUseCase {
         ));
 
         return ingredientRepository.save(ingredient).getId();
+    }
+
+    private IngredientCatalog resolveCatalog(Command command) {
+        if (command.catalogId() != null || isScanSource(command.sourceType())) {
+            return ingredientCatalogMappingService.resolve(command.catalogId(), command.name());
+        }
+        return null;
     }
 
     private CatalogCategory resolveCategory(CatalogCategory requestedCategory, IngredientCatalog catalog) {
@@ -82,6 +90,9 @@ public class CreateIngredientService implements CreateIngredientUseCase {
         if (command.registeredAt() == null) {
             return new ExpiryMapping(null, ExpirySourceType.UNKNOWN);
         }
+        if (!isScanSource(command.sourceType()) && catalog == null && command.category() == null) {
+            return new ExpiryMapping(null, ExpirySourceType.UNKNOWN);
+        }
 
         IngredientDto.DefaultsResponse defaults = resolveIngredientDefaultsUseCase.resolve(
                 new ResolveIngredientDefaultsUseCase.Query(catalog != null ? catalog.getId() : null, category, storageType)
@@ -90,6 +101,10 @@ public class CreateIngredientService implements CreateIngredientUseCase {
             return new ExpiryMapping(null, ExpirySourceType.UNKNOWN);
         }
         return new ExpiryMapping(command.registeredAt().plusDays(defaults.shelfLifeDays()), ExpirySourceType.POLICY);
+    }
+
+    private static boolean isScanSource(IngredientSourceType sourceType) {
+        return sourceType == IngredientSourceType.PHOTO || sourceType == IngredientSourceType.RECEIPT;
     }
 
     private record ExpiryMapping(
