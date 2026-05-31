@@ -149,7 +149,6 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
     void create_usesRequestedCategoryForUnmappedScanCatalogWithoutAutoExpiry() {
         User user = persistUser("unmapped-catalog-user", Provider.GOOGLE);
         persistStorage(user, StorageType.FRIDGE, "Fridge");
-        persistCategoryExpiryRule(CatalogCategory.GRAIN, StorageType.FRIDGE, 5);
 
         Long ingredientId = createIngredientUseCase.create(new CreateIngredientUseCase.Command(
                 user.getId(),
