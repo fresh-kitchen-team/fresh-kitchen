@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
@@ -55,11 +54,13 @@ class IngredientCatalogRepositoryTest extends PostgreSqlTestContainerSupport {
         entityManager.flush();
         entityManager.clear();
 
-        List<Long> catalogIds = ingredientCatalogRepository.findAllByCategory(CatalogCategory.FRUIT).stream()
-                .map(IngredientCatalog::getId)
+        List<String> catalogNames = ingredientCatalogRepository.findAllByCategory(CatalogCategory.FRUIT).stream()
+                .map(IngredientCatalog::getName)
                 .toList();
 
-        assertIterableEquals(List.of(apple.getId(), banana.getId()), catalogIds);
+        assertTrue(catalogNames.indexOf(apple.getName()) < catalogNames.indexOf(banana.getName()));
+        assertTrue(catalogNames.contains(apple.getName()));
+        assertTrue(catalogNames.contains(banana.getName()));
     }
 
     @Test

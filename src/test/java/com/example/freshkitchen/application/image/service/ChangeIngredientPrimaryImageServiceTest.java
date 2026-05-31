@@ -157,8 +157,8 @@ class ChangeIngredientPrimaryImageServiceTest extends PostgreSqlTestContainerSup
                 persistImageAsset(user, "images/discarded.png"),
                 true
         );
-        consumedIngredient.markConsumed(null);
-        discardedIngredient.markDiscarded(null);
+        consumedIngredient.markConsumed(java.time.LocalDate.of(2026, 5, 1));
+        discardedIngredient.markDiscarded(java.time.LocalDate.of(2026, 5, 1));
 
         entityManager.flush();
         entityManager.clear();
@@ -212,8 +212,7 @@ class ChangeIngredientPrimaryImageServiceTest extends PostgreSqlTestContainerSup
     }
 
     private Ingredient persistIngredient(User user, String name) {
-        Storage storage = Storage.create(new Storage.CreateCommand(user, StorageType.FRIDGE, name + " fridge"));
-        entityManager.persist(storage);
+        Storage storage = resolveFridgeStorage(user, name);
         Ingredient ingredient = Ingredient.create(new Ingredient.CreateCommand(
                 user,
                 storage,
@@ -227,6 +226,25 @@ class ChangeIngredientPrimaryImageServiceTest extends PostgreSqlTestContainerSup
         ));
         entityManager.persist(ingredient);
         return ingredient;
+    }
+
+    private Storage resolveFridgeStorage(User user, String name) {
+        return entityManager.createQuery("""
+                        select storage
+                        from Storage storage
+                        where storage.user = :user
+                          and storage.storageType = :storageType
+                        """, Storage.class)
+                .setParameter("user", user)
+                .setParameter("storageType", StorageType.FRIDGE)
+                .getResultList()
+                .stream()
+                .findFirst()
+                .orElseGet(() -> {
+                    Storage storage = Storage.create(new Storage.CreateCommand(user, StorageType.FRIDGE, name + " fridge"));
+                    entityManager.persist(storage);
+                    return storage;
+                });
     }
 
     private ImageAsset persistImageAsset(User user, String objectKey) {

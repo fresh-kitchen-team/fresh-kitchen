@@ -50,11 +50,14 @@ class IngredientEntityTest {
         assertEquals(LocalDate.of(2026, 4, 3), ingredient.getConsumedAt());
         assertNull(ingredient.getDiscardedAt());
 
-        ingredient.markDiscarded(LocalDate.of(2026, 4, 4));
+        IngredientException exception = assertThrows(IngredientException.class, () ->
+                ingredient.markDiscarded(LocalDate.of(2026, 4, 4))
+        );
 
-        assertEquals(IngredientStatus.DISCARDED, ingredient.getStatus());
-        assertNull(ingredient.getConsumedAt());
-        assertEquals(LocalDate.of(2026, 4, 4), ingredient.getDiscardedAt());
+        assertEquals("invalid ingredient status transition", exception.getMessage());
+        assertEquals(IngredientStatus.CONSUMED, ingredient.getStatus());
+        assertEquals(LocalDate.of(2026, 4, 3), ingredient.getConsumedAt());
+        assertNull(ingredient.getDiscardedAt());
     }
 
     @Test

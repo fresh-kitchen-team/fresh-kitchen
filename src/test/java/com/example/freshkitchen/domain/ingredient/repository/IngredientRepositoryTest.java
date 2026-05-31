@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.TestConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -95,7 +96,7 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
         User owner = persistUser("discarded-owner", Provider.GOOGLE);
         Storage storage = persistStorage(owner, StorageType.FRIDGE, "Owner fridge");
         Ingredient ingredient = persistIngredient(owner, storage, "Tomato");
-        ingredient.markDiscarded(null);
+        ingredient.markDiscarded(LocalDate.of(2026, 5, 1));
 
         entityManager.flush();
         entityManager.clear();
@@ -114,7 +115,7 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
         User owner = persistUser("discarded-detail-owner", Provider.GOOGLE);
         Storage storage = persistStorage(owner, StorageType.FRIDGE, "Main fridge");
         Ingredient ingredient = persistIngredient(owner, storage, "Milk");
-        ingredient.markDiscarded(null);
+        ingredient.markDiscarded(LocalDate.of(2026, 5, 1));
 
         entityManager.flush();
         entityManager.clear();
@@ -173,8 +174,8 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
         Storage storage = persistStorage(user, StorageType.FRIDGE, "Main fridge");
         Ingredient consumedIngredient = persistIngredient(user, storage, "Milk");
         Ingredient discardedIngredient = persistIngredient(user, storage, "Onion");
-        consumedIngredient.markConsumed(null);
-        discardedIngredient.markDiscarded(null);
+        consumedIngredient.markConsumed(LocalDate.of(2026, 5, 1));
+        discardedIngredient.markDiscarded(LocalDate.of(2026, 5, 1));
 
         entityManager.flush();
         entityManager.clear();
@@ -228,8 +229,8 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
         persistIngredientImage(activeIngredient, persistImageAsset(owner, "images/tomato-secondary.png"), false);
         persistIngredient(otherUser, otherStorage, "Other tomato");
 
-        consumedIngredient.markConsumed(null);
-        discardedIngredient.markDiscarded(null);
+        consumedIngredient.markConsumed(LocalDate.of(2026, 5, 1));
+        discardedIngredient.markDiscarded(LocalDate.of(2026, 5, 1));
 
         entityManager.flush();
         entityManager.clear();
