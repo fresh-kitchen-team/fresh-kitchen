@@ -138,7 +138,7 @@ class ItemControllerTest {
                 () -> assertEquals(LocalDate.of(2026, 5, 6), createCaptor.getValue().ingredientCommand().expiresAt()),
                 () -> assertEquals(ExpirySourceType.MANUAL, createCaptor.getValue().ingredientCommand().expirySourceType()),
                 () -> assertEquals("salad", createCaptor.getValue().ingredientCommand().note()),
-                () -> assertEquals(IngredientSourceType.PHOTO, createCaptor.getValue().ingredientCommand().sourceType()),
+                () -> assertEquals(IngredientSourceType.MANUAL, createCaptor.getValue().ingredientCommand().sourceType()),
                 () -> assertEquals(20L, createCaptor.getValue().imageAssetId())
         );
     }

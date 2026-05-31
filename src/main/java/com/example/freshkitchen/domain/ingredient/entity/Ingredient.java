@@ -55,7 +55,7 @@ public class Ingredient extends BaseTimeEntity {
     private IngredientCatalog catalog;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "category", nullable = false, length = 30)
+    @Column(name = "category", length = 30)
     private CatalogCategory category;
 
     @Column(name = "name", nullable = false, length = 100)
@@ -111,7 +111,7 @@ public class Ingredient extends BaseTimeEntity {
         this.user = requireNonNull(user, "user");
         this.storage = requireOwnedStorage(user, storage);
         this.catalog = catalog;
-        this.category = requireNonNull(category, "category");
+        this.category = category;
         this.name = requireNonBlank(name, "name");
         this.registeredAt = registeredAt;
         this.expiresAt = expiresAt;
@@ -147,7 +147,7 @@ public class Ingredient extends BaseTimeEntity {
             this.catalog = command.catalog();
         }
         if (command.category() != null) {
-            this.category = requireNonNull(command.category(), "category");
+            this.category = command.category();
         }
         if (command.name() != null) {
             this.name = requireNonBlank(command.name(), "name");
@@ -281,7 +281,7 @@ public class Ingredient extends BaseTimeEntity {
                 String note,
                 IngredientSourceType sourceType
         ) {
-            this(user, storage, catalog, resolveCategory(null, catalog), name, registeredAt, expiresAt, expirySourceType, note, sourceType);
+            this(user, storage, catalog, catalog != null ? catalog.getCategory() : null, name, registeredAt, expiresAt, expirySourceType, note, sourceType);
         }
 
         public CreateCommand(
@@ -299,23 +299,13 @@ public class Ingredient extends BaseTimeEntity {
             this.user = user;
             this.storage = storage;
             this.catalog = catalog;
-            this.category = resolveCategory(category, catalog);
+            this.category = category != null ? category : catalog != null ? catalog.getCategory() : null;
             this.name = name;
             this.registeredAt = registeredAt;
             this.expiresAt = expiresAt;
             this.expirySourceType = expirySourceType;
             this.note = note;
             this.sourceType = sourceType;
-        }
-
-        private static CatalogCategory resolveCategory(CatalogCategory category, IngredientCatalog catalog) {
-            if (category != null) {
-                return category;
-            }
-            if (catalog != null) {
-                return catalog.getCategory();
-            }
-            return CatalogCategory.ETC;
         }
 
     }

@@ -41,7 +41,7 @@ public final class ItemRequest {
                     expiryDate,
                     ExpirySourceType.MANUAL,
                     memo,
-                    imageAssetId != null ? IngredientSourceType.PHOTO : IngredientSourceType.MANUAL
+                    IngredientSourceType.MANUAL
             );
         }
     }
