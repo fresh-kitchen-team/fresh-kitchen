@@ -115,6 +115,7 @@ class ItemControllerTest {
                                 {
                                   "name": "Tomato",
                                   "storageType": "FRIDGE",
+                                  "category": "GRAIN",
                                   "expiryDate": "2026-05-06",
                                   "purchaseDate": "2026-04-29",
                                   "memo": "salad",
@@ -132,7 +133,6 @@ class ItemControllerTest {
                 () -> assertEquals(1L, createCaptor.getValue().ingredientCommand().userId()),
                 () -> assertEquals(StorageType.FRIDGE, createCaptor.getValue().ingredientCommand().storageType()),
                 () -> assertNull(createCaptor.getValue().ingredientCommand().catalogId()),
-                () -> assertNull(createCaptor.getValue().ingredientCommand().category()),
                 () -> assertEquals("Tomato", createCaptor.getValue().ingredientCommand().name()),
                 () -> assertEquals(LocalDate.of(2026, 4, 29), createCaptor.getValue().ingredientCommand().registeredAt()),
                 () -> assertEquals(LocalDate.of(2026, 5, 6), createCaptor.getValue().ingredientCommand().expiresAt()),

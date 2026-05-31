@@ -100,7 +100,6 @@ public class Ingredient extends BaseTimeEntity {
             User user,
             Storage storage,
             IngredientCatalog catalog,
-            CatalogCategory category,
             String name,
             LocalDate registeredAt,
             LocalDate expiresAt,
@@ -111,7 +110,7 @@ public class Ingredient extends BaseTimeEntity {
         this.user = requireNonNull(user, "user");
         this.storage = requireOwnedStorage(user, storage);
         this.catalog = catalog;
-        this.category = category;
+        this.category = catalog != null ? catalog.getCategory() : null;
         this.name = requireNonBlank(name, "name");
         this.registeredAt = registeredAt;
         this.expiresAt = expiresAt;
@@ -127,7 +126,6 @@ public class Ingredient extends BaseTimeEntity {
                 command.user(),
                 command.storage(),
                 command.catalog(),
-                command.category(),
                 command.name(),
                 command.registeredAt(),
                 command.expiresAt(),
@@ -262,7 +260,6 @@ public class Ingredient extends BaseTimeEntity {
             User user,
             Storage storage,
             IngredientCatalog catalog,
-            CatalogCategory category,
             String name,
             LocalDate registeredAt,
             LocalDate expiresAt,
@@ -270,44 +267,6 @@ public class Ingredient extends BaseTimeEntity {
             String note,
             IngredientSourceType sourceType
     ) {
-        public CreateCommand(
-                User user,
-                Storage storage,
-                IngredientCatalog catalog,
-                String name,
-                LocalDate registeredAt,
-                LocalDate expiresAt,
-                ExpirySourceType expirySourceType,
-                String note,
-                IngredientSourceType sourceType
-        ) {
-            this(user, storage, catalog, catalog != null ? catalog.getCategory() : null, name, registeredAt, expiresAt, expirySourceType, note, sourceType);
-        }
-
-        public CreateCommand(
-                User user,
-                Storage storage,
-                IngredientCatalog catalog,
-                CatalogCategory category,
-                String name,
-                LocalDate registeredAt,
-                LocalDate expiresAt,
-                ExpirySourceType expirySourceType,
-                String note,
-                IngredientSourceType sourceType
-        ) {
-            this.user = user;
-            this.storage = storage;
-            this.catalog = catalog;
-            this.category = category != null ? category : catalog != null ? catalog.getCategory() : null;
-            this.name = name;
-            this.registeredAt = registeredAt;
-            this.expiresAt = expiresAt;
-            this.expirySourceType = expirySourceType;
-            this.note = note;
-            this.sourceType = sourceType;
-        }
-
     }
 
     public record UpdateCommand(

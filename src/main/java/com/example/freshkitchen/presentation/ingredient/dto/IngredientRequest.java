@@ -2,11 +2,11 @@ package com.example.freshkitchen.presentation.ingredient.dto;
 
 import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.UpdateIngredientUseCase;
-import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -23,10 +23,10 @@ public final class IngredientRequest {
     private IngredientRequest() {
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Create(
             @NotNull StorageType storageType,
             @Positive Long catalogId,
-            CatalogCategory category,
             @NotBlank @Size(max = NAME_MAX_LENGTH) String name,
             LocalDate registeredAt,
             LocalDate expiresAt,
@@ -40,7 +40,6 @@ public final class IngredientRequest {
                     userId,
                     storageType,
                     catalogId,
-                    category,
                     name,
                     registeredAt,
                     expiresAt,

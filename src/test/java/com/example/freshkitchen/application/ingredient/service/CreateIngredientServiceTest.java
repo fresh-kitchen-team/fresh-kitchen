@@ -146,7 +146,7 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
     }
 
     @Test
-    void create_usesRequestedCategoryForUnmappedScanCatalogWithoutAutoExpiry() {
+    void create_leavesCategoryNullForUnmappedScanCatalogWithoutAutoExpiry() {
         User user = persistUser("unmapped-catalog-user", Provider.GOOGLE);
         persistStorage(user, StorageType.FRIDGE, "Fridge");
 
@@ -154,7 +154,6 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
                 user.getId(),
                 StorageType.FRIDGE,
                 null,
-                CatalogCategory.GRAIN,
                 "Unknown food",
                 LocalDate.of(2026, 5, 1),
                 null,
@@ -171,7 +170,7 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
 
         assertEquals("Unknown food", ingredient.getName());
         assertNull(ingredient.getCatalog());
-        assertEquals(CatalogCategory.GRAIN, ingredient.getCategory());
+        assertNull(ingredient.getCategory());
         assertNull(ingredient.getExpiresAt());
         assertEquals(ExpirySourceType.UNKNOWN, ingredient.getExpirySourceType());
     }

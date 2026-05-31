@@ -6,6 +6,7 @@ import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -22,6 +23,7 @@ public final class ItemRequest {
     private ItemRequest() {
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Create(
             @NotBlank @Size(max = NAME_MAX_LENGTH) String name,
             @NotNull StorageType storageType,

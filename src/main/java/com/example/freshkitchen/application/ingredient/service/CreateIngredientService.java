@@ -2,7 +2,6 @@ package com.example.freshkitchen.application.ingredient.service;
 
 import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientUseCase;
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
-import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
@@ -33,7 +32,6 @@ public class CreateIngredientService implements CreateIngredientUseCase {
     public Long create(Command command) {
         Storage storage = resolveStorage(command.userId(), command.storageType());
         IngredientCatalog catalog = resolveCatalog(command);
-        CatalogCategory category = resolveCategory(command.category(), catalog);
         ExpiryMapping expiry = resolveExpiry(command);
         User user = entityManager.getReference(User.class, command.userId());
 
@@ -41,7 +39,6 @@ public class CreateIngredientService implements CreateIngredientUseCase {
                 user,
                 storage,
                 catalog,
-                category,
                 command.name(),
                 command.registeredAt(),
                 expiry.expiresAt(),
@@ -56,16 +53,6 @@ public class CreateIngredientService implements CreateIngredientUseCase {
     private IngredientCatalog resolveCatalog(Command command) {
         if (command.catalogId() != null || isScanSource(command.sourceType())) {
             return ingredientCatalogMappingService.resolve(command.catalogId(), command.name());
-        }
-        return null;
-    }
-
-    private CatalogCategory resolveCategory(CatalogCategory requestedCategory, IngredientCatalog catalog) {
-        if (requestedCategory != null) {
-            return requestedCategory;
-        }
-        if (catalog != null) {
-            return catalog.getCategory();
         }
         return null;
     }
