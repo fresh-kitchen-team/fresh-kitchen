@@ -6,6 +6,7 @@ import com.example.freshkitchen.application.analytics.usecase.ListExpiringItemsU
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
+import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
@@ -42,6 +43,7 @@ public class ListExpiringItemsService implements ListExpiringItemsUseCase {
         Stream<Ingredient> stream = ingredientRepository
                 .findAllByUserIdAndStatus(query.userId(), IngredientStatus.ACTIVE)
                 .stream()
+                .filter(i -> i.getExpirySourceType() == ExpirySourceType.MANUAL)
                 .filter(i -> i.getExpiresAt() != null && !i.getExpiresAt().isAfter(deadline));
 
         if (query.storageType() != null) {

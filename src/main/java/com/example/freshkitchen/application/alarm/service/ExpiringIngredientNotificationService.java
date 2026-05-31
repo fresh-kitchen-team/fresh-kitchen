@@ -2,6 +2,7 @@ package com.example.freshkitchen.application.alarm.service;
 
 import com.example.freshkitchen.application.alarm.config.ExpiringIngredientNotificationProperties;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
+import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
 import com.example.freshkitchen.domain.user.entity.UserFcmToken;
@@ -45,7 +46,7 @@ public class ExpiringIngredientNotificationService {
         LocalDate until = today.plusDays(properties.getDaysAhead());
 
         List<Ingredient> ingredients = ingredientRepository.findExpiringWithUser(
-                IngredientStatus.ACTIVE, today, until
+                IngredientStatus.ACTIVE, today, until, List.of(ExpirySourceType.MANUAL, ExpirySourceType.POLICY)
         );
         if (ingredients.isEmpty()) {
             log.info("[ExpiringNotification] no expiring ingredients between {} ~ {}", today, until);

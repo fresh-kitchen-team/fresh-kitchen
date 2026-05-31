@@ -6,6 +6,7 @@ import com.example.freshkitchen.application.analytics.usecase.GetAnalyticsSummar
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
+import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
@@ -99,6 +100,9 @@ public class GetAnalyticsSummaryService implements GetAnalyticsSummaryUseCase {
     private boolean isUrgent(Ingredient ingredient, LocalDate today) {
         LocalDate expiresAt = ingredient.getExpiresAt();
         if (expiresAt == null) {
+            return false;
+        }
+        if (ingredient.getExpirySourceType() != ExpirySourceType.MANUAL) {
             return false;
         }
         return !expiresAt.isBefore(today)
