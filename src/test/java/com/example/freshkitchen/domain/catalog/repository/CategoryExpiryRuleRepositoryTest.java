@@ -47,8 +47,16 @@ class CategoryExpiryRuleRepositoryTest extends PostgreSqlTestContainerSupport {
 
     @Test
     void findByCategoryAndStorageType_returnsEmptyWhenRuleDoesNotExist() {
+        CategoryExpiryRule existingRule = categoryExpiryRuleRepository.findByCategoryAndStorageType(
+                        CatalogCategory.VEGETABLE,
+                        StorageType.PANTRY
+                )
+                .orElseThrow();
+        categoryExpiryRuleRepository.delete(existingRule);
+        categoryExpiryRuleRepository.flush();
+
         Optional<CategoryExpiryRule> rule = categoryExpiryRuleRepository.findByCategoryAndStorageType(
-                null,
+                CatalogCategory.VEGETABLE,
                 StorageType.PANTRY
         );
 

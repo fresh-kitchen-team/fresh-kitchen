@@ -6,16 +6,19 @@ import com.example.freshkitchen.application.home.usecase.GetHomeSummaryUseCase;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,29 +59,36 @@ class HomeControllerTest {
                 )
         );
 
-        mockMvc.perform(get("/api/v1/home/summary")
-                        .with(authentication(new TestingAuthenticationToken(1L, null))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value(200))
-                .andExpect(jsonPath("$.code").value("COMMON-200"))
-                .andExpect(jsonPath("$.message").value("Success"))
-                .andExpect(jsonPath("$.data.totalCount").value(42))
-                .andExpect(jsonPath("$.data.freshCount").value(35))
-                .andExpect(jsonPath("$.data.nearExpiryCount").value(5))
-                .andExpect(jsonPath("$.data.expiredCount").value(2))
-                .andExpect(jsonPath("$.data.storages[0].storage").value("FRIDGE"))
-                .andExpect(jsonPath("$.data.storages[0].emoji").value("🥛"))
-                .andExpect(jsonPath("$.data.storages[0].name").value("냉장실"))
-                .andExpect(jsonPath("$.data.storages[0].itemCount").value(28))
-                .andExpect(jsonPath("$.data.storages[0].filterKey").value("fridge"))
-                .andExpect(jsonPath("$.data.nearExpiryItems[0].id").value(4))
-                .andExpect(jsonPath("$.data.nearExpiryItems[0].name").value("계란"))
-                .andExpect(jsonPath("$.data.nearExpiryItems[0].storage").value("FRIDGE"))
-                .andExpect(jsonPath("$.data.nearExpiryItems[0].expiryDate").value("2026-03-24"))
-                .andExpect(jsonPath("$.data.nearExpiryItems[0].status").value("NEAR_EXPIRY"))
-                .andExpect(jsonPath("$.data.nearExpiryItems[0].emoji").value("🥚"));
+        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken(1L, null));
+        try {
+            mockMvc.perform(get("/api/v1/home/summary"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value(200))
+                    .andExpect(jsonPath("$.code").value("COMMON-200"))
+                    .andExpect(jsonPath("$.message").value("Success"))
+                    .andExpect(jsonPath("$.data.totalCount").value(42))
+                    .andExpect(jsonPath("$.data.freshCount").value(35))
+                    .andExpect(jsonPath("$.data.nearExpiryCount").value(5))
+                    .andExpect(jsonPath("$.data.expiredCount").value(2))
+                    .andExpect(jsonPath("$.data.storages[0].storage").value("FRIDGE"))
+                    .andExpect(jsonPath("$.data.storages[0].emoji").value("🥛"))
+                    .andExpect(jsonPath("$.data.storages[0].name").value("냉장실"))
+                    .andExpect(jsonPath("$.data.storages[0].itemCount").value(28))
+                    .andExpect(jsonPath("$.data.storages[0].filterKey").value("fridge"))
+                    .andExpect(jsonPath("$.data.nearExpiryItems[0].id").value(4))
+                    .andExpect(jsonPath("$.data.nearExpiryItems[0].name").value("계란"))
+                    .andExpect(jsonPath("$.data.nearExpiryItems[0].storage").value("FRIDGE"))
+                    .andExpect(jsonPath("$.data.nearExpiryItems[0].expiryDate").value("2026-03-24"))
+                    .andExpect(jsonPath("$.data.nearExpiryItems[0].status").value("NEAR_EXPIRY"))
+                    .andExpect(jsonPath("$.data.nearExpiryItems[0].emoji").value("🥚"));
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
 
-        verify(getHomeSummaryUseCase).get(any(GetHomeSummaryUseCase.Query.class));
+        ArgumentCaptor<GetHomeSummaryUseCase.Query> queryCaptor =
+                ArgumentCaptor.forClass(GetHomeSummaryUseCase.Query.class);
+        verify(getHomeSummaryUseCase).get(queryCaptor.capture());
+        assertEquals(1L, queryCaptor.getValue().userId());
     }
 
     @Test
