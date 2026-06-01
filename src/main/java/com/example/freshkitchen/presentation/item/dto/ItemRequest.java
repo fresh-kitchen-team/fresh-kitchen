@@ -27,6 +27,7 @@ public final class ItemRequest {
     public record Create(
             @NotBlank @Size(max = NAME_MAX_LENGTH) String name,
             @NotNull StorageType storageType,
+            IngredientSourceType sourceType,
             LocalDate expiryDate,
             LocalDate purchaseDate,
             String memo,
@@ -43,7 +44,7 @@ public final class ItemRequest {
                     expiryDate,
                     ExpirySourceType.MANUAL,
                     memo,
-                    IngredientSourceType.MANUAL
+                    sourceType != null ? sourceType : IngredientSourceType.MANUAL
             );
         }
     }

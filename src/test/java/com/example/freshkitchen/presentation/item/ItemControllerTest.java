@@ -165,6 +165,50 @@ class ItemControllerTest {
     }
 
     @Test
+    void create_mapsPhotoSourceType() throws Exception {
+        when(createIngredientWithImageUseCase.create(any(CreateIngredientWithImageUseCase.Command.class))).thenReturn(10L);
+
+        mockMvc.perform(post("/api/v1/items")
+                        .principal(auth(1L))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Tomato",
+                                  "storageType": "FRIDGE",
+                                  "sourceType": "PHOTO"
+                                }
+                                """))
+                .andExpect(status().isCreated());
+
+        ArgumentCaptor<CreateIngredientWithImageUseCase.Command> captor =
+                ArgumentCaptor.forClass(CreateIngredientWithImageUseCase.Command.class);
+        verify(createIngredientWithImageUseCase).create(captor.capture());
+        assertEquals(IngredientSourceType.PHOTO, captor.getValue().ingredientCommand().sourceType());
+    }
+
+    @Test
+    void create_mapsReceiptSourceType() throws Exception {
+        when(createIngredientWithImageUseCase.create(any(CreateIngredientWithImageUseCase.Command.class))).thenReturn(10L);
+
+        mockMvc.perform(post("/api/v1/items")
+                        .principal(auth(1L))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Tomato",
+                                  "storageType": "FRIDGE",
+                                  "sourceType": "RECEIPT"
+                                }
+                                """))
+                .andExpect(status().isCreated());
+
+        ArgumentCaptor<CreateIngredientWithImageUseCase.Command> captor =
+                ArgumentCaptor.forClass(CreateIngredientWithImageUseCase.Command.class);
+        verify(createIngredientWithImageUseCase).create(captor.capture());
+        assertEquals(IngredientSourceType.RECEIPT, captor.getValue().ingredientCommand().sourceType());
+    }
+
+    @Test
     void list_returnsItemSummaries() throws Exception {
         when(listIngredientsUseCase.list(any(ListIngredientsUseCase.Query.class))).thenReturn(List.of(summary()));
 
