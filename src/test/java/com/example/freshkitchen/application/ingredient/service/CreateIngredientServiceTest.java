@@ -19,10 +19,14 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestConstructor;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -33,10 +37,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
         DefaultStorageService.class,
         IngredientCatalogMappingService.class,
         ResolveIngredientDefaultsService.class,
-        CreateIngredientService.class
+        CreateIngredientService.class,
+        CreateIngredientServiceTest.FixedClockConfig.class
 })
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
+
+    private static final LocalDate TODAY = LocalDate.of(2026, 5, 1);
 
     private final CreateIngredientUseCase createIngredientUseCase;
     private final IngredientRepository ingredientRepository;
@@ -84,7 +91,7 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
     }
 
     @Test
-    void create_mapsCatalogByIngredientNameWithoutAutoExpiry() {
+    void create_mapsCatalogByIngredientNameAndAppliesCatalogExpiryRuleAsPolicy() {
         User user = persistUser("catalog-mapping-user", Provider.GOOGLE);
         Storage storage = persistStorage(user, StorageType.FRIDGE, "Fridge");
         IngredientCatalog catalog = persistCatalog("Tomato", CatalogCategory.VEGETABLE, StorageType.FRIDGE);
@@ -111,8 +118,65 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
         assertEquals(storage.getId(), ingredient.getStorage().getId());
         assertEquals(catalog.getId(), ingredient.getCatalog().getId());
         assertEquals(CatalogCategory.VEGETABLE, ingredient.getCategory());
-        assertNull(ingredient.getExpiresAt());
-        assertEquals(ExpirySourceType.UNKNOWN, ingredient.getExpirySourceType());
+        assertEquals(LocalDate.of(2026, 5, 8), ingredient.getExpiresAt());
+        assertEquals(ExpirySourceType.POLICY, ingredient.getExpirySourceType());
+    }
+
+    @Test
+    void create_appliesCategoryExpiryRuleAsPolicyWhenCatalogRuleDoesNotExist() {
+        User user = persistUser("category-policy-user", Provider.GOOGLE);
+        persistStorage(user, StorageType.FRIDGE, "Fridge");
+        IngredientCatalog catalog = persistCatalog("Zucchini", CatalogCategory.VEGETABLE, StorageType.FRIDGE);
+
+        Long ingredientId = createIngredientUseCase.create(new CreateIngredientUseCase.Command(
+                user.getId(),
+                StorageType.FRIDGE,
+                catalog.getId(),
+                "Zucchini",
+                LocalDate.of(2026, 5, 1),
+                null,
+                ExpirySourceType.MANUAL,
+                null,
+                IngredientSourceType.MANUAL
+        ));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Ingredient ingredient = ingredientRepository.findByIdAndUserId(ingredientId, user.getId())
+                .orElseThrow();
+
+        assertEquals(LocalDate.of(2026, 5, 8), ingredient.getExpiresAt());
+        assertEquals(ExpirySourceType.POLICY, ingredient.getExpirySourceType());
+    }
+
+    @Test
+    void create_usesClockDateWhenApplyingPolicyRuleWithoutRegisteredAt() {
+        User user = persistUser("clock-policy-user", Provider.GOOGLE);
+        persistStorage(user, StorageType.FRIDGE, "Fridge");
+        IngredientCatalog catalog = persistCatalog("Clock tomato", CatalogCategory.VEGETABLE, StorageType.FRIDGE);
+        persistCatalogExpiryRule(catalog, StorageType.FRIDGE, 3);
+
+        Long ingredientId = createIngredientUseCase.create(new CreateIngredientUseCase.Command(
+                user.getId(),
+                StorageType.FRIDGE,
+                catalog.getId(),
+                "Clock tomato",
+                null,
+                null,
+                ExpirySourceType.MANUAL,
+                null,
+                IngredientSourceType.MANUAL
+        ));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Ingredient ingredient = ingredientRepository.findByIdAndUserId(ingredientId, user.getId())
+                .orElseThrow();
+
+        assertEquals(TODAY.plusDays(3), ingredient.getExpiresAt());
+        assertEquals(ExpirySourceType.POLICY, ingredient.getExpirySourceType());
     }
 
     @Test
@@ -360,5 +424,14 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
                         "test category rule"
                 )
         ));
+    }
+
+    @TestConfiguration
+    static class FixedClockConfig {
+
+        @Bean
+        Clock clock() {
+            return Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
+        }
     }
 }
