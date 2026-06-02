@@ -160,7 +160,7 @@ class AiServerClientTest {
     }
 
     @Test
-    void extractReceiptIngredients_mapsRecognizedItemsAlias() {
+    void extractReceiptIngredients_mapsRecognizedItemsAliases() {
         RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         AiServerClient client = new AiServerClient(builder.build(), "service-token");
@@ -182,6 +182,28 @@ class AiServerClientTest {
         assertEquals("두부", response.ingredients().get(0).name());
         assertEquals("ETC", response.ingredients().get(0).category());
         server.verify();
+
+        RestClient.Builder camelCaseBuilder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer camelCaseServer = MockRestServiceServer.bindTo(camelCaseBuilder).build();
+        AiServerClient camelCaseClient = new AiServerClient(camelCaseBuilder.build(), "service-token");
+
+        camelCaseServer.expect(once(), requestTo("https://ai.example.com/internal/v1/receipt-ocr"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("""
+                        {
+                          "purchasedAt": "2026-05-14",
+                          "recognizedItems": [
+                            {"name": "고등어", "category": "SEAFOOD"}
+                          ]
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        ReceiptOcrResponse camelCaseResponse = camelCaseClient.extractReceiptIngredients(imageFile());
+
+        assertEquals(LocalDate.of(2026, 5, 14), camelCaseResponse.purchasedAt());
+        assertEquals("고등어", camelCaseResponse.ingredients().get(0).name());
+        assertEquals("SEAFOOD", camelCaseResponse.ingredients().get(0).category());
+        camelCaseServer.verify();
     }
 
     @Test
@@ -208,7 +230,7 @@ class AiServerClientTest {
     }
 
     @Test
-    void detectFridgeObjects_mapsAliasedResponseFields() {
+    void detectFridgeObjects_mapsDetectedItemsAliases() {
         RestClient.Builder builder = RestClient.builder().baseUrl("https://ai.example.com");
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         AiServerClient client = new AiServerClient(builder.build(), "service-token");
@@ -231,6 +253,26 @@ class AiServerClientTest {
         assertEquals("우유", response.items().get(1).name());
         assertEquals("DAIRY", response.items().get(1).category());
         server.verify();
+
+        RestClient.Builder camelCaseBuilder = RestClient.builder().baseUrl("https://ai.example.com");
+        MockRestServiceServer camelCaseServer = MockRestServiceServer.bindTo(camelCaseBuilder).build();
+        AiServerClient camelCaseClient = new AiServerClient(camelCaseBuilder.build(), "service-token");
+
+        camelCaseServer.expect(once(), requestTo("https://ai.example.com/internal/v1/fridge-detection"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("""
+                        {
+                          "detectedItems": [
+                            {"name": " 당근 ", "category": " VEGETABLE "}
+                          ]
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        FridgeDetectionResponse camelCaseResponse = camelCaseClient.detectFridgeObjects(imageFile());
+
+        assertEquals("당근", camelCaseResponse.items().get(0).name());
+        assertEquals("VEGETABLE", camelCaseResponse.items().get(0).category());
+        camelCaseServer.verify();
     }
 
     @Test
