@@ -1,6 +1,7 @@
 package com.example.freshkitchen.domain.ingredient.entity;
 
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
+import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.common.entity.BaseTimeEntity;
 import com.example.freshkitchen.domain.image.entity.IngredientImage;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
@@ -52,6 +53,10 @@ public class Ingredient extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "catalog_id")
     private IngredientCatalog catalog;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", length = 30)
+    private CatalogCategory category;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -105,6 +110,7 @@ public class Ingredient extends BaseTimeEntity {
         this.user = requireNonNull(user, "user");
         this.storage = requireOwnedStorage(user, storage);
         this.catalog = catalog;
+        this.category = catalog != null ? catalog.getCategory() : null;
         this.name = requireNonBlank(name, "name");
         this.registeredAt = registeredAt;
         this.expiresAt = expiresAt;
@@ -137,6 +143,9 @@ public class Ingredient extends BaseTimeEntity {
         }
         if (command.catalogSet()) {
             this.catalog = command.catalog();
+        }
+        if (command.category() != null) {
+            this.category = command.category();
         }
         if (command.name() != null) {
             this.name = requireNonBlank(command.name(), "name");
@@ -264,6 +273,7 @@ public class Ingredient extends BaseTimeEntity {
             Storage storage,
             IngredientCatalog catalog,
             boolean catalogSet,
+            CatalogCategory category,
             String name,
             LocalDate registeredAt,
             boolean registeredAtSet,

@@ -2,7 +2,6 @@ package com.example.freshkitchen.domain;
 
 import com.example.freshkitchen.support.PostgreSqlTestContainerSupport;
 import com.example.freshkitchen.domain.catalog.entity.CatalogExpiryRule;
-import com.example.freshkitchen.domain.catalog.entity.CategoryExpiryRule;
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.image.entity.ImageAsset;
@@ -89,14 +88,6 @@ class JpaMappingTest extends PostgreSqlTestContainerSupport {
         ));
         entityManager.persist(catalogExpiryRule);
 
-        CategoryExpiryRule categoryExpiryRule = CategoryExpiryRule.create(new CategoryExpiryRule.CreateCommand(
-                CatalogCategory.VEGETABLE,
-                StorageType.FRIDGE,
-                5,
-                "category rule"
-        ));
-        entityManager.persist(categoryExpiryRule);
-
         Ingredient ingredient = Ingredient.create(new Ingredient.CreateCommand(
                 user,
                 storage,
@@ -132,7 +123,6 @@ class JpaMappingTest extends PostgreSqlTestContainerSupport {
 
         Ingredient persistedIngredient = entityManager.find(Ingredient.class, ingredient.getId());
         UserProfile persistedProfile = entityManager.find(UserProfile.class, user.getId());
-        CategoryExpiryRule persistedCategoryRule = entityManager.find(CategoryExpiryRule.class, categoryExpiryRule.getId());
 
         assertNotNull(persistedIngredient);
         assertEquals("Tomato", persistedIngredient.getName());
@@ -140,6 +130,5 @@ class JpaMappingTest extends PostgreSqlTestContainerSupport {
         assertEquals(CatalogCategory.VEGETABLE, persistedIngredient.getCatalog().getCategory());
         assertEquals("fresh-user", persistedProfile.getNickname());
         assertEquals(Set.of("garlic"), persistedProfile.getPreferredIngredients());
-        assertEquals(5, persistedCategoryRule.getShelfLifeDays());
     }
 }

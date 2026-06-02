@@ -6,6 +6,7 @@ import com.example.freshkitchen.application.analytics.usecase.GetAnalyticsSummar
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
+import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
@@ -101,6 +102,9 @@ public class GetAnalyticsSummaryService implements GetAnalyticsSummaryUseCase {
         if (expiresAt == null) {
             return false;
         }
+        if (ingredient.getExpirySourceType() != ExpirySourceType.MANUAL) {
+            return false;
+        }
         return !expiresAt.isBefore(today)
                 && !expiresAt.isAfter(today.plusDays(URGENT_DAYS));
     }
@@ -112,9 +116,7 @@ public class GetAnalyticsSummaryService implements GetAnalyticsSummaryUseCase {
         }
 
         for (Ingredient ingredient : ingredients) {
-            CatalogCategory cc = ingredient.getCatalog() != null
-                    ? ingredient.getCatalog().getCategory()
-                    : null;
+            CatalogCategory cc = ingredient.getCategory();
             DisplayCategory dc = DisplayCategory.from(cc);
             int[] counts = map.get(dc);
             counts[0]++;
@@ -142,8 +144,7 @@ public class GetAnalyticsSummaryService implements GetAnalyticsSummaryUseCase {
     }
 
     private static DisplayCategory resolveDisplayCategory(Ingredient ingredient) {
-        CatalogCategory cc = ingredient.getCatalog() != null
-                ? ingredient.getCatalog().getCategory() : null;
+        CatalogCategory cc = ingredient.getCategory();
         return DisplayCategory.from(cc);
     }
 

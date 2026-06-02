@@ -3,7 +3,6 @@ package com.example.freshkitchen.application.ingredient.service;
 import com.example.freshkitchen.application.ingredient.dto.IngredientDto;
 import com.example.freshkitchen.application.ingredient.usecase.ResolveIngredientDefaultsUseCase;
 import com.example.freshkitchen.domain.catalog.entity.CatalogExpiryRule;
-import com.example.freshkitchen.domain.catalog.entity.CategoryExpiryRule;
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
@@ -36,7 +35,6 @@ class ResolveIngredientDefaultsServiceTest extends PostgreSqlTestContainerSuppor
     void resolve_prefersCatalogRule() {
         IngredientCatalog catalog = persistCatalog("Milk", CatalogCategory.DAIRY, StorageType.FRIDGE);
         persistCatalogExpiryRule(catalog, StorageType.FRIDGE, 7, "catalog-rule");
-        persistCategoryExpiryRule(CatalogCategory.DAIRY, StorageType.FRIDGE, 3, "category-rule");
 
         IngredientDto.DefaultsResponse result = resolveIngredientDefaultsUseCase.resolve(
                 new ResolveIngredientDefaultsUseCase.Query(catalog.getId(), CatalogCategory.DAIRY, StorageType.FRIDGE)
@@ -51,7 +49,6 @@ class ResolveIngredientDefaultsServiceTest extends PostgreSqlTestContainerSuppor
     @Test
     void resolve_fallsBackToCategoryRule() {
         IngredientCatalog catalog = persistCatalog("Apple", CatalogCategory.FRUIT, StorageType.PANTRY);
-        persistCategoryExpiryRule(CatalogCategory.FRUIT, StorageType.PANTRY, 5, "category-rule");
 
         IngredientDto.DefaultsResponse result = resolveIngredientDefaultsUseCase.resolve(
                 new ResolveIngredientDefaultsUseCase.Query(catalog.getId(), CatalogCategory.FRUIT, StorageType.PANTRY)
@@ -60,14 +57,12 @@ class ResolveIngredientDefaultsServiceTest extends PostgreSqlTestContainerSuppor
         assertEquals(catalog.getId(), result.catalogId());
         assertEquals(StorageType.PANTRY, result.defaultStorageType());
         assertEquals(5, result.shelfLifeDays());
-        assertEquals("category-rule", result.referenceNote());
+        assertEquals("fruit pantry fallback", result.referenceNote());
     }
 
     @Test
-    void resolve_usesCatalogCategoryForCategoryRuleFallback() {
+    void resolve_usesQueryCategoryForCategoryRuleFallback() {
         IngredientCatalog catalog = persistCatalog("Apple", CatalogCategory.FRUIT, StorageType.PANTRY);
-        persistCategoryExpiryRule(CatalogCategory.FRUIT, StorageType.PANTRY, 5, "catalog-category-rule");
-        persistCategoryExpiryRule(CatalogCategory.VEGETABLE, StorageType.PANTRY, 2, "query-category-rule");
 
         IngredientDto.DefaultsResponse result = resolveIngredientDefaultsUseCase.resolve(
                 new ResolveIngredientDefaultsUseCase.Query(catalog.getId(), CatalogCategory.VEGETABLE, StorageType.PANTRY)
@@ -75,14 +70,14 @@ class ResolveIngredientDefaultsServiceTest extends PostgreSqlTestContainerSuppor
 
         assertEquals(catalog.getId(), result.catalogId());
         assertEquals(StorageType.PANTRY, result.defaultStorageType());
-        assertEquals(5, result.shelfLifeDays());
-        assertEquals("catalog-category-rule", result.referenceNote());
+        assertEquals(14, result.shelfLifeDays());
+        assertEquals("vegetable pantry fallback", result.referenceNote());
     }
 
     @Test
     void resolve_returnsEmptyDefaultsWhenNoRuleExists() {
         IngredientDto.DefaultsResponse result = resolveIngredientDefaultsUseCase.resolve(
-                new ResolveIngredientDefaultsUseCase.Query(null, CatalogCategory.ETC, StorageType.PANTRY)
+                new ResolveIngredientDefaultsUseCase.Query(null, null, StorageType.PANTRY)
         );
 
         assertNull(result.catalogId());
@@ -118,18 +113,4 @@ class ResolveIngredientDefaultsServiceTest extends PostgreSqlTestContainerSuppor
         entityManager.persist(rule);
     }
 
-    private void persistCategoryExpiryRule(
-            CatalogCategory category,
-            StorageType storageType,
-            int shelfLifeDays,
-            String referenceNote
-    ) {
-        CategoryExpiryRule rule = CategoryExpiryRule.create(new CategoryExpiryRule.CreateCommand(
-                category,
-                storageType,
-                shelfLifeDays,
-                referenceNote
-        ));
-        entityManager.persist(rule);
-    }
 }

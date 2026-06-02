@@ -126,8 +126,8 @@ class AttachIngredientImageServiceTest extends PostgreSqlTestContainerSupport {
         Ingredient discardedIngredient = persistIngredient(user, "Discarded onion");
         ImageAsset consumedImageAsset = persistImageAsset(user, AssetType.USER_UPLOAD, "images/consumed.png");
         ImageAsset discardedImageAsset = persistImageAsset(user, AssetType.USER_UPLOAD, "images/discarded.png");
-        consumedIngredient.markConsumed(null);
-        discardedIngredient.markDiscarded(null);
+        consumedIngredient.markConsumed(java.time.LocalDate.of(2026, 5, 1));
+        discardedIngredient.markDiscarded(java.time.LocalDate.of(2026, 5, 1));
 
         entityManager.flush();
         entityManager.clear();
@@ -214,8 +214,7 @@ class AttachIngredientImageServiceTest extends PostgreSqlTestContainerSupport {
     }
 
     private Ingredient persistIngredient(User user, String name) {
-        Storage storage = Storage.create(new Storage.CreateCommand(user, StorageType.FRIDGE, name + " fridge"));
-        entityManager.persist(storage);
+        Storage storage = resolveFridgeStorage(user, name);
         Ingredient ingredient = Ingredient.create(new Ingredient.CreateCommand(
                 user,
                 storage,
@@ -229,6 +228,25 @@ class AttachIngredientImageServiceTest extends PostgreSqlTestContainerSupport {
         ));
         entityManager.persist(ingredient);
         return ingredient;
+    }
+
+    private Storage resolveFridgeStorage(User user, String name) {
+        return entityManager.createQuery("""
+                        select storage
+                        from Storage storage
+                        where storage.user = :user
+                          and storage.storageType = :storageType
+                        """, Storage.class)
+                .setParameter("user", user)
+                .setParameter("storageType", StorageType.FRIDGE)
+                .getResultList()
+                .stream()
+                .findFirst()
+                .orElseGet(() -> {
+                    Storage storage = Storage.create(new Storage.CreateCommand(user, StorageType.FRIDGE, name + " fridge"));
+                    entityManager.persist(storage);
+                    return storage;
+                });
     }
 
     private ImageAsset persistImageAsset(User user, AssetType assetType, String objectKey) {

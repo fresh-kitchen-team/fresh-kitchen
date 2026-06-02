@@ -99,7 +99,7 @@ support class다.
 
 현재 역할은 아래와 같다.
 
-- `postgres:16-alpine` 기반 공유 static `PostgreSQLContainer` 제공
+- `pgvector/pgvector:pg16` 기반 공유 static `PostgreSQLContainer` 제공
 - `@DynamicPropertySource`로 datasource property 등록
 - `spring.jpa.hibernate.ddl-auto=validate` 설정
 - `spring.flyway.enabled=true` 설정

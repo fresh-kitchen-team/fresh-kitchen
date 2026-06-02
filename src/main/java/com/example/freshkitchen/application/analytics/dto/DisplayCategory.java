@@ -6,14 +6,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * CatalogCategory(8종)를 프론트 표시용(4종)으로 그룹핑한다.
+ * CatalogCategory(9종)를 프론트 표시용(4종)으로 그룹핑한다.
  */
 public enum DisplayCategory {
 
     VEGETABLE_FRUIT("채소/과일", List.of(CatalogCategory.VEGETABLE, CatalogCategory.FRUIT)),
     DAIRY_DRINK("유제품", List.of(CatalogCategory.DAIRY, CatalogCategory.DRINK)),
     MEAT_SEAFOOD("육류/수산물", List.of(CatalogCategory.MEAT, CatalogCategory.SEAFOOD)),
-    ETC("기타", List.of(CatalogCategory.SAUCE, CatalogCategory.ETC));
+    ETC("기타", List.of(CatalogCategory.SAUCE, CatalogCategory.GRAIN, CatalogCategory.ETC));
 
     private final String displayName;
     private final List<CatalogCategory> catalogCategories;
