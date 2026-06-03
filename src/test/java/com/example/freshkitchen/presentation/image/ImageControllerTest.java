@@ -1,6 +1,7 @@
 package com.example.freshkitchen.presentation.image;
 
 import com.example.freshkitchen.application.image.usecase.ChangeIngredientPrimaryImageUseCase;
+import com.example.freshkitchen.application.image.usecase.RemoveIngredientImageUseCase;
 import com.example.freshkitchen.application.image.usecase.UploadIngredientImageUseCase;
 import com.example.freshkitchen.domain.image.enums.IngredientImageSourceType;
 import com.example.freshkitchen.global.exception.handler.GlobalExceptionHandler;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -39,6 +41,7 @@ class ImageControllerTest {
 
     private UploadIngredientImageUseCase uploadIngredientImageUseCase;
     private ChangeIngredientPrimaryImageUseCase changeIngredientPrimaryImageUseCase;
+    private RemoveIngredientImageUseCase removeIngredientImageUseCase;
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
@@ -46,13 +49,14 @@ class ImageControllerTest {
     void setUp() {
         uploadIngredientImageUseCase = mock(UploadIngredientImageUseCase.class);
         changeIngredientPrimaryImageUseCase = mock(ChangeIngredientPrimaryImageUseCase.class);
+        removeIngredientImageUseCase = mock(RemoveIngredientImageUseCase.class);
         objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
 
         mockMvc = MockMvcBuilders
-                .standaloneSetup(new ImageController(uploadIngredientImageUseCase, changeIngredientPrimaryImageUseCase))
+                .standaloneSetup(new ImageController(uploadIngredientImageUseCase, changeIngredientPrimaryImageUseCase, removeIngredientImageUseCase))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setValidator(validator)
                 .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
@@ -163,6 +167,27 @@ class ImageControllerTest {
         ArgumentCaptor<ChangeIngredientPrimaryImageUseCase.Command> captor =
                 ArgumentCaptor.forClass(ChangeIngredientPrimaryImageUseCase.Command.class);
         verify(changeIngredientPrimaryImageUseCase).change(captor.capture());
+        assertAll(
+                () -> assertEquals(1L, captor.getValue().userId()),
+                () -> assertEquals(10L, captor.getValue().ingredientId()),
+                () -> assertEquals(30L, captor.getValue().ingredientImageId())
+        );
+    }
+
+    @Test
+    void removeIngredientImage_returnsWrappedSuccessResponse() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new JwtAuthentication(1L, Role.USER));
+
+        mockMvc.perform(delete("/api/v1/ingredients/10/images/30"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.code").value("COMMON-200"))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.data").doesNotExist());
+
+        ArgumentCaptor<RemoveIngredientImageUseCase.Command> captor =
+                ArgumentCaptor.forClass(RemoveIngredientImageUseCase.Command.class);
+        verify(removeIngredientImageUseCase).remove(captor.capture());
         assertAll(
                 () -> assertEquals(1L, captor.getValue().userId()),
                 () -> assertEquals(10L, captor.getValue().ingredientId()),

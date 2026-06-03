@@ -229,6 +229,27 @@ public class Ingredient extends BaseTimeEntity {
         ensurePrimaryImageInvariant();
     }
 
+    /**
+     * 대표이미지 관리: 식재료에서 이미지를 제거한다.
+     * 제거 대상이 대표(primary)이고 다른 이미지가 남아 있으면 남은 이미지 중 하나를 대표로 자동 승격한다.
+     * 마지막 이미지를 제거하면 이미지가 없는 상태가 되며, 표시 계층에서 이모지로 폴백된다.
+     */
+    public void removeImage(IngredientImage target) {
+        requireNonNull(target, "target");
+        if (!containsImage(target)) {
+            throw new IngredientException(IngredientErrorCode.INGREDIENT_IMAGE_NOT_BELONG_TO_INGREDIENT);
+        }
+
+        boolean wasPrimary = target.isPrimary();
+        ingredientImages.removeIf(ingredientImage -> sameEntity(ingredientImage, target, IngredientImage::getId));
+
+        if (wasPrimary && !ingredientImages.isEmpty()) {
+            IngredientImage nextPrimary = ingredientImages.iterator().next();
+            enforcePrimaryImage(nextPrimary);
+        }
+        ensurePrimaryImageInvariant();
+    }
+
     private void ensurePrimaryImageInvariant() {
         if (ingredientImages.isEmpty()) {
             return;
