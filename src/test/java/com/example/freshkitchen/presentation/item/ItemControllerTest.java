@@ -396,7 +396,10 @@ class ItemControllerTest {
                 LocalDate.of(2026, 5, 6),
                 LocalDate.of(2026, 4, 29),
                 "salad",
-                null
+                null,
+                new IngredientDto.RepresentativeImage(
+                        IngredientDto.RepresentativeImageType.EMOJI, null, "🍅",
+                        IngredientDto.RepresentativeImageSource.CATALOG_EMOJI)
         );
     }
 
@@ -420,7 +423,10 @@ class ItemControllerTest {
                 null,
                 "salad",
                 IngredientSourceType.MANUAL,
-                null
+                null,
+                new IngredientDto.RepresentativeImage(
+                        IngredientDto.RepresentativeImageType.EMOJI, null, "🍅",
+                        IngredientDto.RepresentativeImageSource.CATALOG_EMOJI)
         );
     }
 

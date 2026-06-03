@@ -57,7 +57,8 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
                 from Ingredient ingredient
                 join fetch ingredient.user
                 join fetch ingredient.storage
-                left join fetch ingredient.catalog
+                left join fetch ingredient.catalog catalog
+                left join fetch catalog.defaultImageAsset
                 left join fetch ingredient.ingredientImages ingredientImage
                 left join fetch ingredientImage.imageAsset
                 where ingredient.id = :ingredientId
@@ -78,7 +79,8 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
                 from Ingredient ingredient
                 join fetch ingredient.user
                 join fetch ingredient.storage
-                left join fetch ingredient.catalog
+                left join fetch ingredient.catalog catalog
+                left join fetch catalog.defaultImageAsset
                 left join fetch ingredient.ingredientImages ingredientImage
                 left join fetch ingredientImage.imageAsset
                 where ingredient.id = :ingredientId
@@ -112,10 +114,13 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
     @Transactional(readOnly = true)
     public List<Ingredient> findAllByUserIdAndStatus(Long userId, IngredientStatus status) {
         return entityManager.createQuery("""
-                select ingredient
+                select distinct ingredient
                 from Ingredient ingredient
                 join fetch ingredient.storage
-                left join fetch ingredient.catalog
+                left join fetch ingredient.catalog catalog
+                left join fetch catalog.defaultImageAsset
+                left join fetch ingredient.ingredientImages ingredientImage
+                left join fetch ingredientImage.imageAsset
                 where ingredient.user.id = :userId
                   and ingredient.status = :status
                 order by ingredient.id asc
@@ -134,10 +139,13 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
                 .replace("_", "\\_");
 
         return entityManager.createQuery("""
-                select ingredient
+                select distinct ingredient
                 from Ingredient ingredient
                 join fetch ingredient.storage
-                left join fetch ingredient.catalog
+                left join fetch ingredient.catalog catalog
+                left join fetch catalog.defaultImageAsset
+                left join fetch ingredient.ingredientImages ingredientImage
+                left join fetch ingredientImage.imageAsset
                 where ingredient.user.id = :userId
                   and ingredient.status = :status
                   and lower(ingredient.name) like lower(concat('%', :name, '%')) escape '\\'

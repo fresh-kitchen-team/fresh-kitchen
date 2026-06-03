@@ -37,7 +37,8 @@ public final class ItemResponse {
             LocalDate expiryDate,
             String emoji,
             LocalDate purchaseDate,
-            String memo
+            String memo,
+            IngredientDto.RepresentativeImage representativeImage
     ) {
 
         public static Item from(IngredientDto.SummaryResponse response, Clock clock) {
@@ -52,7 +53,8 @@ public final class ItemResponse {
                     response.expiresAt(),
                     resolveEmoji(response.emoji()),
                     response.registeredAt(),
-                    response.note()
+                    response.note(),
+                    response.representativeImage()
             );
         }
 
@@ -68,7 +70,8 @@ public final class ItemResponse {
                     response.expiresAt(),
                     resolveEmoji(response.emoji()),
                     response.registeredAt(),
-                    response.note()
+                    response.note(),
+                    response.representativeImage()
             );
         }
     }
