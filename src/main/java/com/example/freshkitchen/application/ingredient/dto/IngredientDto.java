@@ -15,6 +15,9 @@ import java.time.LocalDate;
 
 public final class IngredientDto {
 
+    private static final CatalogCategory DEFAULT_CATEGORY = CatalogCategory.ETC;
+    private static final String DEFAULT_EMOJI = "🍽️";
+
     private IngredientDto() {
     }
 
@@ -43,8 +46,8 @@ public final class IngredientDto {
                     ingredient.getStorage().getName(),
                     ingredient.getStorage().getStorageType(),
                     ingredient.getCatalog() != null ? ingredient.getCatalog().getId() : null,
-                    ingredient.getCatalog() != null ? ingredient.getCatalog().getCategory() : null,
-                    ingredient.getCatalog() != null ? ingredient.getCatalog().getEmoji() : null,
+                    ingredient.getCategory() != null ? ingredient.getCategory() : DEFAULT_CATEGORY,
+                    resolveEmoji(ingredient.getCatalog() != null ? ingredient.getCatalog().getEmoji() : null),
                     ingredient.getExpiresAt(),
                     ingredient.getRegisteredAt(),
                     ingredient.getNote(),
@@ -84,8 +87,8 @@ public final class IngredientDto {
                     ingredient.getStorage().getStorageType(),
                     ingredient.getCatalog() != null ? ingredient.getCatalog().getId() : null,
                     ingredient.getCatalog() != null ? ingredient.getCatalog().getName() : null,
-                    ingredient.getCatalog() != null ? ingredient.getCatalog().getCategory() : null,
-                    ingredient.getCatalog() != null ? ingredient.getCatalog().getEmoji() : null,
+                    ingredient.getCategory() != null ? ingredient.getCategory() : DEFAULT_CATEGORY,
+                    resolveEmoji(ingredient.getCatalog() != null ? ingredient.getCatalog().getEmoji() : null),
                     ingredient.getName(),
                     ingredient.getRegisteredAt(),
                     ingredient.getExpiresAt(),
@@ -151,5 +154,12 @@ public final class IngredientDto {
                     storage.getName()
             );
         }
+    }
+
+    private static String resolveEmoji(String emoji) {
+        if (emoji == null || emoji.isBlank()) {
+            return DEFAULT_EMOJI;
+        }
+        return emoji;
     }
 }

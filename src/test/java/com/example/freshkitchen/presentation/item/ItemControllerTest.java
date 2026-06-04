@@ -115,6 +115,7 @@ class ItemControllerTest {
                                 {
                                   "name": "Tomato",
                                   "storageType": "FRIDGE",
+                                  "category": "GRAIN",
                                   "expiryDate": "2026-05-06",
                                   "purchaseDate": "2026-04-29",
                                   "memo": "salad",
@@ -137,7 +138,7 @@ class ItemControllerTest {
                 () -> assertEquals(LocalDate.of(2026, 5, 6), createCaptor.getValue().ingredientCommand().expiresAt()),
                 () -> assertEquals(ExpirySourceType.MANUAL, createCaptor.getValue().ingredientCommand().expirySourceType()),
                 () -> assertEquals("salad", createCaptor.getValue().ingredientCommand().note()),
-                () -> assertEquals(IngredientSourceType.PHOTO, createCaptor.getValue().ingredientCommand().sourceType()),
+                () -> assertEquals(IngredientSourceType.MANUAL, createCaptor.getValue().ingredientCommand().sourceType()),
                 () -> assertEquals(20L, createCaptor.getValue().imageAssetId())
         );
     }
@@ -161,6 +162,50 @@ class ItemControllerTest {
                 ArgumentCaptor.forClass(CreateIngredientWithImageUseCase.Command.class);
         verify(createIngredientWithImageUseCase).create(captor.capture());
         assertEquals(LocalDate.of(2026, 5, 1), captor.getValue().ingredientCommand().registeredAt());
+    }
+
+    @Test
+    void create_mapsPhotoSourceType() throws Exception {
+        when(createIngredientWithImageUseCase.create(any(CreateIngredientWithImageUseCase.Command.class))).thenReturn(10L);
+
+        mockMvc.perform(post("/api/v1/items")
+                        .principal(auth(1L))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Tomato",
+                                  "storageType": "FRIDGE",
+                                  "sourceType": "PHOTO"
+                                }
+                                """))
+                .andExpect(status().isCreated());
+
+        ArgumentCaptor<CreateIngredientWithImageUseCase.Command> captor =
+                ArgumentCaptor.forClass(CreateIngredientWithImageUseCase.Command.class);
+        verify(createIngredientWithImageUseCase).create(captor.capture());
+        assertEquals(IngredientSourceType.PHOTO, captor.getValue().ingredientCommand().sourceType());
+    }
+
+    @Test
+    void create_mapsReceiptSourceType() throws Exception {
+        when(createIngredientWithImageUseCase.create(any(CreateIngredientWithImageUseCase.Command.class))).thenReturn(10L);
+
+        mockMvc.perform(post("/api/v1/items")
+                        .principal(auth(1L))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Tomato",
+                                  "storageType": "FRIDGE",
+                                  "sourceType": "RECEIPT"
+                                }
+                                """))
+                .andExpect(status().isCreated());
+
+        ArgumentCaptor<CreateIngredientWithImageUseCase.Command> captor =
+                ArgumentCaptor.forClass(CreateIngredientWithImageUseCase.Command.class);
+        verify(createIngredientWithImageUseCase).create(captor.capture());
+        assertEquals(IngredientSourceType.RECEIPT, captor.getValue().ingredientCommand().sourceType());
     }
 
     @Test

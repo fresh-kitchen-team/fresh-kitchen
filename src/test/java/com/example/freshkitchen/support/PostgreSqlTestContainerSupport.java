@@ -15,7 +15,7 @@ public abstract class PostgreSqlTestContainerSupport {
 
     @SuppressWarnings("resource")
     private static final PostgreSQLContainer<?> POSTGRESQL_CONTAINER =
-            new PostgreSQLContainer<>("postgres:16-alpine")
+            new PostgreSQLContainer<>("pgvector/pgvector:pg16")
                     .withDatabaseName("freshkitchen_test")
                     .withUsername("test")
                     .withPassword("test");

@@ -41,7 +41,8 @@ public class ResolveIngredientDefaultsService implements ResolveIngredientDefaul
                         catalogRule.getReferenceNote()
                 );
             }
-            return resolveCategoryRule(catalog.getId(), catalog.getDefaultStorageType(), catalog.getCategory(), resolvedStorageType);
+            CatalogCategory resolvedCategory = query.category() != null ? query.category() : catalog.getCategory();
+            return resolveCategoryRule(catalog.getId(), catalog.getDefaultStorageType(), resolvedCategory, resolvedStorageType);
         }
 
         if (query.category() == null || query.storageType() == null) {

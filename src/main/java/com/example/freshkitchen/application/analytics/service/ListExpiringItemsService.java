@@ -6,6 +6,7 @@ import com.example.freshkitchen.application.analytics.usecase.ListExpiringItemsU
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
+import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
@@ -42,6 +43,7 @@ public class ListExpiringItemsService implements ListExpiringItemsUseCase {
         Stream<Ingredient> stream = ingredientRepository
                 .findAllByUserIdAndStatus(query.userId(), IngredientStatus.ACTIVE)
                 .stream()
+                .filter(i -> i.getExpirySourceType() == ExpirySourceType.MANUAL)
                 .filter(i -> i.getExpiresAt() != null && !i.getExpiresAt().isAfter(deadline));
 
         if (query.storageType() != null) {
@@ -71,7 +73,7 @@ public class ListExpiringItemsService implements ListExpiringItemsUseCase {
 
     private AnalyticsDto.ExpiringItem toExpiringItem(Ingredient ingredient, LocalDate today) {
         IngredientCatalog catalog = ingredient.getCatalog();
-        CatalogCategory cc = catalog != null ? catalog.getCategory() : null;
+        CatalogCategory cc = ingredient.getCategory();
         DisplayCategory dc = DisplayCategory.from(cc);
         String emoji = (catalog != null && catalog.getEmoji() != null && !catalog.getEmoji().isBlank())
                 ? catalog.getEmoji() : DEFAULT_EMOJI;

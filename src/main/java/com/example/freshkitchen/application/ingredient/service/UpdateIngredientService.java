@@ -47,6 +47,7 @@ public class UpdateIngredientService implements UpdateIngredientUseCase {
                 storage,
                 catalog,
                 command.catalogSet(),
+                catalog != null ? catalog.getCategory() : null,
                 command.name(),
                 command.registeredAt(),
                 command.registeredAtSet(),

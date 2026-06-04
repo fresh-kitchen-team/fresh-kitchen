@@ -1,0 +1,137 @@
+INSERT INTO ingredient_catalog (name, category, default_storage_type, emoji)
+VALUES
+    ('토마토', 'VEGETABLE', 'FRIDGE', '🍅'),
+    ('양파', 'VEGETABLE', 'PANTRY', '🧅'),
+    ('대파', 'VEGETABLE', 'FRIDGE', '🥬'),
+    ('마늘', 'VEGETABLE', 'PANTRY', '🧄'),
+    ('감자', 'VEGETABLE', 'PANTRY', '🥔'),
+    ('고구마', 'VEGETABLE', 'PANTRY', '🍠'),
+    ('당근', 'VEGETABLE', 'FRIDGE', '🥕'),
+    ('오이', 'VEGETABLE', 'FRIDGE', '🥒'),
+    ('상추', 'VEGETABLE', 'FRIDGE', '🥬'),
+    ('양배추', 'VEGETABLE', 'FRIDGE', '🥬'),
+    ('배추', 'VEGETABLE', 'FRIDGE', '🥬'),
+    ('시금치', 'VEGETABLE', 'FRIDGE', '🥬'),
+    ('브로콜리', 'VEGETABLE', 'FRIDGE', '🥦'),
+    ('파프리카', 'VEGETABLE', 'FRIDGE', '🫑'),
+    ('버섯', 'VEGETABLE', 'FRIDGE', '🍄'),
+    ('애호박', 'VEGETABLE', 'FRIDGE', '🥒'),
+    ('가지', 'VEGETABLE', 'FRIDGE', '🍆'),
+    ('무', 'VEGETABLE', 'FRIDGE', '🥬'),
+    ('콩나물', 'VEGETABLE', 'FRIDGE', '🌱'),
+    ('숙주', 'VEGETABLE', 'FRIDGE', '🌱'),
+    ('사과', 'FRUIT', 'FRIDGE', '🍎'),
+    ('바나나', 'FRUIT', 'PANTRY', '🍌'),
+    ('딸기', 'FRUIT', 'FRIDGE', '🍓'),
+    ('포도', 'FRUIT', 'FRIDGE', '🍇'),
+    ('오렌지', 'FRUIT', 'FRIDGE', '🍊'),
+    ('레몬', 'FRUIT', 'FRIDGE', '🍋'),
+    ('수박', 'FRUIT', 'FRIDGE', '🍉'),
+    ('복숭아', 'FRUIT', 'FRIDGE', '🍑'),
+    ('블루베리', 'FRUIT', 'FRIDGE', '🫐'),
+    ('키위', 'FRUIT', 'FRIDGE', '🥝'),
+    ('돼지고기', 'MEAT', 'FRIDGE', '🥩'),
+    ('소고기', 'MEAT', 'FRIDGE', '🥩'),
+    ('닭고기', 'MEAT', 'FRIDGE', '🍗'),
+    ('오리고기', 'MEAT', 'FRIDGE', '🍖'),
+    ('베이컨', 'MEAT', 'FRIDGE', '🥓'),
+    ('햄', 'MEAT', 'FRIDGE', '🥓'),
+    ('소시지', 'MEAT', 'FRIDGE', '🌭'),
+    ('다짐육', 'MEAT', 'FRIDGE', '🥩'),
+    ('연어', 'SEAFOOD', 'FRIDGE', '🐟'),
+    ('고등어', 'SEAFOOD', 'FRIDGE', '🐟'),
+    ('참치', 'SEAFOOD', 'FRIDGE', '🐟'),
+    ('새우', 'SEAFOOD', 'FREEZER', '🍤'),
+    ('오징어', 'SEAFOOD', 'FREEZER', '🦑'),
+    ('조개', 'SEAFOOD', 'FRIDGE', '🦪'),
+    ('홍합', 'SEAFOOD', 'FRIDGE', '🦪'),
+    ('멸치', 'SEAFOOD', 'PANTRY', '🐟'),
+    ('계란', 'DAIRY', 'FRIDGE', '🥚'),
+    ('우유', 'DAIRY', 'FRIDGE', '🥛'),
+    ('치즈', 'DAIRY', 'FRIDGE', '🧀'),
+    ('버터', 'DAIRY', 'FRIDGE', '🧈'),
+    ('요거트', 'DAIRY', 'FRIDGE', '🥛'),
+    ('생크림', 'DAIRY', 'FRIDGE', '🥛'),
+    ('간장', 'SAUCE', 'PANTRY', '🧂'),
+    ('고추장', 'SAUCE', 'FRIDGE', '🌶️'),
+    ('된장', 'SAUCE', 'FRIDGE', '🫘'),
+    ('케첩', 'SAUCE', 'FRIDGE', '🍅'),
+    ('마요네즈', 'SAUCE', 'FRIDGE', '🥚'),
+    ('소금', 'SAUCE', 'PANTRY', '🧂'),
+    ('설탕', 'SAUCE', 'PANTRY', '🧂'),
+    ('식용유', 'SAUCE', 'PANTRY', '🫙'),
+    ('물', 'DRINK', 'PANTRY', '💧'),
+    ('주스', 'DRINK', 'FRIDGE', '🧃'),
+    ('커피', 'DRINK', 'PANTRY', '☕'),
+    ('차', 'DRINK', 'PANTRY', '🍵'),
+    ('두부', 'ETC', 'FRIDGE', '◻️'),
+    ('김치', 'ETC', 'FRIDGE', '🥬'),
+    ('밥', 'ETC', 'FRIDGE', '🍚'),
+    ('면', 'ETC', 'PANTRY', '🍜'),
+    ('빵', 'ETC', 'PANTRY', '🍞'),
+    ('떡', 'ETC', 'FRIDGE', '🍡')
+ON CONFLICT (name) DO UPDATE SET
+    category = EXCLUDED.category,
+    default_storage_type = EXCLUDED.default_storage_type,
+    emoji = EXCLUDED.emoji,
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO category_expiry_rule (category, storage_type, shelf_life_days, reference_note)
+VALUES
+    ('VEGETABLE', 'FRIDGE', 7, 'vegetable fridge fallback'),
+    ('VEGETABLE', 'FREEZER', 30, 'vegetable freezer fallback'),
+    ('VEGETABLE', 'PANTRY', 14, 'vegetable pantry fallback'),
+    ('FRUIT', 'FRIDGE', 7, 'fruit fridge fallback'),
+    ('FRUIT', 'FREEZER', 30, 'fruit freezer fallback'),
+    ('FRUIT', 'PANTRY', 5, 'fruit pantry fallback'),
+    ('MEAT', 'FRIDGE', 3, 'meat fridge fallback'),
+    ('MEAT', 'FREEZER', 90, 'meat freezer fallback'),
+    ('MEAT', 'PANTRY', 1, 'meat pantry fallback'),
+    ('SEAFOOD', 'FRIDGE', 2, 'seafood fridge fallback'),
+    ('SEAFOOD', 'FREEZER', 60, 'seafood freezer fallback'),
+    ('SEAFOOD', 'PANTRY', 30, 'seafood pantry fallback'),
+    ('DAIRY', 'FRIDGE', 10, 'dairy fridge fallback'),
+    ('DAIRY', 'FREEZER', 30, 'dairy freezer fallback'),
+    ('DAIRY', 'PANTRY', 7, 'dairy pantry fallback'),
+    ('SAUCE', 'FRIDGE', 90, 'sauce fridge fallback'),
+    ('SAUCE', 'FREEZER', 180, 'sauce freezer fallback'),
+    ('SAUCE', 'PANTRY', 180, 'sauce pantry fallback'),
+    ('DRINK', 'FRIDGE', 7, 'drink fridge fallback'),
+    ('DRINK', 'FREEZER', 30, 'drink freezer fallback'),
+    ('DRINK', 'PANTRY', 30, 'drink pantry fallback'),
+    ('ETC', 'FRIDGE', 7, 'etc fridge fallback'),
+    ('ETC', 'FREEZER', 30, 'etc freezer fallback'),
+    ('ETC', 'PANTRY', 14, 'etc pantry fallback')
+ON CONFLICT (category, storage_type) DO UPDATE SET
+    shelf_life_days = EXCLUDED.shelf_life_days,
+    reference_note = EXCLUDED.reference_note,
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO catalog_expiry_rule (catalog_id, storage_type, shelf_life_days, reference_note)
+SELECT catalog.id, rule.storage_type::VARCHAR, rule.shelf_life_days, rule.reference_note
+FROM ingredient_catalog catalog
+JOIN (
+    VALUES
+        ('토마토', 'FRIDGE', 7, 'tomato fridge policy'),
+        ('양파', 'PANTRY', 30, 'onion pantry policy'),
+        ('감자', 'PANTRY', 30, 'potato pantry policy'),
+        ('바나나', 'PANTRY', 5, 'banana pantry policy'),
+        ('돼지고기', 'FRIDGE', 3, 'pork fridge policy'),
+        ('소고기', 'FRIDGE', 3, 'beef fridge policy'),
+        ('닭고기', 'FRIDGE', 2, 'chicken fridge policy'),
+        ('새우', 'FREEZER', 60, 'shrimp freezer policy'),
+        ('계란', 'FRIDGE', 21, 'egg fridge policy'),
+        ('우유', 'FRIDGE', 7, 'milk fridge policy'),
+        ('두부', 'FRIDGE', 5, 'tofu fridge policy'),
+        ('김치', 'FRIDGE', 30, 'kimchi fridge policy')
+) AS rule(name, storage_type, shelf_life_days, reference_note)
+ON catalog.name = rule.name
+ON CONFLICT (catalog_id, storage_type) DO UPDATE SET
+    shelf_life_days = EXCLUDED.shelf_life_days,
+    reference_note = EXCLUDED.reference_note,
+    updated_at = CURRENT_TIMESTAMP;
+
+SELECT setval(
+    pg_get_serial_sequence('ingredient_catalog', 'id'),
+    GREATEST((SELECT MAX(id) FROM ingredient_catalog), 1)
+);
