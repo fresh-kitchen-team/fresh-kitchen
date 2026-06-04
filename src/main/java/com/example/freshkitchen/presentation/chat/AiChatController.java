@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "AI 채팅", description = "AI 채팅 세션을 통한 조회 대화 등등")
 @RestController
 @Slf4j
-@RequestMapping("/ai/v1/chat")
+@RequestMapping("/api/v1/chat")
 @RequiredArgsConstructor
 public class AiChatController {
 
