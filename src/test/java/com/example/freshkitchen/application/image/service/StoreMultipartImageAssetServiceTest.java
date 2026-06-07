@@ -184,6 +184,73 @@ class StoreMultipartImageAssetServiceTest {
         verify(multipartImageStoragePort, never()).delete(any(MultipartImageStoragePort.DeleteCommand.class));
     }
 
+    @Test
+    void store_cleansUpStoredThumbnail_whenVariantPersistFails() {
+        runInTransaction();
+        when(multipartImageStoragePort.store(any(MultipartImageStoragePort.Command.class)))
+                .thenReturn(new MultipartImageStoragePort.StoredImage(
+                        "images/1/receipt/receipt.jpg",
+                        StorageProvider.S3,
+                        "https://cdn.example.com/images/1/receipt/receipt.jpg"
+                ))
+                .thenReturn(new MultipartImageStoragePort.StoredImage(
+                        "images/1/receipt/receipt_thumb.jpg",
+                        StorageProvider.S3,
+                        "https://cdn.example.com/images/1/receipt/receipt_thumb.jpg"
+                ));
+        User user = mock(User.class);
+        when(entityManager.getReference(User.class, 1L)).thenReturn(user);
+        when(imageAssetRepository.save(any(ImageAsset.class))).thenAnswer(invocation -> {
+            ImageAsset imageAsset = invocation.getArgument(0);
+            ReflectionTestUtils.setField(imageAsset, "id", 11L);
+            ReflectionTestUtils.setField(imageAsset, "createdAt", createdAt);
+            return imageAsset;
+        });
+        when(thumbnailImageGenerator.generate(any(byte[].class), eq(320)))
+                .thenReturn(java.util.Optional.of(new ThumbnailImageGenerator.Thumbnail(
+                        "thumb".getBytes(), "image/jpeg", 320, 240)));
+        // variant 영속화 트랜잭션이 실패하는 상황
+        org.mockito.Mockito.doThrow(new RuntimeException("variant insert failed"))
+                .when(transactionOperations).executeWithoutResult(any());
+
+        service.store(new StoreMultipartImageAssetUseCase.Command(
+                1L, ImageKind.RECEIPT, "receipt.jpg", "image/jpeg", "image".getBytes()));
+
+        // 원본 업로드는 성공으로 처리되고, 저장된 썸네일 객체만 정리된다
+        ArgumentCaptor<MultipartImageStoragePort.DeleteCommand> captor =
+                ArgumentCaptor.forClass(MultipartImageStoragePort.DeleteCommand.class);
+        verify(multipartImageStoragePort).delete(captor.capture());
+        assertEquals("images/1/receipt/receipt_thumb.jpg", captor.getValue().objectKey());
+    }
+
+    @Test
+    void store_skipsThumbnail_whenThumbnailDisabled() {
+        StoreMultipartImageAssetService disabledService = new StoreMultipartImageAssetService(
+                multipartImageStoragePort, imageAssetRepository, imageVariantRepository,
+                thumbnailImageGenerator, entityManager, transactionOperations, false, 320);
+        runInTransaction();
+        when(multipartImageStoragePort.store(any(MultipartImageStoragePort.Command.class)))
+                .thenReturn(new MultipartImageStoragePort.StoredImage(
+                        "images/1/receipt/receipt.jpg",
+                        StorageProvider.S3,
+                        "https://cdn.example.com/images/1/receipt/receipt.jpg"
+                ));
+        User user = mock(User.class);
+        when(entityManager.getReference(User.class, 1L)).thenReturn(user);
+        when(imageAssetRepository.save(any(ImageAsset.class))).thenAnswer(invocation -> {
+            ImageAsset imageAsset = invocation.getArgument(0);
+            ReflectionTestUtils.setField(imageAsset, "id", 11L);
+            ReflectionTestUtils.setField(imageAsset, "createdAt", createdAt);
+            return imageAsset;
+        });
+
+        disabledService.store(new StoreMultipartImageAssetUseCase.Command(
+                1L, ImageKind.RECEIPT, "receipt.jpg", "image/jpeg", "image".getBytes()));
+
+        org.mockito.Mockito.verifyNoInteractions(thumbnailImageGenerator);
+        verify(imageVariantRepository, never()).save(any());
+    }
+
     private void runInTransaction() {
         when(transactionOperations.execute(any())).thenAnswer(invocation -> {
             TransactionCallback<?> callback = invocation.getArgument(0);

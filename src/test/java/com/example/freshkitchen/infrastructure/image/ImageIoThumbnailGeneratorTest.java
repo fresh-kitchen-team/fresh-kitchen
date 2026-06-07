@@ -59,6 +59,17 @@ class ImageIoThumbnailGeneratorTest {
     }
 
     @Test
+    void generate_returnsEmptyWhenSourceExceedsMaxPixels() throws IOException {
+        // 100x100 = 10,000 픽셀, 한도를 9,999로 낮춰 디코딩 전 헤더 검사로 건너뛰는지 검증
+        ImageIoThumbnailGenerator guarded = new ImageIoThumbnailGenerator(9_999L);
+        byte[] source = pngImage(100, 100);
+
+        Optional<ThumbnailImageGenerator.Thumbnail> result = guarded.generate(source, 320);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
     void generate_returnsEmptyForNullOrEmptySource() {
         assertAll(
                 () -> assertTrue(generator.generate(null, 320).isEmpty()),
