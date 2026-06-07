@@ -398,7 +398,7 @@ class ItemControllerTest {
                 "salad",
                 null,
                 new IngredientDto.RepresentativeImage(
-                        IngredientDto.RepresentativeImageType.EMOJI, null, "🍅",
+                        IngredientDto.RepresentativeImageType.EMOJI, null, null, "🍅",
                         IngredientDto.RepresentativeImageSource.CATALOG_EMOJI)
         );
     }
@@ -425,7 +425,7 @@ class ItemControllerTest {
                 IngredientSourceType.MANUAL,
                 null,
                 new IngredientDto.RepresentativeImage(
-                        IngredientDto.RepresentativeImageType.EMOJI, null, "🍅",
+                        IngredientDto.RepresentativeImageType.EMOJI, null, null, "🍅",
                         IngredientDto.RepresentativeImageSource.CATALOG_EMOJI)
         );
     }

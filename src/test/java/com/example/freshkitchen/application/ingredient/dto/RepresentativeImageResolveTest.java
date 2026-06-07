@@ -36,6 +36,7 @@ class RepresentativeImageResolveTest {
         when(primary.isPrimary()).thenReturn(true);
         when(primary.getImageAsset()).thenReturn(primaryAsset);
         when(imageAssetUrlResolver.resolve(primaryAsset)).thenReturn("https://cdn/user.png");
+        when(imageAssetUrlResolver.resolveThumbnail(primaryAsset)).thenReturn("https://cdn/user_thumb.png");
 
         Ingredient ingredient = mock(Ingredient.class);
         when(ingredient.getIngredientImages()).thenReturn(setOf(primary));
@@ -46,6 +47,7 @@ class RepresentativeImageResolveTest {
         assertAll(
                 () -> assertEquals(IngredientDto.RepresentativeImageType.PHOTO, result.type()),
                 () -> assertEquals("https://cdn/user.png", result.imageUrl()),
+                () -> assertEquals("https://cdn/user_thumb.png", result.thumbnailUrl()),
                 () -> assertNull(result.emoji()),
                 () -> assertEquals(IngredientDto.RepresentativeImageSource.USER_PHOTO, result.source())
         );
@@ -57,6 +59,8 @@ class RepresentativeImageResolveTest {
         IngredientCatalog catalog = mock(IngredientCatalog.class);
         when(catalog.getDefaultImageAsset()).thenReturn(catalogAsset);
         when(imageAssetUrlResolver.resolve(catalogAsset)).thenReturn("https://cdn/catalog.png");
+        // 시스템 기본 이미지는 썸네일 variant가 없어 resolveThumbnail이 원본으로 폴백
+        when(imageAssetUrlResolver.resolveThumbnail(catalogAsset)).thenReturn("https://cdn/catalog.png");
 
         Ingredient ingredient = mock(Ingredient.class);
         when(ingredient.getIngredientImages()).thenReturn(setOf());
@@ -68,6 +72,7 @@ class RepresentativeImageResolveTest {
         assertAll(
                 () -> assertEquals(IngredientDto.RepresentativeImageType.PHOTO, result.type()),
                 () -> assertEquals("https://cdn/catalog.png", result.imageUrl()),
+                () -> assertEquals("https://cdn/catalog.png", result.thumbnailUrl()),
                 () -> assertEquals(IngredientDto.RepresentativeImageSource.CATALOG_IMAGE, result.source())
         );
     }

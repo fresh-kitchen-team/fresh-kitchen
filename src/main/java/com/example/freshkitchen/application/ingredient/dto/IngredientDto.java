@@ -159,6 +159,7 @@ public final class IngredientDto {
     public record RepresentativeImage(
             RepresentativeImageType type,
             String imageUrl,
+            String thumbnailUrl,
             String emoji,
             RepresentativeImageSource source
     ) {
@@ -169,13 +170,13 @@ public final class IngredientDto {
                     .findFirst()
                     .orElse(null);
             if (primary != null) {
-                return photo(imageAssetUrlResolver.resolve(primary.getImageAsset()),
+                return photo(primary.getImageAsset(), imageAssetUrlResolver,
                         RepresentativeImageSource.USER_PHOTO);
             }
 
             IngredientCatalog catalog = ingredient.getCatalog();
             if (catalog != null && catalog.getDefaultImageAsset() != null) {
-                return photo(imageAssetUrlResolver.resolve(catalog.getDefaultImageAsset()),
+                return photo(catalog.getDefaultImageAsset(), imageAssetUrlResolver,
                         RepresentativeImageSource.CATALOG_IMAGE);
             }
             if (catalog != null && catalog.getEmoji() != null && !catalog.getEmoji().isBlank()) {
@@ -189,12 +190,22 @@ public final class IngredientDto {
             return emoji(DEFAULT_EMOJI, RepresentativeImageSource.DEFAULT);
         }
 
-        private static RepresentativeImage photo(String imageUrl, RepresentativeImageSource source) {
-            return new RepresentativeImage(RepresentativeImageType.PHOTO, imageUrl, null, source);
+        private static RepresentativeImage photo(
+                ImageAsset imageAsset,
+                ImageAssetUrlResolver imageAssetUrlResolver,
+                RepresentativeImageSource source
+        ) {
+            return new RepresentativeImage(
+                    RepresentativeImageType.PHOTO,
+                    imageAssetUrlResolver.resolve(imageAsset),
+                    imageAssetUrlResolver.resolveThumbnail(imageAsset),
+                    null,
+                    source
+            );
         }
 
         private static RepresentativeImage emoji(String emoji, RepresentativeImageSource source) {
-            return new RepresentativeImage(RepresentativeImageType.EMOJI, null, emoji, source);
+            return new RepresentativeImage(RepresentativeImageType.EMOJI, null, null, emoji, source);
         }
     }
 
