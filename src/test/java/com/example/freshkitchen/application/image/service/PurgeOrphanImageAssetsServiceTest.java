@@ -10,6 +10,7 @@ import com.example.freshkitchen.domain.image.enums.ImageVariantType;
 import com.example.freshkitchen.domain.image.enums.StorageProvider;
 import com.example.freshkitchen.domain.image.repository.ImageAssetRepository;
 import com.example.freshkitchen.domain.image.repository.ImageVariantRepository;
+import com.example.freshkitchen.domain.catalog.repository.IngredientCatalogRepository;
 import com.example.freshkitchen.domain.image.repository.IngredientImageRepository;
 import com.example.freshkitchen.domain.user.entity.User;
 import org.junit.jupiter.api.Test;
@@ -37,12 +38,14 @@ class PurgeOrphanImageAssetsServiceTest {
     private final ImageAssetRepository imageAssetRepository = mock(ImageAssetRepository.class);
     private final ImageVariantRepository imageVariantRepository = mock(ImageVariantRepository.class);
     private final IngredientImageRepository ingredientImageRepository = mock(IngredientImageRepository.class);
+    private final IngredientCatalogRepository ingredientCatalogRepository = mock(IngredientCatalogRepository.class);
     private final MultipartImageStoragePort multipartImageStoragePort = mock(MultipartImageStoragePort.class);
     private final TransactionOperations transactionOperations = mock(TransactionOperations.class);
     private final PurgeOrphanImageAssetsService service = new PurgeOrphanImageAssetsService(
             imageAssetRepository,
             imageVariantRepository,
             ingredientImageRepository,
+            ingredientCatalogRepository,
             multipartImageStoragePort,
             transactionOperations
     );
@@ -85,6 +88,26 @@ class PurgeOrphanImageAssetsServiceTest {
         when(imageAssetRepository.findById(20L)).thenReturn(Optional.of(orphan));
         // 조회 시점엔 고아였지만 삭제 직전 다시 참조가 생긴 경우
         when(ingredientImageRepository.existsByImageAssetId(20L)).thenReturn(true);
+
+        PurgeOrphanImageAssetsUseCase.Result result =
+                service.purge(new PurgeOrphanImageAssetsUseCase.Command(CUTOFF, 200));
+
+        assertEquals(0, result.deletedAssets());
+        verify(imageAssetRepository, never()).delete(any());
+        verify(imageVariantRepository, never()).deleteByImageAssetId(any());
+        verify(multipartImageStoragePort, never()).delete(any());
+    }
+
+    @Test
+    void purge_skipsAssetReattachedAsCatalogDefaultBeforeDeletion() {
+        runInTransaction();
+        ImageAsset orphan = imageAsset(20L, "images/1/ingredient/tomato.jpg");
+        when(imageAssetRepository.findOrphans(eq(AssetType.USER_UPLOAD), eq(CUTOFF), any(Pageable.class)))
+                .thenReturn(List.of(orphan));
+        when(imageAssetRepository.findById(20L)).thenReturn(Optional.of(orphan));
+        when(ingredientImageRepository.existsByImageAssetId(20L)).thenReturn(false);
+        // 조회 시점엔 고아였지만 삭제 직전 카탈로그 기본 이미지로 다시 참조된 경우
+        when(ingredientCatalogRepository.existsByDefaultImageAssetId(20L)).thenReturn(true);
 
         PurgeOrphanImageAssetsUseCase.Result result =
                 service.purge(new PurgeOrphanImageAssetsUseCase.Command(CUTOFF, 200));

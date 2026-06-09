@@ -6,6 +6,7 @@ import com.example.freshkitchen.domain.image.entity.ImageAsset;
 import com.example.freshkitchen.domain.image.entity.ImageVariant;
 import com.example.freshkitchen.domain.image.enums.AssetType;
 import com.example.freshkitchen.domain.image.repository.ImageAssetRepository;
+import com.example.freshkitchen.domain.catalog.repository.IngredientCatalogRepository;
 import com.example.freshkitchen.domain.image.repository.ImageVariantRepository;
 import com.example.freshkitchen.domain.image.repository.IngredientImageRepository;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
@@ -25,6 +26,7 @@ public class PurgeOrphanImageAssetsService implements PurgeOrphanImageAssetsUseC
     private final ImageAssetRepository imageAssetRepository;
     private final ImageVariantRepository imageVariantRepository;
     private final IngredientImageRepository ingredientImageRepository;
+    private final IngredientCatalogRepository ingredientCatalogRepository;
     private final MultipartImageStoragePort multipartImageStoragePort;
     private final TransactionOperations transactionOperations;
 
@@ -58,7 +60,10 @@ public class PurgeOrphanImageAssetsService implements PurgeOrphanImageAssetsUseC
 
     private PurgedImage deleteOne(Long imageAssetId) {
         ImageAsset asset = imageAssetRepository.findById(imageAssetId).orElse(null);
-        if (asset == null || ingredientImageRepository.existsByImageAssetId(imageAssetId)) {
+        if (asset == null
+                || ingredientImageRepository.existsByImageAssetId(imageAssetId)
+                || ingredientCatalogRepository.existsByDefaultImageAssetId(imageAssetId)) {
+            // 조회~삭제 사이에 IngredientImage 또는 IngredientCatalog 기본이미지로 다시 참조된 경우 삭제하지 않는다.
             return null;
         }
 

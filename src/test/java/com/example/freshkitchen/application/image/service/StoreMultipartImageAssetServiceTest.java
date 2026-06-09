@@ -44,18 +44,22 @@ class StoreMultipartImageAssetServiceTest {
     private final ThumbnailImageGenerator thumbnailImageGenerator = mock(ThumbnailImageGenerator.class);
     private final EntityManager entityManager = mock(EntityManager.class);
     private final TransactionOperations transactionOperations = mock(TransactionOperations.class);
-    private final StoreMultipartImageAssetService service =
-            new StoreMultipartImageAssetService(
-                    multipartImageStoragePort,
-                    imageAssetRepository,
-                    imageVariantRepository,
-                    thumbnailImageGenerator,
-                    entityManager,
-                    transactionOperations,
-                    true,
-                    320
-            );
+    private final StoreMultipartImageAssetService service = newService(true, 320);
     private final OffsetDateTime createdAt = OffsetDateTime.parse("2026-05-01T14:20:30+09:00");
+
+    private StoreMultipartImageAssetService newService(boolean thumbnailEnabled, int thumbnailMaxDimension) {
+        StoreMultipartImageAssetService instance = new StoreMultipartImageAssetService(
+                multipartImageStoragePort,
+                imageAssetRepository,
+                imageVariantRepository,
+                thumbnailImageGenerator,
+                entityManager,
+                transactionOperations
+        );
+        ReflectionTestUtils.setField(instance, "thumbnailEnabled", thumbnailEnabled);
+        ReflectionTestUtils.setField(instance, "thumbnailMaxDimension", thumbnailMaxDimension);
+        return instance;
+    }
 
     @Test
     void store_savesFileAndCreatesImageAsset() {
@@ -225,9 +229,7 @@ class StoreMultipartImageAssetServiceTest {
 
     @Test
     void store_skipsThumbnail_whenThumbnailDisabled() {
-        StoreMultipartImageAssetService disabledService = new StoreMultipartImageAssetService(
-                multipartImageStoragePort, imageAssetRepository, imageVariantRepository,
-                thumbnailImageGenerator, entityManager, transactionOperations, false, 320);
+        StoreMultipartImageAssetService disabledService = newService(false, 320);
         runInTransaction();
         when(multipartImageStoragePort.store(any(MultipartImageStoragePort.Command.class)))
                 .thenReturn(new MultipartImageStoragePort.StoredImage(

@@ -15,6 +15,7 @@ import com.example.freshkitchen.domain.image.repository.ImageVariantRepository;
 import com.example.freshkitchen.domain.user.entity.User;
 import com.example.freshkitchen.global.exception.BusinessValidationException;
 import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import java.util.Optional;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class StoreMultipartImageAssetService implements StoreMultipartImageAssetUseCase {
 
     private final MultipartImageStoragePort multipartImageStoragePort;
@@ -32,28 +34,12 @@ public class StoreMultipartImageAssetService implements StoreMultipartImageAsset
     private final ThumbnailImageGenerator thumbnailImageGenerator;
     private final EntityManager entityManager;
     private final TransactionOperations transactionOperations;
-    private final boolean thumbnailEnabled;
-    private final int thumbnailMaxDimension;
 
-    public StoreMultipartImageAssetService(
-            MultipartImageStoragePort multipartImageStoragePort,
-            ImageAssetRepository imageAssetRepository,
-            ImageVariantRepository imageVariantRepository,
-            ThumbnailImageGenerator thumbnailImageGenerator,
-            EntityManager entityManager,
-            TransactionOperations transactionOperations,
-            @Value("${image.thumbnail.enabled:true}") boolean thumbnailEnabled,
-            @Value("${image.thumbnail.max-dimension:320}") int thumbnailMaxDimension
-    ) {
-        this.multipartImageStoragePort = multipartImageStoragePort;
-        this.imageAssetRepository = imageAssetRepository;
-        this.imageVariantRepository = imageVariantRepository;
-        this.thumbnailImageGenerator = thumbnailImageGenerator;
-        this.entityManager = entityManager;
-        this.transactionOperations = transactionOperations;
-        this.thumbnailEnabled = thumbnailEnabled;
-        this.thumbnailMaxDimension = thumbnailMaxDimension;
-    }
+    @Value("${image.thumbnail.enabled:true}")
+    private boolean thumbnailEnabled;
+
+    @Value("${image.thumbnail.max-dimension:320}")
+    private int thumbnailMaxDimension;
 
     @Override
     public Result store(Command command) {
