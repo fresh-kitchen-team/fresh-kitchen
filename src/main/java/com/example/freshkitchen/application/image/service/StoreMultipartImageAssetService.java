@@ -92,8 +92,7 @@ public class StoreMultipartImageAssetService implements StoreMultipartImageAsset
                     thumbnail.content()
             ));
         } catch (RuntimeException e) {
-            log.warn("[Thumbnail] storage failed, skipping variant. imageAssetId={} reason={}",
-                    imageAssetId, e.getMessage());
+            log.warn("[Thumbnail] storage failed, skipping variant. imageAssetId={}", imageAssetId, e);
             return;
         }
 
@@ -110,8 +109,8 @@ public class StoreMultipartImageAssetService implements StoreMultipartImageAsset
                 imageVariantRepository.save(variant);
             });
         } catch (RuntimeException e) {
-            log.warn("[Thumbnail] variant persist failed, cleaning up stored object. imageAssetId={} reason={}",
-                    imageAssetId, e.getMessage());
+            log.warn("[Thumbnail] variant persist failed, cleaning up stored object. imageAssetId={}",
+                    imageAssetId, e);
             deleteStoredImageQuietly(storedThumbnail);
         }
     }

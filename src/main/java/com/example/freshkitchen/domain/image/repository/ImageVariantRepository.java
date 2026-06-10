@@ -18,7 +18,7 @@ public interface ImageVariantRepository extends JpaRepository<ImageVariant, Long
 
     boolean existsByImageAssetIdAndVariantType(Long imageAssetId, ImageVariantType variantType);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from ImageVariant v where v.imageAsset.id = :imageAssetId")
     int deleteByImageAssetId(@Param("imageAssetId") Long imageAssetId);
 }

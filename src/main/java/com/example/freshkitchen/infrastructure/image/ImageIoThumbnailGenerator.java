@@ -72,7 +72,7 @@ public class ImageIoThumbnailGenerator implements ThumbnailImageGenerator {
                 reader.dispose();
             }
         } catch (Exception e) {
-            log.warn("[Thumbnail] generation failed, skipping. reason={}", e.getMessage());
+            log.warn("[Thumbnail] generation failed, skipping.", e);
             return Optional.empty();
         }
     }
