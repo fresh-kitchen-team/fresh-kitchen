@@ -31,7 +31,7 @@ public class ExpiringIngredientNotificationService {
 
     private static final String NOTIFICATION_TITLE = "유통기한 임박 알림";
     private static final String DATA_KEY_TYPE = "type";
-    private static final String DATA_TYPE_VALUE = "INGREDIENT_EXPIRING";
+    private static final String DATA_TYPE_VALUE = "EXPIRY_WARNING";
     private static final String DATA_KEY_INGREDIENT_IDS = "ingredientIds";
     private static final String DATA_KEY_AS_OF = "asOf";
 
