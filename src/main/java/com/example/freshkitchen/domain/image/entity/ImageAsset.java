@@ -64,6 +64,7 @@ public class ImageAsset extends CreatedAtEntity {
     private Integer height;
 
     @OneToMany(mappedBy = "imageAsset", fetch = FetchType.LAZY)
+    @BatchSize(size = 50)
     private Set<ImageVariant> variants = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "imageAsset", fetch = FetchType.LAZY)

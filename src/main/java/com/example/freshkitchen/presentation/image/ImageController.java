@@ -1,6 +1,7 @@
 package com.example.freshkitchen.presentation.image;
 
 import com.example.freshkitchen.application.image.usecase.ChangeIngredientPrimaryImageUseCase;
+import com.example.freshkitchen.application.image.usecase.RemoveIngredientImageUseCase;
 import com.example.freshkitchen.application.image.usecase.UploadIngredientImageUseCase;
 import com.example.freshkitchen.domain.image.enums.ImageContentType;
 import com.example.freshkitchen.domain.image.enums.IngredientImageSourceType;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +37,7 @@ public class ImageController {
 
     private final UploadIngredientImageUseCase uploadIngredientImageUseCase;
     private final ChangeIngredientPrimaryImageUseCase changeIngredientPrimaryImageUseCase;
+    private final RemoveIngredientImageUseCase removeIngredientImageUseCase;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ImageResponse.AttachIngredientImage>> uploadIngredientImage(
@@ -72,6 +75,20 @@ public class ImageController {
                 userId,
                 ingredientId,
                 request.ingredientImageId()
+        ));
+        return ApiResponse.success();
+    }
+
+    @DeleteMapping("/{ingredientImageId}")
+    public ResponseEntity<ApiResponse<Void>> removeIngredientImage(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long ingredientId,
+            @PathVariable Long ingredientImageId
+    ) {
+        removeIngredientImageUseCase.remove(new RemoveIngredientImageUseCase.Command(
+                userId,
+                ingredientId,
+                ingredientImageId
         ));
         return ApiResponse.success();
     }

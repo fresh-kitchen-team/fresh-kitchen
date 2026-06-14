@@ -26,6 +26,7 @@ import com.example.freshkitchen.application.tips.usecase.GetRecyclingGuidesUseCa
 import com.example.freshkitchen.application.tips.usecase.GetStorageTipsUseCase;
 import com.example.freshkitchen.application.home.usecase.GetHomeSummaryUseCase;
 import com.example.freshkitchen.application.image.usecase.ChangeIngredientPrimaryImageUseCase;
+import com.example.freshkitchen.application.image.usecase.RemoveIngredientImageUseCase;
 import com.example.freshkitchen.application.image.usecase.UploadIngredientImageUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientWithImageUseCase;
 import com.example.freshkitchen.application.ingredient.usecase.DeleteIngredientUseCase;
@@ -133,6 +134,9 @@ class SecurityFilterChainIntegrationTest {
 
     @MockitoBean
     private ChangeIngredientPrimaryImageUseCase changeIngredientPrimaryImageUseCase;
+
+    @MockitoBean
+    private RemoveIngredientImageUseCase removeIngredientImageUseCase;
 
     @MockitoBean
     private ScanIngredientImageUseCase scanIngredientImageUseCase;
@@ -307,6 +311,13 @@ class SecurityFilterChainIntegrationTest {
     @Test
     void primaryIngredientImageEndpoint_returns401_whenNoTokenProvided() throws Exception {
         mockMvc.perform(patch("/api/v1/ingredients/1/images/primary"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void removeIngredientImageEndpoint_returns401_whenNoTokenProvided() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/ingredients/1/images/1"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value(SecurityErrorCode.AUTHENTICATION_REQUIRED.code()));
     }

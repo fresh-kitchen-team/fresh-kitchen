@@ -1,6 +1,9 @@
 HELP.md
 .gradle
 build/
+
+# 로컬 이미지 저장소 (운영은 S3 사용)
+uploads/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
