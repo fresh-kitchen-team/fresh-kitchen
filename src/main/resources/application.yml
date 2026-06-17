@@ -63,6 +63,7 @@ spring:
 logging:
   level:
     root: INFO
+    org.hibernate.SQL: DEBUG
     org.springframework.ai: DEBUG
     org.springframework.ai.google: DEBUG
     org.springframework.ai.chat.client.advisor: DEBUG
