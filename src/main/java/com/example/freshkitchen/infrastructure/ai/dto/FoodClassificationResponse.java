@@ -15,7 +15,7 @@ public record FoodClassificationResponse(
         @JsonAlias("gemini_reason")
         String geminiReason,
         @JsonAlias("auto_saved")
-        Boolean autoSaved
+        String autoSaved
 ) {
 
     public record FoodCandidate(
