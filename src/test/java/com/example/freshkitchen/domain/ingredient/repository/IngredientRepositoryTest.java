@@ -242,7 +242,9 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
                 .toList();
 
         assertEquals(List.of(activeIngredient.getId()), ingredientIds);
-        assertFalse(Hibernate.isInitialized(ingredients.get(0).getIngredientImages()));
+        // 대표이미지 해석을 위해 list 조회 시 ingredientImages 를 fetch join 으로 즉시 로딩한다 (N+1 방지)
+        assertTrue(Hibernate.isInitialized(ingredients.get(0).getIngredientImages()));
+        assertEquals(2, ingredients.get(0).getIngredientImages().size());
     }
 
     private User persistUser(String providerUserId, Provider provider) {

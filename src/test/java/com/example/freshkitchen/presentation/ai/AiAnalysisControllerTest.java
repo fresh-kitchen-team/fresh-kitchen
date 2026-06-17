@@ -41,7 +41,7 @@ class AiAnalysisControllerTest {
                         List.of(new FoodClassificationResponse.FoodCandidate("Kimchi stew", 0.91)),
                         "model",
                         "red soup with kimchi",
-                        false
+                        "dataset/auto_labeled/kimchi/auto_20260528.jpg"
                 ));
 
         mockMvc.perform(multipart("/api/v1/ai/food-classification").file(imageFile()))
@@ -55,7 +55,7 @@ class AiAnalysisControllerTest {
                 .andExpect(jsonPath("$.data.top3[0].name").value("Kimchi stew"))
                 .andExpect(jsonPath("$.data.source").value("model"))
                 .andExpect(jsonPath("$.data.geminiReason").value("red soup with kimchi"))
-                .andExpect(jsonPath("$.data.autoSaved").value(false));
+                .andExpect(jsonPath("$.data.autoSaved").value("dataset/auto_labeled/kimchi/auto_20260528.jpg"));
 
         then(aiServerClient).should().classifyFood(any());
     }

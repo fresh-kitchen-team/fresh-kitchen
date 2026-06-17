@@ -105,6 +105,15 @@ fcm:
     days-ahead: ${FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD:1}
 
 image:
+  thumbnail:
+    enabled: ${IMAGE_THUMBNAIL_ENABLED:true}
+    max-dimension: ${IMAGE_THUMBNAIL_MAX_DIMENSION:320}
+  orphan-purge:
+    enabled: ${IMAGE_ORPHAN_PURGE_ENABLED:true}
+    cron: ${IMAGE_ORPHAN_PURGE_CRON:0 0 4 * * *}
+    zone: ${IMAGE_ORPHAN_PURGE_ZONE:Asia/Seoul}
+    grace-period: ${IMAGE_ORPHAN_PURGE_GRACE_PERIOD:PT24H}
+    batch-size: ${IMAGE_ORPHAN_PURGE_BATCH_SIZE:200}
   storage:
     type: ${IMAGE_STORAGE_TYPE:local}
     local:
