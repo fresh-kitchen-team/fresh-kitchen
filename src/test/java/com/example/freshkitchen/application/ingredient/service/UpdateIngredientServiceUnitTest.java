@@ -5,7 +5,6 @@ import com.example.freshkitchen.domain.catalog.repository.IngredientCatalogRepos
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
-import com.example.freshkitchen.domain.ingredient.repository.StorageRepository;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -19,13 +18,11 @@ import static org.mockito.Mockito.when;
 class UpdateIngredientServiceUnitTest {
 
     private final IngredientRepository ingredientRepository = mock(IngredientRepository.class);
-    private final StorageRepository storageRepository = mock(StorageRepository.class);
     private final IngredientCatalogRepository ingredientCatalogRepository = mock(IngredientCatalogRepository.class);
     private final DefaultStorageService defaultStorageService = mock(DefaultStorageService.class);
     private final UpdateIngredientUseCase updateIngredientUseCase =
             new UpdateIngredientService(
                     ingredientRepository,
-                    storageRepository,
                     ingredientCatalogRepository,
                     defaultStorageService
             );

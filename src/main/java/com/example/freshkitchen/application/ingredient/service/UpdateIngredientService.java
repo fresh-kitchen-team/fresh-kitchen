@@ -8,8 +8,8 @@ import com.example.freshkitchen.domain.ingredient.entity.Storage;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientErrorCode;
 import com.example.freshkitchen.domain.ingredient.exception.IngredientException;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
+import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
-import com.example.freshkitchen.domain.ingredient.repository.StorageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class UpdateIngredientService implements UpdateIngredientUseCase {
 
     private final IngredientRepository ingredientRepository;
-    private final StorageRepository storageRepository;
     private final IngredientCatalogRepository ingredientCatalogRepository;
     private final DefaultStorageService defaultStorageService;
 
@@ -33,7 +32,7 @@ public class UpdateIngredientService implements UpdateIngredientUseCase {
                 )
                 .orElseThrow(() -> new IngredientException(IngredientErrorCode.INGREDIENT_NOT_FOUND));
 
-        Storage storage = command.storageId() != null
+        Storage storage = command.storageType() != null
                 ? findStorageForUpdate(command)
                 : null;
 
@@ -61,8 +60,10 @@ public class UpdateIngredientService implements UpdateIngredientUseCase {
     }
 
     private Storage findStorageForUpdate(Command command) {
-        defaultStorageService.ensureDefaultStorages(command.userId());
-        return storageRepository.findByIdAndUserId(command.storageId(), command.userId())
+        StorageType storageType = command.storageType();
+        return defaultStorageService.ensureDefaultStorages(command.userId()).stream()
+                .filter(storage -> storage.getStorageType() == storageType)
+                .findFirst()
                 .orElseThrow(() -> new IngredientException(IngredientErrorCode.STORAGE_NOT_FOUND));
     }
 }

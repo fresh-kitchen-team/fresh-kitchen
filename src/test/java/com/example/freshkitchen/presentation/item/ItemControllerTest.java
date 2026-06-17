@@ -286,6 +286,7 @@ class ItemControllerTest {
         assertAll(
                 () -> assertEquals(10L, command.ingredientId()),
                 () -> assertEquals(1L, command.userId()),
+                () -> assertNull(command.storageType()),
                 () -> assertEquals("Milk", command.name()),
                 () -> assertTrue(command.expiresAtSet()),
                 () -> assertNull(command.expiresAt()),
@@ -293,6 +294,31 @@ class ItemControllerTest {
                 () -> assertNull(command.note()),
                 () -> assertNull(command.expirySourceType()),
                 () -> assertNull(command.sourceType())
+        );
+    }
+
+    @Test
+    void update_mapsStorageType() throws Exception {
+        mockMvc.perform(patch("/api/v1/items/10")
+                        .principal(auth(1L))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "storageType": "FREEZER"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data").value(nullValue()));
+
+        ArgumentCaptor<UpdateIngredientUseCase.Command> captor =
+                ArgumentCaptor.forClass(UpdateIngredientUseCase.Command.class);
+        verify(updateIngredientUseCase).update(captor.capture());
+        UpdateIngredientUseCase.Command command = captor.getValue();
+        assertAll(
+                () -> assertEquals(10L, command.ingredientId()),
+                () -> assertEquals(1L, command.userId()),
+                () -> assertEquals(StorageType.FREEZER, command.storageType())
         );
     }
 
@@ -355,13 +381,13 @@ class ItemControllerTest {
     }
 
     @Test
-    void update_withExplicitNullForRequiredPatchField_returnsInvalidInput() throws Exception {
+    void update_withLegacyStorageId_returnsInvalidInput() throws Exception {
         mockMvc.perform(patch("/api/v1/items/10")
                         .principal(auth(1L))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "storageId": null
+                                  "storageId": 2
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
