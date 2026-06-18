@@ -225,10 +225,14 @@ public class ChatService {
         return AiSettingResponse.from(saved);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public AiSettingResponse getAiSetting(Long userId) {
         AiSetting setting = aiSettingRepository.findByUserId(userId)
-                .orElseThrow(() -> new ChatException(ChatErrorCode.AI_SETTING_NOT_FOUND));
+                .orElseGet(() -> {
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new ChatException(ChatErrorCode.USER_NOT_FOUND));
+                    return aiSettingRepository.save(AiSetting.createDefault(user));
+                });
         return AiSettingResponse.from(setting);
     }
 

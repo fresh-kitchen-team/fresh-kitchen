@@ -1,0 +1,953 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: scenarios/tuning-baseline.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 60 max VUs, 5m15s max duration (incl. graceful stop):
+              * query_rampup: Up to 60 looping VUs for 5m0s over 4 stages (gracefulRampDown: 15s, gracefulStop: 30s)
+
+
+running (0m01.0s), 00/60 VUs, 0 complete and 0 interrupted iterations
+query_rampup   [   0% ] 00/60 VUs  0m01.0s/5m00.0s
+
+running (0m02.0s), 01/60 VUs, 0 complete and 0 interrupted iterations
+query_rampup   [   1% ] 01/60 VUs  0m02.0s/5m00.0s
+
+running (0m03.0s), 01/60 VUs, 0 complete and 0 interrupted iterations
+query_rampup   [   1% ] 01/60 VUs  0m03.0s/5m00.0s
+
+running (0m04.0s), 02/60 VUs, 0 complete and 0 interrupted iterations
+query_rampup   [   1% ] 02/60 VUs  0m04.0s/5m00.0s
+
+running (0m05.0s), 03/60 VUs, 2 complete and 0 interrupted iterations
+query_rampup   [   2% ] 03/60 VUs  0m05.0s/5m00.0s
+
+running (0m06.0s), 03/60 VUs, 4 complete and 0 interrupted iterations
+query_rampup   [   2% ] 03/60 VUs  0m06.0s/5m00.0s
+
+running (0m07.0s), 04/60 VUs, 5 complete and 0 interrupted iterations
+query_rampup   [   2% ] 04/60 VUs  0m07.0s/5m00.0s
+
+running (0m08.0s), 05/60 VUs, 8 complete and 0 interrupted iterations
+query_rampup   [   3% ] 05/60 VUs  0m08.0s/5m00.0s
+
+running (0m09.0s), 05/60 VUs, 11 complete and 0 interrupted iterations
+query_rampup   [   3% ] 05/60 VUs  0m09.0s/5m00.0s
+
+running (0m10.0s), 06/60 VUs, 14 complete and 0 interrupted iterations
+query_rampup   [   3% ] 06/60 VUs  0m10.0s/5m00.0s
+
+running (0m11.0s), 07/60 VUs, 18 complete and 0 interrupted iterations
+query_rampup   [   4% ] 07/60 VUs  0m11.0s/5m00.0s
+
+running (0m12.0s), 07/60 VUs, 25 complete and 0 interrupted iterations
+query_rampup   [   4% ] 07/60 VUs  0m12.0s/5m00.0s
+
+running (0m13.0s), 08/60 VUs, 27 complete and 0 interrupted iterations
+query_rampup   [   4% ] 08/60 VUs  0m13.0s/5m00.0s
+
+running (0m14.0s), 09/60 VUs, 31 complete and 0 interrupted iterations
+query_rampup   [   5% ] 09/60 VUs  0m14.0s/5m00.0s
+
+running (0m15.0s), 09/60 VUs, 38 complete and 0 interrupted iterations
+query_rampup   [   5% ] 09/60 VUs  0m15.0s/5m00.0s
+
+running (0m16.0s), 10/60 VUs, 44 complete and 0 interrupted iterations
+query_rampup   [   5% ] 10/60 VUs  0m16.0s/5m00.0s
+
+running (0m17.0s), 11/60 VUs, 48 complete and 0 interrupted iterations
+query_rampup   [   6% ] 11/60 VUs  0m17.0s/5m00.0s
+
+running (0m18.0s), 11/60 VUs, 57 complete and 0 interrupted iterations
+query_rampup   [   6% ] 11/60 VUs  0m18.0s/5m00.0s
+
+running (0m19.0s), 12/60 VUs, 64 complete and 0 interrupted iterations
+query_rampup   [   6% ] 12/60 VUs  0m19.0s/5m00.0s
+
+running (0m20.1s), 13/60 VUs, 74 complete and 0 interrupted iterations
+query_rampup   [   7% ] 13/60 VUs  0m20.1s/5m00.0s
+
+running (0m21.1s), 13/60 VUs, 78 complete and 0 interrupted iterations
+query_rampup   [   7% ] 13/60 VUs  0m21.1s/5m00.0s
+
+running (0m22.0s), 14/60 VUs, 85 complete and 0 interrupted iterations
+query_rampup   [   7% ] 14/60 VUs  0m22.0s/5m00.0s
+
+running (0m23.0s), 15/60 VUs, 96 complete and 0 interrupted iterations
+query_rampup   [   8% ] 15/60 VUs  0m23.0s/5m00.0s
+
+running (0m24.0s), 15/60 VUs, 104 complete and 0 interrupted iterations
+query_rampup   [   8% ] 15/60 VUs  0m24.0s/5m00.0s
+
+running (0m25.0s), 16/60 VUs, 114 complete and 0 interrupted iterations
+query_rampup   [   8% ] 16/60 VUs  0m25.0s/5m00.0s
+
+running (0m26.0s), 17/60 VUs, 124 complete and 0 interrupted iterations
+query_rampup   [   9% ] 17/60 VUs  0m26.0s/5m00.0s
+
+running (0m27.0s), 17/60 VUs, 132 complete and 0 interrupted iterations
+query_rampup   [   9% ] 17/60 VUs  0m27.0s/5m00.0s
+
+running (0m28.0s), 18/60 VUs, 145 complete and 0 interrupted iterations
+query_rampup   [   9% ] 18/60 VUs  0m28.0s/5m00.0s
+
+running (0m29.0s), 19/60 VUs, 156 complete and 0 interrupted iterations
+query_rampup   [  10% ] 19/60 VUs  0m29.0s/5m00.0s
+
+running (0m30.0s), 19/60 VUs, 171 complete and 0 interrupted iterations
+query_rampup   [  10% ] 19/60 VUs  0m30.0s/5m00.0s
+
+running (0m31.0s), 20/60 VUs, 185 complete and 0 interrupted iterations
+query_rampup   [  10% ] 20/60 VUs  0m31.0s/5m00.0s
+
+running (0m32.0s), 21/60 VUs, 193 complete and 0 interrupted iterations
+query_rampup   [  11% ] 21/60 VUs  0m32.0s/5m00.0s
+
+running (0m33.0s), 21/60 VUs, 208 complete and 0 interrupted iterations
+query_rampup   [  11% ] 21/60 VUs  0m33.0s/5m00.0s
+
+running (0m34.0s), 22/60 VUs, 223 complete and 0 interrupted iterations
+query_rampup   [  11% ] 22/60 VUs  0m34.0s/5m00.0s
+
+running (0m35.0s), 23/60 VUs, 236 complete and 0 interrupted iterations
+query_rampup   [  12% ] 23/60 VUs  0m35.0s/5m00.0s
+
+running (0m36.0s), 23/60 VUs, 249 complete and 0 interrupted iterations
+query_rampup   [  12% ] 23/60 VUs  0m36.0s/5m00.0s
+
+running (0m37.0s), 24/60 VUs, 269 complete and 0 interrupted iterations
+query_rampup   [  12% ] 24/60 VUs  0m37.0s/5m00.0s
+
+running (0m38.0s), 25/60 VUs, 283 complete and 0 interrupted iterations
+query_rampup   [  13% ] 25/60 VUs  0m38.0s/5m00.0s
+
+running (0m39.0s), 25/60 VUs, 301 complete and 0 interrupted iterations
+query_rampup   [  13% ] 25/60 VUs  0m39.0s/5m00.0s
+
+running (0m40.0s), 26/60 VUs, 320 complete and 0 interrupted iterations
+query_rampup   [  13% ] 26/60 VUs  0m40.0s/5m00.0s
+
+running (0m41.0s), 27/60 VUs, 336 complete and 0 interrupted iterations
+query_rampup   [  14% ] 27/60 VUs  0m41.0s/5m00.0s
+
+running (0m42.0s), 27/60 VUs, 356 complete and 0 interrupted iterations
+query_rampup   [  14% ] 27/60 VUs  0m42.0s/5m00.0s
+
+running (0m43.0s), 28/60 VUs, 374 complete and 0 interrupted iterations
+query_rampup   [  14% ] 28/60 VUs  0m43.0s/5m00.0s
+
+running (0m44.0s), 29/60 VUs, 394 complete and 0 interrupted iterations
+query_rampup   [  15% ] 29/60 VUs  0m44.0s/5m00.0s
+
+running (0m45.0s), 29/60 VUs, 410 complete and 0 interrupted iterations
+query_rampup   [  15% ] 29/60 VUs  0m45.0s/5m00.0s
+
+running (0m46.0s), 30/60 VUs, 434 complete and 0 interrupted iterations
+query_rampup   [  15% ] 30/60 VUs  0m46.0s/5m00.0s
+
+running (0m47.0s), 31/60 VUs, 454 complete and 0 interrupted iterations
+query_rampup   [  16% ] 31/60 VUs  0m47.0s/5m00.0s
+
+running (0m48.0s), 31/60 VUs, 476 complete and 0 interrupted iterations
+query_rampup   [  16% ] 31/60 VUs  0m48.0s/5m00.0s
+
+running (0m49.0s), 32/60 VUs, 500 complete and 0 interrupted iterations
+query_rampup   [  16% ] 32/60 VUs  0m49.0s/5m00.0s
+
+running (0m50.0s), 33/60 VUs, 520 complete and 0 interrupted iterations
+query_rampup   [  17% ] 33/60 VUs  0m50.0s/5m00.0s
+
+running (0m51.0s), 33/60 VUs, 544 complete and 0 interrupted iterations
+query_rampup   [  17% ] 33/60 VUs  0m51.0s/5m00.0s
+
+running (0m52.0s), 34/60 VUs, 567 complete and 0 interrupted iterations
+query_rampup   [  17% ] 34/60 VUs  0m52.0s/5m00.0s
+
+running (0m53.0s), 35/60 VUs, 588 complete and 0 interrupted iterations
+query_rampup   [  18% ] 35/60 VUs  0m53.0s/5m00.0s
+
+running (0m54.0s), 35/60 VUs, 612 complete and 0 interrupted iterations
+query_rampup   [  18% ] 35/60 VUs  0m54.0s/5m00.0s
+
+running (0m55.0s), 36/60 VUs, 639 complete and 0 interrupted iterations
+query_rampup   [  18% ] 36/60 VUs  0m55.0s/5m00.0s
+
+running (0m56.0s), 37/60 VUs, 662 complete and 0 interrupted iterations
+query_rampup   [  19% ] 37/60 VUs  0m56.0s/5m00.0s
+
+running (0m57.0s), 37/60 VUs, 688 complete and 0 interrupted iterations
+query_rampup   [  19% ] 37/60 VUs  0m57.0s/5m00.0s
+
+running (0m58.0s), 38/60 VUs, 716 complete and 0 interrupted iterations
+query_rampup   [  19% ] 38/60 VUs  0m58.0s/5m00.0s
+
+running (0m59.0s), 39/60 VUs, 742 complete and 0 interrupted iterations
+query_rampup   [  20% ] 39/60 VUs  0m59.0s/5m00.0s
+
+running (1m00.0s), 39/60 VUs, 772 complete and 0 interrupted iterations
+query_rampup   [  20% ] 39/60 VUs  1m00.0s/5m00.0s
+
+running (1m01.0s), 40/60 VUs, 798 complete and 0 interrupted iterations
+query_rampup   [  20% ] 40/60 VUs  1m01.0s/5m00.0s
+
+running (1m02.0s), 41/60 VUs, 826 complete and 0 interrupted iterations
+query_rampup   [  21% ] 41/60 VUs  1m02.0s/5m00.0s
+
+running (1m03.0s), 41/60 VUs, 853 complete and 0 interrupted iterations
+query_rampup   [  21% ] 41/60 VUs  1m03.0s/5m00.0s
+
+running (1m04.0s), 42/60 VUs, 879 complete and 0 interrupted iterations
+query_rampup   [  21% ] 42/60 VUs  1m04.0s/5m00.0s
+
+running (1m05.0s), 43/60 VUs, 910 complete and 0 interrupted iterations
+query_rampup   [  22% ] 43/60 VUs  1m05.0s/5m00.0s
+
+running (1m06.0s), 43/60 VUs, 937 complete and 0 interrupted iterations
+query_rampup   [  22% ] 43/60 VUs  1m06.0s/5m00.0s
+
+running (1m07.0s), 44/60 VUs, 972 complete and 0 interrupted iterations
+query_rampup   [  22% ] 44/60 VUs  1m07.0s/5m00.0s
+
+running (1m08.0s), 45/60 VUs, 1000 complete and 0 interrupted iterations
+query_rampup   [  23% ] 45/60 VUs  1m08.0s/5m00.0s
+
+running (1m09.0s), 45/60 VUs, 1031 complete and 0 interrupted iterations
+query_rampup   [  23% ] 45/60 VUs  1m09.0s/5m00.0s
+
+running (1m10.0s), 46/60 VUs, 1064 complete and 0 interrupted iterations
+query_rampup   [  23% ] 46/60 VUs  1m10.0s/5m00.0s
+
+running (1m11.0s), 47/60 VUs, 1091 complete and 0 interrupted iterations
+query_rampup   [  24% ] 47/60 VUs  1m11.0s/5m00.0s
+
+running (1m12.0s), 47/60 VUs, 1125 complete and 0 interrupted iterations
+query_rampup   [  24% ] 47/60 VUs  1m12.0s/5m00.0s
+
+running (1m13.0s), 48/60 VUs, 1158 complete and 0 interrupted iterations
+query_rampup   [  24% ] 48/60 VUs  1m13.0s/5m00.0s
+
+running (1m14.0s), 49/60 VUs, 1188 complete and 0 interrupted iterations
+query_rampup   [  25% ] 49/60 VUs  1m14.0s/5m00.0s
+
+running (1m15.0s), 49/60 VUs, 1221 complete and 0 interrupted iterations
+query_rampup   [  25% ] 49/60 VUs  1m15.0s/5m00.0s
+
+running (1m16.0s), 50/60 VUs, 1253 complete and 0 interrupted iterations
+query_rampup   [  25% ] 50/60 VUs  1m16.0s/5m00.0s
+
+running (1m17.0s), 51/60 VUs, 1288 complete and 0 interrupted iterations
+query_rampup   [  26% ] 51/60 VUs  1m17.0s/5m00.0s
+
+running (1m18.0s), 51/60 VUs, 1324 complete and 0 interrupted iterations
+query_rampup   [  26% ] 51/60 VUs  1m18.0s/5m00.0s
+
+running (1m19.0s), 52/60 VUs, 1362 complete and 0 interrupted iterations
+query_rampup   [  26% ] 52/60 VUs  1m19.0s/5m00.0s
+
+running (1m20.0s), 53/60 VUs, 1396 complete and 0 interrupted iterations
+query_rampup   [  27% ] 53/60 VUs  1m20.0s/5m00.0s
+
+running (1m21.0s), 53/60 VUs, 1436 complete and 0 interrupted iterations
+query_rampup   [  27% ] 53/60 VUs  1m21.0s/5m00.0s
+
+running (1m22.0s), 54/60 VUs, 1471 complete and 0 interrupted iterations
+query_rampup   [  27% ] 54/60 VUs  1m22.0s/5m00.0s
+
+running (1m23.0s), 55/60 VUs, 1514 complete and 0 interrupted iterations
+query_rampup   [  28% ] 55/60 VUs  1m23.0s/5m00.0s
+
+running (1m24.0s), 55/60 VUs, 1544 complete and 0 interrupted iterations
+query_rampup   [  28% ] 55/60 VUs  1m24.0s/5m00.0s
+
+running (1m25.0s), 56/60 VUs, 1589 complete and 0 interrupted iterations
+query_rampup   [  28% ] 56/60 VUs  1m25.0s/5m00.0s
+
+running (1m26.0s), 57/60 VUs, 1626 complete and 0 interrupted iterations
+query_rampup   [  29% ] 57/60 VUs  1m26.0s/5m00.0s
+
+running (1m27.0s), 57/60 VUs, 1667 complete and 0 interrupted iterations
+query_rampup   [  29% ] 57/60 VUs  1m27.0s/5m00.0s
+
+running (1m28.0s), 58/60 VUs, 1712 complete and 0 interrupted iterations
+query_rampup   [  29% ] 58/60 VUs  1m28.0s/5m00.0s
+
+running (1m29.0s), 59/60 VUs, 1749 complete and 0 interrupted iterations
+query_rampup   [  30% ] 59/60 VUs  1m29.0s/5m00.0s
+
+running (1m30.0s), 59/60 VUs, 1797 complete and 0 interrupted iterations
+query_rampup   [  30% ] 59/60 VUs  1m30.0s/5m00.0s
+
+running (1m31.0s), 60/60 VUs, 1829 complete and 0 interrupted iterations
+query_rampup   [  30% ] 60/60 VUs  1m31.0s/5m00.0s
+
+running (1m32.0s), 60/60 VUs, 1872 complete and 0 interrupted iterations
+query_rampup   [  31% ] 60/60 VUs  1m32.0s/5m00.0s
+
+running (1m33.0s), 60/60 VUs, 1911 complete and 0 interrupted iterations
+query_rampup   [  31% ] 60/60 VUs  1m33.0s/5m00.0s
+
+running (1m34.0s), 60/60 VUs, 1955 complete and 0 interrupted iterations
+query_rampup   [  31% ] 60/60 VUs  1m34.0s/5m00.0s
+
+running (1m35.0s), 60/60 VUs, 1995 complete and 0 interrupted iterations
+query_rampup   [  32% ] 60/60 VUs  1m35.0s/5m00.0s
+
+running (1m36.0s), 60/60 VUs, 2039 complete and 0 interrupted iterations
+query_rampup   [  32% ] 60/60 VUs  1m36.0s/5m00.0s
+
+running (1m37.0s), 60/60 VUs, 2079 complete and 0 interrupted iterations
+query_rampup   [  32% ] 60/60 VUs  1m37.0s/5m00.0s
+
+running (1m38.0s), 60/60 VUs, 2120 complete and 0 interrupted iterations
+query_rampup   [  33% ] 60/60 VUs  1m38.0s/5m00.0s
+
+running (1m39.0s), 60/60 VUs, 2158 complete and 0 interrupted iterations
+query_rampup   [  33% ] 60/60 VUs  1m39.0s/5m00.0s
+
+running (1m40.0s), 60/60 VUs, 2197 complete and 0 interrupted iterations
+query_rampup   [  33% ] 60/60 VUs  1m40.0s/5m00.0s
+
+running (1m41.0s), 60/60 VUs, 2240 complete and 0 interrupted iterations
+query_rampup   [  34% ] 60/60 VUs  1m41.0s/5m00.0s
+
+running (1m42.0s), 60/60 VUs, 2281 complete and 0 interrupted iterations
+query_rampup   [  34% ] 60/60 VUs  1m42.0s/5m00.0s
+
+running (1m43.0s), 60/60 VUs, 2327 complete and 0 interrupted iterations
+query_rampup   [  34% ] 60/60 VUs  1m43.0s/5m00.0s
+
+running (1m44.0s), 60/60 VUs, 2369 complete and 0 interrupted iterations
+query_rampup   [  35% ] 60/60 VUs  1m44.0s/5m00.0s
+
+running (1m45.0s), 60/60 VUs, 2409 complete and 0 interrupted iterations
+query_rampup   [  35% ] 60/60 VUs  1m45.0s/5m00.0s
+
+running (1m46.0s), 60/60 VUs, 2454 complete and 0 interrupted iterations
+query_rampup   [  35% ] 60/60 VUs  1m46.0s/5m00.0s
+
+running (1m47.0s), 60/60 VUs, 2494 complete and 0 interrupted iterations
+query_rampup   [  36% ] 60/60 VUs  1m47.0s/5m00.0s
+
+running (1m48.0s), 60/60 VUs, 2533 complete and 0 interrupted iterations
+query_rampup   [  36% ] 60/60 VUs  1m48.0s/5m00.0s
+
+running (1m49.0s), 60/60 VUs, 2574 complete and 0 interrupted iterations
+query_rampup   [  36% ] 60/60 VUs  1m49.0s/5m00.0s
+
+running (1m50.0s), 60/60 VUs, 2614 complete and 0 interrupted iterations
+query_rampup   [  37% ] 60/60 VUs  1m50.0s/5m00.0s
+
+running (1m51.0s), 60/60 VUs, 2662 complete and 0 interrupted iterations
+query_rampup   [  37% ] 60/60 VUs  1m51.0s/5m00.0s
+
+running (1m52.0s), 60/60 VUs, 2705 complete and 0 interrupted iterations
+query_rampup   [  37% ] 60/60 VUs  1m52.0s/5m00.0s
+
+running (1m53.0s), 60/60 VUs, 2746 complete and 0 interrupted iterations
+query_rampup   [  38% ] 60/60 VUs  1m53.0s/5m00.0s
+
+running (1m54.0s), 60/60 VUs, 2785 complete and 0 interrupted iterations
+query_rampup   [  38% ] 60/60 VUs  1m54.0s/5m00.0s
+
+running (1m55.0s), 60/60 VUs, 2824 complete and 0 interrupted iterations
+query_rampup   [  38% ] 60/60 VUs  1m55.0s/5m00.0s
+
+running (1m56.0s), 60/60 VUs, 2869 complete and 0 interrupted iterations
+query_rampup   [  39% ] 60/60 VUs  1m56.0s/5m00.0s
+
+running (1m57.0s), 60/60 VUs, 2906 complete and 0 interrupted iterations
+query_rampup   [  39% ] 60/60 VUs  1m57.0s/5m00.0s
+
+running (1m58.0s), 60/60 VUs, 2948 complete and 0 interrupted iterations
+query_rampup   [  39% ] 60/60 VUs  1m58.0s/5m00.0s
+
+running (1m59.0s), 60/60 VUs, 2991 complete and 0 interrupted iterations
+query_rampup   [  40% ] 60/60 VUs  1m59.0s/5m00.0s
+
+running (2m00.0s), 60/60 VUs, 3032 complete and 0 interrupted iterations
+query_rampup   [  40% ] 60/60 VUs  2m00.0s/5m00.0s
+
+running (2m01.0s), 60/60 VUs, 3071 complete and 0 interrupted iterations
+query_rampup   [  40% ] 60/60 VUs  2m01.0s/5m00.0s
+
+running (2m02.0s), 60/60 VUs, 3111 complete and 0 interrupted iterations
+query_rampup   [  41% ] 60/60 VUs  2m02.0s/5m00.0s
+
+running (2m03.0s), 60/60 VUs, 3151 complete and 0 interrupted iterations
+query_rampup   [  41% ] 60/60 VUs  2m03.0s/5m00.0s
+
+running (2m04.0s), 60/60 VUs, 3194 complete and 0 interrupted iterations
+query_rampup   [  41% ] 60/60 VUs  2m04.0s/5m00.0s
+
+running (2m05.0s), 60/60 VUs, 3231 complete and 0 interrupted iterations
+query_rampup   [  42% ] 60/60 VUs  2m05.0s/5m00.0s
+
+running (2m06.0s), 60/60 VUs, 3276 complete and 0 interrupted iterations
+query_rampup   [  42% ] 60/60 VUs  2m06.0s/5m00.0s
+
+running (2m07.0s), 60/60 VUs, 3318 complete and 0 interrupted iterations
+query_rampup   [  42% ] 60/60 VUs  2m07.0s/5m00.0s
+
+running (2m08.0s), 60/60 VUs, 3353 complete and 0 interrupted iterations
+query_rampup   [  43% ] 60/60 VUs  2m08.0s/5m00.0s
+
+running (2m09.0s), 60/60 VUs, 3396 complete and 0 interrupted iterations
+query_rampup   [  43% ] 60/60 VUs  2m09.0s/5m00.0s
+
+running (2m10.0s), 60/60 VUs, 3434 complete and 0 interrupted iterations
+query_rampup   [  43% ] 60/60 VUs  2m10.0s/5m00.0s
+
+running (2m11.0s), 60/60 VUs, 3480 complete and 0 interrupted iterations
+query_rampup   [  44% ] 60/60 VUs  2m11.0s/5m00.0s
+
+running (2m12.0s), 60/60 VUs, 3514 complete and 0 interrupted iterations
+query_rampup   [  44% ] 60/60 VUs  2m12.0s/5m00.0s
+
+running (2m13.0s), 60/60 VUs, 3559 complete and 0 interrupted iterations
+query_rampup   [  44% ] 60/60 VUs  2m13.0s/5m00.0s
+
+running (2m14.0s), 60/60 VUs, 3602 complete and 0 interrupted iterations
+query_rampup   [  45% ] 60/60 VUs  2m14.0s/5m00.0s
+
+running (2m15.0s), 60/60 VUs, 3648 complete and 0 interrupted iterations
+query_rampup   [  45% ] 60/60 VUs  2m15.0s/5m00.0s
+
+running (2m16.0s), 60/60 VUs, 3685 complete and 0 interrupted iterations
+query_rampup   [  45% ] 60/60 VUs  2m16.0s/5m00.0s
+
+running (2m17.0s), 60/60 VUs, 3725 complete and 0 interrupted iterations
+query_rampup   [  46% ] 60/60 VUs  2m17.0s/5m00.0s
+
+running (2m18.0s), 60/60 VUs, 3769 complete and 0 interrupted iterations
+query_rampup   [  46% ] 60/60 VUs  2m18.0s/5m00.0s
+
+running (2m19.0s), 60/60 VUs, 3814 complete and 0 interrupted iterations
+query_rampup   [  46% ] 60/60 VUs  2m19.0s/5m00.0s
+
+running (2m20.0s), 60/60 VUs, 3856 complete and 0 interrupted iterations
+query_rampup   [  47% ] 60/60 VUs  2m20.0s/5m00.0s
+
+running (2m21.0s), 60/60 VUs, 3892 complete and 0 interrupted iterations
+query_rampup   [  47% ] 60/60 VUs  2m21.0s/5m00.0s
+
+running (2m22.0s), 60/60 VUs, 3940 complete and 0 interrupted iterations
+query_rampup   [  47% ] 60/60 VUs  2m22.0s/5m00.0s
+
+running (2m23.0s), 60/60 VUs, 3976 complete and 0 interrupted iterations
+query_rampup   [  48% ] 60/60 VUs  2m23.0s/5m00.0s
+
+running (2m24.0s), 60/60 VUs, 4017 complete and 0 interrupted iterations
+query_rampup   [  48% ] 60/60 VUs  2m24.0s/5m00.0s
+
+running (2m25.0s), 60/60 VUs, 4055 complete and 0 interrupted iterations
+query_rampup   [  48% ] 60/60 VUs  2m25.0s/5m00.0s
+
+running (2m26.0s), 60/60 VUs, 4102 complete and 0 interrupted iterations
+query_rampup   [  49% ] 60/60 VUs  2m26.0s/5m00.0s
+
+running (2m27.0s), 60/60 VUs, 4145 complete and 0 interrupted iterations
+query_rampup   [  49% ] 60/60 VUs  2m27.0s/5m00.0s
+
+running (2m28.0s), 60/60 VUs, 4180 complete and 0 interrupted iterations
+query_rampup   [  49% ] 60/60 VUs  2m28.0s/5m00.0s
+
+running (2m29.0s), 60/60 VUs, 4228 complete and 0 interrupted iterations
+query_rampup   [  50% ] 60/60 VUs  2m29.0s/5m00.0s
+
+running (2m30.0s), 60/60 VUs, 4265 complete and 0 interrupted iterations
+query_rampup   [  50% ] 60/60 VUs  2m30.0s/5m00.0s
+
+running (2m31.0s), 60/60 VUs, 4311 complete and 0 interrupted iterations
+query_rampup   [  50% ] 60/60 VUs  2m31.0s/5m00.0s
+
+running (2m32.0s), 60/60 VUs, 4350 complete and 0 interrupted iterations
+query_rampup   [  51% ] 60/60 VUs  2m32.0s/5m00.0s
+
+running (2m33.0s), 60/60 VUs, 4387 complete and 0 interrupted iterations
+query_rampup   [  51% ] 60/60 VUs  2m33.0s/5m00.0s
+
+running (2m34.0s), 60/60 VUs, 4429 complete and 0 interrupted iterations
+query_rampup   [  51% ] 60/60 VUs  2m34.0s/5m00.0s
+
+running (2m35.0s), 60/60 VUs, 4471 complete and 0 interrupted iterations
+query_rampup   [  52% ] 60/60 VUs  2m35.0s/5m00.0s
+
+running (2m36.0s), 60/60 VUs, 4508 complete and 0 interrupted iterations
+query_rampup   [  52% ] 60/60 VUs  2m36.0s/5m00.0s
+
+running (2m37.0s), 60/60 VUs, 4553 complete and 0 interrupted iterations
+query_rampup   [  52% ] 60/60 VUs  2m37.0s/5m00.0s
+
+running (2m38.0s), 60/60 VUs, 4596 complete and 0 interrupted iterations
+query_rampup   [  53% ] 60/60 VUs  2m38.0s/5m00.0s
+
+running (2m39.0s), 60/60 VUs, 4631 complete and 0 interrupted iterations
+query_rampup   [  53% ] 60/60 VUs  2m39.0s/5m00.0s
+
+running (2m40.0s), 60/60 VUs, 4677 complete and 0 interrupted iterations
+query_rampup   [  53% ] 60/60 VUs  2m40.0s/5m00.0s
+
+running (2m41.0s), 60/60 VUs, 4717 complete and 0 interrupted iterations
+query_rampup   [  54% ] 60/60 VUs  2m41.0s/5m00.0s
+
+running (2m42.0s), 60/60 VUs, 4759 complete and 0 interrupted iterations
+query_rampup   [  54% ] 60/60 VUs  2m42.0s/5m00.0s
+
+running (2m43.0s), 60/60 VUs, 4798 complete and 0 interrupted iterations
+query_rampup   [  54% ] 60/60 VUs  2m43.0s/5m00.0s
+
+running (2m44.0s), 60/60 VUs, 4840 complete and 0 interrupted iterations
+query_rampup   [  55% ] 60/60 VUs  2m44.0s/5m00.0s
+
+running (2m45.0s), 60/60 VUs, 4884 complete and 0 interrupted iterations
+query_rampup   [  55% ] 60/60 VUs  2m45.0s/5m00.0s
+
+running (2m46.0s), 60/60 VUs, 4924 complete and 0 interrupted iterations
+query_rampup   [  55% ] 60/60 VUs  2m46.0s/5m00.0s
+
+running (2m47.0s), 60/60 VUs, 4970 complete and 0 interrupted iterations
+query_rampup   [  56% ] 60/60 VUs  2m47.0s/5m00.0s
+
+running (2m48.0s), 60/60 VUs, 5012 complete and 0 interrupted iterations
+query_rampup   [  56% ] 60/60 VUs  2m48.0s/5m00.0s
+
+running (2m49.0s), 60/60 VUs, 5055 complete and 0 interrupted iterations
+query_rampup   [  56% ] 60/60 VUs  2m49.0s/5m00.0s
+
+running (2m50.0s), 60/60 VUs, 5101 complete and 0 interrupted iterations
+query_rampup   [  57% ] 60/60 VUs  2m50.0s/5m00.0s
+
+running (2m51.0s), 60/60 VUs, 5141 complete and 0 interrupted iterations
+query_rampup   [  57% ] 60/60 VUs  2m51.0s/5m00.0s
+
+running (2m52.0s), 60/60 VUs, 5185 complete and 0 interrupted iterations
+query_rampup   [  57% ] 60/60 VUs  2m52.0s/5m00.0s
+
+running (2m53.0s), 60/60 VUs, 5221 complete and 0 interrupted iterations
+query_rampup   [  58% ] 60/60 VUs  2m53.0s/5m00.0s
+
+running (2m54.0s), 60/60 VUs, 5261 complete and 0 interrupted iterations
+query_rampup   [  58% ] 60/60 VUs  2m54.0s/5m00.0s
+
+running (2m55.0s), 60/60 VUs, 5303 complete and 0 interrupted iterations
+query_rampup   [  58% ] 60/60 VUs  2m55.0s/5m00.0s
+
+running (2m56.0s), 60/60 VUs, 5346 complete and 0 interrupted iterations
+query_rampup   [  59% ] 60/60 VUs  2m56.0s/5m00.0s
+
+running (2m57.0s), 60/60 VUs, 5392 complete and 0 interrupted iterations
+query_rampup   [  59% ] 60/60 VUs  2m57.0s/5m00.0s
+
+running (2m58.0s), 60/60 VUs, 5436 complete and 0 interrupted iterations
+query_rampup   [  59% ] 60/60 VUs  2m58.0s/5m00.0s
+
+running (2m59.0s), 60/60 VUs, 5478 complete and 0 interrupted iterations
+query_rampup   [  60% ] 60/60 VUs  2m59.0s/5m00.0s
+
+running (3m00.0s), 60/60 VUs, 5519 complete and 0 interrupted iterations
+query_rampup   [  60% ] 60/60 VUs  3m00.0s/5m00.0s
+
+running (3m01.0s), 60/60 VUs, 5563 complete and 0 interrupted iterations
+query_rampup   [  60% ] 60/60 VUs  3m01.0s/5m00.0s
+
+running (3m02.0s), 60/60 VUs, 5605 complete and 0 interrupted iterations
+query_rampup   [  61% ] 60/60 VUs  3m02.0s/5m00.0s
+
+running (3m03.0s), 60/60 VUs, 5644 complete and 0 interrupted iterations
+query_rampup   [  61% ] 60/60 VUs  3m03.0s/5m00.0s
+
+running (3m04.0s), 60/60 VUs, 5684 complete and 0 interrupted iterations
+query_rampup   [  61% ] 60/60 VUs  3m04.0s/5m00.0s
+
+running (3m05.0s), 60/60 VUs, 5725 complete and 0 interrupted iterations
+query_rampup   [  62% ] 60/60 VUs  3m05.0s/5m00.0s
+
+running (3m06.0s), 60/60 VUs, 5761 complete and 0 interrupted iterations
+query_rampup   [  62% ] 60/60 VUs  3m06.0s/5m00.0s
+
+running (3m07.0s), 60/60 VUs, 5810 complete and 0 interrupted iterations
+query_rampup   [  62% ] 60/60 VUs  3m07.0s/5m00.0s
+
+running (3m08.0s), 60/60 VUs, 5849 complete and 0 interrupted iterations
+query_rampup   [  63% ] 60/60 VUs  3m08.0s/5m00.0s
+
+running (3m09.0s), 60/60 VUs, 5885 complete and 0 interrupted iterations
+query_rampup   [  63% ] 60/60 VUs  3m09.0s/5m00.0s
+
+running (3m10.0s), 60/60 VUs, 5934 complete and 0 interrupted iterations
+query_rampup   [  63% ] 60/60 VUs  3m10.0s/5m00.0s
+
+running (3m11.0s), 60/60 VUs, 5969 complete and 0 interrupted iterations
+query_rampup   [  64% ] 60/60 VUs  3m11.0s/5m00.0s
+
+running (3m12.0s), 60/60 VUs, 6009 complete and 0 interrupted iterations
+query_rampup   [  64% ] 60/60 VUs  3m12.0s/5m00.0s
+
+running (3m13.0s), 60/60 VUs, 6055 complete and 0 interrupted iterations
+query_rampup   [  64% ] 60/60 VUs  3m13.0s/5m00.0s
+
+running (3m14.0s), 60/60 VUs, 6093 complete and 0 interrupted iterations
+query_rampup   [  65% ] 60/60 VUs  3m14.0s/5m00.0s
+
+running (3m15.0s), 60/60 VUs, 6137 complete and 0 interrupted iterations
+query_rampup   [  65% ] 60/60 VUs  3m15.0s/5m00.0s
+
+running (3m16.0s), 60/60 VUs, 6170 complete and 0 interrupted iterations
+query_rampup   [  65% ] 60/60 VUs  3m16.0s/5m00.0s
+
+running (3m17.0s), 60/60 VUs, 6214 complete and 0 interrupted iterations
+query_rampup   [  66% ] 60/60 VUs  3m17.0s/5m00.0s
+
+running (3m18.0s), 60/60 VUs, 6255 complete and 0 interrupted iterations
+query_rampup   [  66% ] 60/60 VUs  3m18.0s/5m00.0s
+
+running (3m19.0s), 60/60 VUs, 6293 complete and 0 interrupted iterations
+query_rampup   [  66% ] 60/60 VUs  3m19.0s/5m00.0s
+
+running (3m20.0s), 60/60 VUs, 6338 complete and 0 interrupted iterations
+query_rampup   [  67% ] 60/60 VUs  3m20.0s/5m00.0s
+
+running (3m21.0s), 60/60 VUs, 6377 complete and 0 interrupted iterations
+query_rampup   [  67% ] 60/60 VUs  3m21.0s/5m00.0s
+
+running (3m22.0s), 60/60 VUs, 6419 complete and 0 interrupted iterations
+query_rampup   [  67% ] 60/60 VUs  3m22.0s/5m00.0s
+
+running (3m23.0s), 60/60 VUs, 6457 complete and 0 interrupted iterations
+query_rampup   [  68% ] 60/60 VUs  3m23.0s/5m00.0s
+
+running (3m24.0s), 60/60 VUs, 6506 complete and 0 interrupted iterations
+query_rampup   [  68% ] 60/60 VUs  3m24.0s/5m00.0s
+
+running (3m25.0s), 60/60 VUs, 6541 complete and 0 interrupted iterations
+query_rampup   [  68% ] 60/60 VUs  3m25.0s/5m00.0s
+
+running (3m26.0s), 60/60 VUs, 6581 complete and 0 interrupted iterations
+query_rampup   [  69% ] 60/60 VUs  3m26.0s/5m00.0s
+
+running (3m27.0s), 60/60 VUs, 6624 complete and 0 interrupted iterations
+query_rampup   [  69% ] 60/60 VUs  3m27.0s/5m00.0s
+
+running (3m28.0s), 60/60 VUs, 6667 complete and 0 interrupted iterations
+query_rampup   [  69% ] 60/60 VUs  3m28.0s/5m00.0s
+
+running (3m29.0s), 60/60 VUs, 6714 complete and 0 interrupted iterations
+query_rampup   [  70% ] 60/60 VUs  3m29.0s/5m00.0s
+
+running (3m30.0s), 60/60 VUs, 6752 complete and 0 interrupted iterations
+query_rampup   [  70% ] 60/60 VUs  3m30.0s/5m00.0s
+
+running (3m31.0s), 60/60 VUs, 6795 complete and 0 interrupted iterations
+query_rampup   [  70% ] 60/60 VUs  3m31.0s/5m00.0s
+
+running (3m32.0s), 60/60 VUs, 6835 complete and 0 interrupted iterations
+query_rampup   [  71% ] 60/60 VUs  3m32.0s/5m00.0s
+
+running (3m33.0s), 60/60 VUs, 6873 complete and 0 interrupted iterations
+query_rampup   [  71% ] 60/60 VUs  3m33.0s/5m00.0s
+
+running (3m34.0s), 60/60 VUs, 6917 complete and 0 interrupted iterations
+query_rampup   [  71% ] 60/60 VUs  3m34.0s/5m00.0s
+
+running (3m35.0s), 60/60 VUs, 6959 complete and 0 interrupted iterations
+query_rampup   [  72% ] 60/60 VUs  3m35.0s/5m00.0s
+
+running (3m36.0s), 60/60 VUs, 6998 complete and 0 interrupted iterations
+query_rampup   [  72% ] 60/60 VUs  3m36.0s/5m00.0s
+
+running (3m37.0s), 60/60 VUs, 7042 complete and 0 interrupted iterations
+query_rampup   [  72% ] 60/60 VUs  3m37.0s/5m00.0s
+
+running (3m38.0s), 60/60 VUs, 7082 complete and 0 interrupted iterations
+query_rampup   [  73% ] 60/60 VUs  3m38.0s/5m00.0s
+
+running (3m39.0s), 60/60 VUs, 7126 complete and 0 interrupted iterations
+query_rampup   [  73% ] 60/60 VUs  3m39.0s/5m00.0s
+
+running (3m40.0s), 60/60 VUs, 7170 complete and 0 interrupted iterations
+query_rampup   [  73% ] 60/60 VUs  3m40.0s/5m00.0s
+
+running (3m41.0s), 60/60 VUs, 7213 complete and 0 interrupted iterations
+query_rampup   [  74% ] 60/60 VUs  3m41.0s/5m00.0s
+
+running (3m42.0s), 60/60 VUs, 7263 complete and 0 interrupted iterations
+query_rampup   [  74% ] 60/60 VUs  3m42.0s/5m00.0s
+
+running (3m43.0s), 60/60 VUs, 7298 complete and 0 interrupted iterations
+query_rampup   [  74% ] 60/60 VUs  3m43.0s/5m00.0s
+
+running (3m44.0s), 60/60 VUs, 7339 complete and 0 interrupted iterations
+query_rampup   [  75% ] 60/60 VUs  3m44.0s/5m00.0s
+
+running (3m45.0s), 60/60 VUs, 7380 complete and 0 interrupted iterations
+query_rampup   [  75% ] 60/60 VUs  3m45.0s/5m00.0s
+
+running (3m46.0s), 60/60 VUs, 7426 complete and 0 interrupted iterations
+query_rampup   [  75% ] 60/60 VUs  3m46.0s/5m00.0s
+
+running (3m47.0s), 60/60 VUs, 7465 complete and 0 interrupted iterations
+query_rampup   [  76% ] 60/60 VUs  3m47.0s/5m00.0s
+
+running (3m48.0s), 60/60 VUs, 7510 complete and 0 interrupted iterations
+query_rampup   [  76% ] 60/60 VUs  3m48.0s/5m00.0s
+
+running (3m49.0s), 60/60 VUs, 7550 complete and 0 interrupted iterations
+query_rampup   [  76% ] 60/60 VUs  3m49.0s/5m00.0s
+
+running (3m50.0s), 60/60 VUs, 7590 complete and 0 interrupted iterations
+query_rampup   [  77% ] 60/60 VUs  3m50.0s/5m00.0s
+
+running (3m51.0s), 60/60 VUs, 7627 complete and 0 interrupted iterations
+query_rampup   [  77% ] 60/60 VUs  3m51.0s/5m00.0s
+
+running (3m52.0s), 60/60 VUs, 7670 complete and 0 interrupted iterations
+query_rampup   [  77% ] 60/60 VUs  3m52.0s/5m00.0s
+
+running (3m53.0s), 60/60 VUs, 7710 complete and 0 interrupted iterations
+query_rampup   [  78% ] 60/60 VUs  3m53.0s/5m00.0s
+
+running (3m54.0s), 60/60 VUs, 7749 complete and 0 interrupted iterations
+query_rampup   [  78% ] 60/60 VUs  3m54.0s/5m00.0s
+
+running (3m55.0s), 60/60 VUs, 7799 complete and 0 interrupted iterations
+query_rampup   [  78% ] 60/60 VUs  3m55.0s/5m00.0s
+
+running (3m56.0s), 60/60 VUs, 7833 complete and 0 interrupted iterations
+query_rampup   [  79% ] 60/60 VUs  3m56.0s/5m00.0s
+
+running (3m57.0s), 60/60 VUs, 7877 complete and 0 interrupted iterations
+query_rampup   [  79% ] 60/60 VUs  3m57.0s/5m00.0s
+
+running (3m58.0s), 60/60 VUs, 7913 complete and 0 interrupted iterations
+query_rampup   [  79% ] 60/60 VUs  3m58.0s/5m00.0s
+
+running (3m59.0s), 60/60 VUs, 7953 complete and 0 interrupted iterations
+query_rampup   [  80% ] 60/60 VUs  3m59.0s/5m00.0s
+
+running (4m00.0s), 60/60 VUs, 7992 complete and 0 interrupted iterations
+query_rampup   [  80% ] 60/60 VUs  4m00.0s/5m00.0s
+
+running (4m01.0s), 60/60 VUs, 8037 complete and 0 interrupted iterations
+query_rampup   [  80% ] 60/60 VUs  4m01.0s/5m00.0s
+
+running (4m02.0s), 60/60 VUs, 8080 complete and 0 interrupted iterations
+query_rampup   [  81% ] 60/60 VUs  4m02.0s/5m00.0s
+
+running (4m03.0s), 60/60 VUs, 8116 complete and 0 interrupted iterations
+query_rampup   [  81% ] 60/60 VUs  4m03.0s/5m00.0s
+
+running (4m04.0s), 60/60 VUs, 8158 complete and 0 interrupted iterations
+query_rampup   [  81% ] 60/60 VUs  4m04.0s/5m00.0s
+
+running (4m05.0s), 60/60 VUs, 8198 complete and 0 interrupted iterations
+query_rampup   [  82% ] 60/60 VUs  4m05.0s/5m00.0s
+
+running (4m06.0s), 60/60 VUs, 8238 complete and 0 interrupted iterations
+query_rampup   [  82% ] 60/60 VUs  4m06.0s/5m00.0s
+
+running (4m07.0s), 60/60 VUs, 8281 complete and 0 interrupted iterations
+query_rampup   [  82% ] 60/60 VUs  4m07.0s/5m00.0s
+
+running (4m08.0s), 60/60 VUs, 8322 complete and 0 interrupted iterations
+query_rampup   [  83% ] 60/60 VUs  4m08.0s/5m00.0s
+
+running (4m09.0s), 60/60 VUs, 8357 complete and 0 interrupted iterations
+query_rampup   [  83% ] 60/60 VUs  4m09.0s/5m00.0s
+
+running (4m10.0s), 60/60 VUs, 8399 complete and 0 interrupted iterations
+query_rampup   [  83% ] 60/60 VUs  4m10.0s/5m00.0s
+
+running (4m11.0s), 60/60 VUs, 8433 complete and 0 interrupted iterations
+query_rampup   [  84% ] 60/60 VUs  4m11.0s/5m00.0s
+
+running (4m12.0s), 60/60 VUs, 8478 complete and 0 interrupted iterations
+query_rampup   [  84% ] 60/60 VUs  4m12.0s/5m00.0s
+
+running (4m13.0s), 60/60 VUs, 8525 complete and 0 interrupted iterations
+query_rampup   [  84% ] 60/60 VUs  4m13.0s/5m00.0s
+
+running (4m14.0s), 60/60 VUs, 8568 complete and 0 interrupted iterations
+query_rampup   [  85% ] 60/60 VUs  4m14.0s/5m00.0s
+
+running (4m15.0s), 60/60 VUs, 8603 complete and 0 interrupted iterations
+query_rampup   [  85% ] 60/60 VUs  4m15.0s/5m00.0s
+
+running (4m16.0s), 60/60 VUs, 8647 complete and 0 interrupted iterations
+query_rampup   [  85% ] 60/60 VUs  4m16.0s/5m00.0s
+
+running (4m17.0s), 60/60 VUs, 8687 complete and 0 interrupted iterations
+query_rampup   [  86% ] 60/60 VUs  4m17.0s/5m00.0s
+
+running (4m18.0s), 60/60 VUs, 8729 complete and 0 interrupted iterations
+query_rampup   [  86% ] 60/60 VUs  4m18.0s/5m00.0s
+
+running (4m19.0s), 60/60 VUs, 8771 complete and 0 interrupted iterations
+query_rampup   [  86% ] 60/60 VUs  4m19.0s/5m00.0s
+
+running (4m20.0s), 60/60 VUs, 8813 complete and 0 interrupted iterations
+query_rampup   [  87% ] 60/60 VUs  4m20.0s/5m00.0s
+
+running (4m21.0s), 60/60 VUs, 8849 complete and 0 interrupted iterations
+query_rampup   [  87% ] 60/60 VUs  4m21.0s/5m00.0s
+
+running (4m22.0s), 60/60 VUs, 8892 complete and 0 interrupted iterations
+query_rampup   [  87% ] 60/60 VUs  4m22.0s/5m00.0s
+
+running (4m23.0s), 60/60 VUs, 8928 complete and 0 interrupted iterations
+query_rampup   [  88% ] 60/60 VUs  4m23.0s/5m00.0s
+
+running (4m24.0s), 60/60 VUs, 8971 complete and 0 interrupted iterations
+query_rampup   [  88% ] 60/60 VUs  4m24.0s/5m00.0s
+
+running (4m25.0s), 60/60 VUs, 9016 complete and 0 interrupted iterations
+query_rampup   [  88% ] 60/60 VUs  4m25.0s/5m00.0s
+
+running (4m26.0s), 60/60 VUs, 9051 complete and 0 interrupted iterations
+query_rampup   [  89% ] 60/60 VUs  4m26.0s/5m00.0s
+
+running (4m27.0s), 60/60 VUs, 9096 complete and 0 interrupted iterations
+query_rampup   [  89% ] 60/60 VUs  4m27.0s/5m00.0s
+
+running (4m28.0s), 60/60 VUs, 9134 complete and 0 interrupted iterations
+query_rampup   [  89% ] 60/60 VUs  4m28.0s/5m00.0s
+
+running (4m29.0s), 60/60 VUs, 9175 complete and 0 interrupted iterations
+query_rampup   [  90% ] 60/60 VUs  4m29.0s/5m00.0s
+
+running (4m30.0s), 60/60 VUs, 9217 complete and 0 interrupted iterations
+query_rampup   [  90% ] 60/60 VUs  4m30.0s/5m00.0s
+
+running (4m31.0s), 59/60 VUs, 9257 complete and 0 interrupted iterations
+query_rampup   [  90% ] 59/60 VUs  4m31.0s/5m00.0s
+
+running (4m32.0s), 57/60 VUs, 9298 complete and 0 interrupted iterations
+query_rampup   [  91% ] 57/60 VUs  4m32.0s/5m00.0s
+
+running (4m33.0s), 55/60 VUs, 9339 complete and 0 interrupted iterations
+query_rampup   [  91% ] 55/60 VUs  4m33.0s/5m00.0s
+
+running (4m34.0s), 55/60 VUs, 9378 complete and 0 interrupted iterations
+query_rampup   [  91% ] 55/60 VUs  4m34.0s/5m00.0s
+
+running (4m35.0s), 52/60 VUs, 9415 complete and 0 interrupted iterations
+query_rampup   [  92% ] 52/60 VUs  4m35.0s/5m00.0s
+
+running (4m36.0s), 50/60 VUs, 9455 complete and 0 interrupted iterations
+query_rampup   [  92% ] 50/60 VUs  4m36.0s/5m00.0s
+
+running (4m37.0s), 48/60 VUs, 9485 complete and 0 interrupted iterations
+query_rampup   [  92% ] 48/60 VUs  4m37.0s/5m00.0s
+
+running (4m38.0s), 46/60 VUs, 9519 complete and 0 interrupted iterations
+query_rampup   [  93% ] 46/60 VUs  4m38.0s/5m00.0s
+
+running (4m39.0s), 45/60 VUs, 9546 complete and 0 interrupted iterations
+query_rampup   [  93% ] 45/60 VUs  4m39.0s/5m00.0s
+
+running (4m40.0s), 42/60 VUs, 9579 complete and 0 interrupted iterations
+query_rampup   [  93% ] 42/60 VUs  4m40.0s/5m00.0s
+
+running (4m41.0s), 40/60 VUs, 9612 complete and 0 interrupted iterations
+query_rampup   [  94% ] 40/60 VUs  4m41.0s/5m00.0s
+
+running (4m42.0s), 37/60 VUs, 9635 complete and 0 interrupted iterations
+query_rampup   [  94% ] 37/60 VUs  4m42.0s/5m00.0s
+
+running (4m43.0s), 36/60 VUs, 9663 complete and 0 interrupted iterations
+query_rampup   [  94% ] 36/60 VUs  4m43.0s/5m00.0s
+
+running (4m44.0s), 34/60 VUs, 9684 complete and 0 interrupted iterations
+query_rampup   [  95% ] 34/60 VUs  4m44.0s/5m00.0s
+
+running (4m45.0s), 33/60 VUs, 9708 complete and 0 interrupted iterations
+query_rampup   [  95% ] 33/60 VUs  4m45.0s/5m00.0s
+
+running (4m46.0s), 29/60 VUs, 9737 complete and 0 interrupted iterations
+query_rampup   [  95% ] 29/60 VUs  4m46.0s/5m00.0s
+
+running (4m47.0s), 28/60 VUs, 9754 complete and 0 interrupted iterations
+query_rampup   [  96% ] 28/60 VUs  4m47.0s/5m00.0s
+
+running (4m48.0s), 26/60 VUs, 9774 complete and 0 interrupted iterations
+query_rampup   [  96% ] 26/60 VUs  4m48.0s/5m00.0s
+
+running (4m49.0s), 24/60 VUs, 9795 complete and 0 interrupted iterations
+query_rampup   [  96% ] 24/60 VUs  4m49.0s/5m00.0s
+
+running (4m50.0s), 23/60 VUs, 9811 complete and 0 interrupted iterations
+query_rampup   [  97% ] 23/60 VUs  4m50.0s/5m00.0s
+
+running (4m51.0s), 20/60 VUs, 9824 complete and 0 interrupted iterations
+query_rampup   [  97% ] 20/60 VUs  4m51.0s/5m00.0s
+
+running (4m52.0s), 18/60 VUs, 9839 complete and 0 interrupted iterations
+query_rampup   [  97% ] 18/60 VUs  4m52.0s/5m00.0s
+
+running (4m53.0s), 16/60 VUs, 9853 complete and 0 interrupted iterations
+query_rampup   [  98% ] 16/60 VUs  4m53.0s/5m00.0s
+
+running (4m54.0s), 15/60 VUs, 9865 complete and 0 interrupted iterations
+query_rampup   [  98% ] 15/60 VUs  4m54.0s/5m00.0s
+
+running (4m55.0s), 12/60 VUs, 9874 complete and 0 interrupted iterations
+query_rampup   [  98% ] 12/60 VUs  4m55.0s/5m00.0s
+
+running (4m56.0s), 10/60 VUs, 9883 complete and 0 interrupted iterations
+query_rampup   [  99% ] 10/60 VUs  4m56.0s/5m00.0s
+
+running (4m57.0s), 07/60 VUs, 9892 complete and 0 interrupted iterations
+query_rampup   [  99% ] 07/60 VUs  4m57.0s/5m00.0s
+
+running (4m58.0s), 05/60 VUs, 9898 complete and 0 interrupted iterations
+query_rampup   [  99% ] 05/60 VUs  4m58.0s/5m00.0s
+
+running (4m59.0s), 04/60 VUs, 9901 complete and 0 interrupted iterations
+query_rampup   [ 100% ] 04/60 VUs  4m59.0s/5m00.0s
+
+running (5m00.0s), 02/60 VUs, 9904 complete and 0 interrupted iterations
+query_rampup   [ 100% ] 02/60 VUs  5m00.0s/5m00.0s
+[32m     ✓ dev-login 200[0m
+[32m     ✓ items 200[0m
+[32m     ✓ home 200[0m
+[32m     ✓ expiring 200[0m
+[32m     ✓ search 200[0m
+[32m     ✓ summary 200[0m
+
+     checks[2m..........................:[0m [36m100.00%[0m [36;2m✓ 9966[0m      [36;2m✗ 0[0m   
+     data_received[2m...................:[0m [36m7.0 MB[0m  [36;2m23 kB/s[0m
+     data_sent[2m.......................:[0m [36m532 kB[0m  [36;2m1.8 kB/s[0m
+     endpoint_calls[2m..................:[0m [36m9906[0m    [36;2m32.971018/s[0m
+     errors[2m..........................:[0m [36m0.00%[0m   [36;2m✓ 0[0m         [36;2m✗ 9906[0m
+     http_req_blocked[2m................:[0m avg=[36m2.45ms[0m   min=[36m0s[0m       med=[36m0s[0m       max=[36m588.46ms[0m p(90)=[36m0s[0m       p(95)=[36m0s[0m      
+     http_req_connecting[2m.............:[0m avg=[36m22.77µs[0m  min=[36m0s[0m       med=[36m0s[0m       max=[36m10.36ms[0m  p(90)=[36m0s[0m       p(95)=[36m0s[0m      
+     http_req_duration[2m...............:[0m avg=[36m203.03ms[0m min=[36m184.86ms[0m med=[36m199.93ms[0m max=[36m876.15ms[0m p(90)=[36m216.89ms[0m p(95)=[36m219.79ms[0m
+       { expected_response:true }[2m....:[0m avg=[36m203.03ms[0m min=[36m184.86ms[0m med=[36m199.93ms[0m max=[36m876.15ms[0m p(90)=[36m216.89ms[0m p(95)=[36m219.79ms[0m
+     [32m✓[0m { name:analytics/expiring }[2m...:[0m avg=[36m203.27ms[0m min=[36m185.83ms[0m med=[36m200.09ms[0m max=[36m439.1ms[0m  p(90)=[36m217.27ms[0m p(95)=[36m219.33ms[0m
+     [32m✓[0m { name:analytics/summary }[2m....:[0m avg=[36m204.15ms[0m min=[36m187.18ms[0m med=[36m200.97ms[0m max=[36m411.97ms[0m p(90)=[36m218.53ms[0m p(95)=[36m221.74ms[0m
+     [32m✓[0m { name:home/summary }[2m.........:[0m avg=[36m202.54ms[0m min=[36m185.92ms[0m med=[36m199.1ms[0m  max=[36m876.15ms[0m p(90)=[36m216.15ms[0m p(95)=[36m219.04ms[0m
+     [32m✓[0m { name:items/list }[2m...........:[0m avg=[36m202.26ms[0m min=[36m184.86ms[0m med=[36m199.78ms[0m max=[36m459.14ms[0m p(90)=[36m216.21ms[0m p(95)=[36m218.99ms[0m
+     [32m✓[0m { name:items/search }[2m.........:[0m avg=[36m203.56ms[0m min=[36m186.63ms[0m med=[36m200.68ms[0m max=[36m454.44ms[0m p(90)=[36m217.67ms[0m p(95)=[36m220.16ms[0m
+   [32m✓[0m http_req_failed[2m.................:[0m [36m0.00%[0m   [36;2m✓ 0[0m         [36;2m✗ 9966[0m
+     http_req_receiving[2m..............:[0m avg=[36m180.88µs[0m min=[36m0s[0m       med=[36m0s[0m       max=[36m12.57ms[0m  p(90)=[36m598.35µs[0m p(95)=[36m818.5µs[0m 
+     http_req_sending[2m................:[0m avg=[36m315.85µs[0m min=[36m0s[0m       med=[36m385.2µs[0m  max=[36m3.06ms[0m   p(90)=[36m636.4µs[0m  p(95)=[36m713.17µs[0m
+     http_req_tls_handshaking[2m........:[0m avg=[36m2.43ms[0m   min=[36m0s[0m       med=[36m0s[0m       max=[36m584.55ms[0m p(90)=[36m0s[0m       p(95)=[36m0s[0m      
+     http_req_waiting[2m................:[0m avg=[36m202.53ms[0m min=[36m184.86ms[0m med=[36m199.42ms[0m max=[36m875.69ms[0m p(90)=[36m216.42ms[0m p(95)=[36m219.32ms[0m
+     http_reqs[2m.......................:[0m [36m9966[0m    [36;2m33.170722/s[0m
+     iteration_duration[2m..............:[0m avg=[36m1.45s[0m    min=[36m691.64ms[0m med=[36m1.45s[0m    max=[36m2.86s[0m    p(90)=[36m2.06s[0m    p(95)=[36m2.13s[0m   
+     iterations[2m......................:[0m [36m9906[0m    [36;2m32.971018/s[0m
+     t_expiring[2m......................:[0m avg=[36m203.27ms[0m min=[36m185.83ms[0m med=[36m200.09ms[0m max=[36m439.1ms[0m  p(90)=[36m217.27ms[0m p(95)=[36m219.33ms[0m
+     t_home[2m..........................:[0m avg=[36m202.54ms[0m min=[36m185.92ms[0m med=[36m199.1ms[0m  max=[36m876.15ms[0m p(90)=[36m216.15ms[0m p(95)=[36m219.04ms[0m
+     t_items[2m.........................:[0m avg=[36m202.26ms[0m min=[36m184.86ms[0m med=[36m199.78ms[0m max=[36m459.14ms[0m p(90)=[36m216.21ms[0m p(95)=[36m218.99ms[0m
+     t_search[2m........................:[0m avg=[36m203.56ms[0m min=[36m186.63ms[0m med=[36m200.68ms[0m max=[36m454.44ms[0m p(90)=[36m217.67ms[0m p(95)=[36m220.16ms[0m
+     t_summary[2m.......................:[0m avg=[36m204.15ms[0m min=[36m187.18ms[0m med=[36m200.97ms[0m max=[36m411.97ms[0m p(90)=[36m218.53ms[0m p(95)=[36m221.74ms[0m
+     vus[2m.............................:[0m [36m2[0m       [36;2mmin=0[0m       [36;2mmax=60[0m
+     vus_max[2m.........................:[0m [36m60[0m      [36;2mmin=60[0m      [36;2mmax=60[0m
+running (5m00.4s), 00/60 VUs, 9906 complete and 0 interrupted iterations
+query_rampup ✓ [ 100% ] 00/60 VUs  5m0s
