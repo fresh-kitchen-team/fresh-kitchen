@@ -53,7 +53,7 @@ public final class ItemRequest {
             String name,
             Long catalogId,
             boolean catalogSet,
-            Long storageId,
+            StorageType storageType,
             LocalDate expiryDate,
             boolean expiryDateSet,
             LocalDate purchaseDate,
@@ -69,13 +69,14 @@ public final class ItemRequest {
 
             rejectExplicitNull(request, "name");
             rejectExplicitNull(request, "catalogId");
-            rejectExplicitNull(request, "storageId");
+            rejectLegacyField(request, "storageId");
+            rejectExplicitNull(request, "storageType");
 
             return new Update(
                     readBoundedString(request, "name", NAME_MAX_LENGTH),
                     readPositiveLong(request, "catalogId"),
                     request.has("catalogId"),
-                    readPositiveLong(request, "storageId"),
+                    readEnum(request, "storageType", StorageType.class),
                     readDate(request, "expiryDate"),
                     request.has("expiryDate"),
                     readDate(request, "purchaseDate"),
@@ -89,7 +90,7 @@ public final class ItemRequest {
             return new UpdateIngredientUseCase.Command(
                     itemId,
                     userId,
-                    storageId,
+                    storageType,
                     catalogId,
                     catalogSet,
                     name,
@@ -108,6 +109,12 @@ public final class ItemRequest {
     private static void rejectExplicitNull(JsonNode request, String fieldName) {
         if (request.has(fieldName) && request.get(fieldName).isNull()) {
             throw new BusinessValidationException(fieldName + " must not be null");
+        }
+    }
+
+    private static void rejectLegacyField(JsonNode request, String fieldName) {
+        if (request.has(fieldName)) {
+            throw new BusinessValidationException(fieldName + " is no longer supported");
         }
     }
 
@@ -157,6 +164,18 @@ public final class ItemRequest {
             return LocalDate.parse(value);
         } catch (DateTimeParseException exception) {
             throw new BusinessValidationException(fieldName + " must be a valid date", exception);
+        }
+    }
+
+    private static <E extends Enum<E>> E readEnum(JsonNode request, String fieldName, Class<E> enumType) {
+        String value = readString(request, fieldName);
+        if (value == null) {
+            return null;
+        }
+        try {
+            return Enum.valueOf(enumType, value);
+        } catch (IllegalArgumentException exception) {
+            throw new BusinessValidationException(fieldName + " must be a valid value", exception);
         }
     }
 }

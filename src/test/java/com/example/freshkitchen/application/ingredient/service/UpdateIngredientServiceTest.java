@@ -72,7 +72,7 @@ class UpdateIngredientServiceTest extends PostgreSqlTestContainerSupport {
         updateIngredientUseCase.update(new UpdateIngredientUseCase.Command(
                 ingredient.getId(),
                 user.getId(),
-                nextStorage.getId(),
+                StorageType.FREEZER,
                 null,
                 true,
                 "Skim milk",
@@ -103,11 +103,9 @@ class UpdateIngredientServiceTest extends PostgreSqlTestContainerSupport {
     }
 
     @Test
-    void update_rejectsStorageOfAnotherUser() {
+    void update_ensuresDefaultStorageForRequestedStorageType() {
         User owner = persistUser("owner-user", Provider.GOOGLE);
-        User otherUser = persistUser("other-user", Provider.KAKAO);
         Storage ownerStorage = persistStorage(owner, StorageType.FRIDGE, "Owner fridge");
-        Storage otherStorage = persistStorage(otherUser, StorageType.FRIDGE, "Other fridge");
         Ingredient ingredient = Ingredient.create(new Ingredient.CreateCommand(
                 owner,
                 ownerStorage,
@@ -121,27 +119,31 @@ class UpdateIngredientServiceTest extends PostgreSqlTestContainerSupport {
         ));
         entityManager.persist(ingredient);
 
-        IngredientException exception = assertThrows(
-                IngredientException.class,
-                () -> updateIngredientUseCase.update(new UpdateIngredientUseCase.Command(
-                        ingredient.getId(),
-                        owner.getId(),
-                        otherStorage.getId(),
-                        null,
-                        false,
-                        null,
-                        null,
-                        false,
-                        null,
-                        false,
-                        null,
-                        null,
-                        false,
-                        null
-                ))
-        );
+        updateIngredientUseCase.update(new UpdateIngredientUseCase.Command(
+                ingredient.getId(),
+                owner.getId(),
+                StorageType.FREEZER,
+                null,
+                false,
+                null,
+                null,
+                false,
+                null,
+                false,
+                null,
+                null,
+                false,
+                null
+        ));
 
-        assertEquals("storage not found", exception.getMessage());
+        entityManager.flush();
+        entityManager.clear();
+
+        Ingredient updatedIngredient = ingredientRepository.findByIdAndUserId(ingredient.getId(), owner.getId())
+                .orElseThrow();
+
+        assertEquals(StorageType.FREEZER, updatedIngredient.getStorage().getStorageType());
+        assertEquals(3, storageRepository.findAllByUserId(owner.getId()).size());
     }
 
     @Test
