@@ -21,7 +21,7 @@ CREATE TABLE ingredient_catalog_alias (
 INSERT INTO ingredient_catalog_alias (catalog_id, alias_name, normalized_alias_name, language)
 SELECT catalog.id,
        alias_rule.alias_name,
-       lower(regexp_replace(alias_rule.alias_name, '\s+', '', 'g')),
+       lower(regexp_replace(alias_rule.alias_name, '[[:space:]]+', '', 'g')),
        alias_rule.language
 FROM ingredient_catalog catalog
 JOIN (

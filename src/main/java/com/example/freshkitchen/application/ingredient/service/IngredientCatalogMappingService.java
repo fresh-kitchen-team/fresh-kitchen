@@ -30,7 +30,7 @@ public class IngredientCatalogMappingService {
             return null;
         }
         return ingredientCatalogRepository.findByName(normalizedName)
-                .or(() -> ingredientCatalogAliasRepository.findByNormalizedAliasName(normalizeAliasName(normalizedName))
+                .or(() -> ingredientCatalogAliasRepository.findByNormalizedAliasName(normalizeAliasName(name))
                         .map(alias -> alias.getCatalog()))
                 .orElse(null);
     }
