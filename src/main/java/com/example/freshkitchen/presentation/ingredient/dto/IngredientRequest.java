@@ -51,7 +51,7 @@ public final class IngredientRequest {
     }
 
     public record Update(
-            Long storageId,
+            StorageType storageType,
             Long catalogId,
             boolean catalogSet,
             String name,
@@ -70,13 +70,14 @@ public final class IngredientRequest {
                 throw new BusinessValidationException("ingredient update request must be a JSON object");
             }
 
-            rejectExplicitNull(request, "storageId");
+            rejectLegacyField(request, "storageId");
+            rejectExplicitNull(request, "storageType");
             rejectExplicitNull(request, "name");
             rejectExplicitNull(request, "expirySourceType");
             rejectExplicitNull(request, "sourceType");
 
             return new Update(
-                    readPositiveLong(request, "storageId"),
+                    readEnum(request, "storageType", StorageType.class),
                     readPositiveLong(request, "catalogId"),
                     request.has("catalogId"),
                     readBoundedString(request, "name", NAME_MAX_LENGTH),
@@ -95,7 +96,7 @@ public final class IngredientRequest {
             return new UpdateIngredientUseCase.Command(
                     ingredientId,
                     userId,
-                    storageId,
+                    storageType,
                     catalogId,
                     catalogSet,
                     name,
@@ -114,6 +115,12 @@ public final class IngredientRequest {
     private static void rejectExplicitNull(JsonNode request, String fieldName) {
         if (request.has(fieldName) && request.get(fieldName).isNull()) {
             throw new BusinessValidationException(fieldName + " must not be null");
+        }
+    }
+
+    private static void rejectLegacyField(JsonNode request, String fieldName) {
+        if (request.has(fieldName)) {
+            throw new BusinessValidationException(fieldName + " is no longer supported");
         }
     }
 
