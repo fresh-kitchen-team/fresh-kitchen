@@ -6,7 +6,6 @@ import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
 import com.example.freshkitchen.domain.ingredient.entity.Storage;
 import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientSourceType;
-import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
 import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import com.example.freshkitchen.domain.ingredient.repository.IngredientRepository;
 import com.example.freshkitchen.domain.user.entity.User;
@@ -20,7 +19,9 @@ import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ListExpiringItemsServiceTest {
@@ -31,16 +32,50 @@ class ListExpiringItemsServiceTest {
     private final ListExpiringItemsService service = new ListExpiringItemsService(ingredientRepository, CLOCK);
 
     @Test
-    void list_returnsOnlyManualExpiryItems() {
-        when(ingredientRepository.findAllByUserIdAndStatus(1L, IngredientStatus.ACTIVE)).thenReturn(List.of(
-                ingredient("Manual", LocalDate.of(2026, 5, 2), ExpirySourceType.MANUAL),
-                ingredient("Policy", LocalDate.of(2026, 5, 2), ExpirySourceType.POLICY),
-                ingredient("Unknown", null, ExpirySourceType.UNKNOWN)
-        ));
+    void list_usesManualExpiringQueryWhenStorageTypeIsNull() {
+        LocalDate today = LocalDate.of(2026, 5, 1);
+        LocalDate deadline = LocalDate.of(2026, 5, 11);
+        when(ingredientRepository.findManualExpiringByUserId(1L, today, deadline))
+                .thenReturn(List.of(ingredient("Manual", LocalDate.of(2026, 5, 2), ExpirySourceType.MANUAL)));
 
         List<AnalyticsDto.ExpiringItem> response = service.list(new ListExpiringItemsUseCase.Query(1L, 10, null));
 
         assertEquals(List.of("Manual"), response.stream().map(AnalyticsDto.ExpiringItem::name).toList());
+        verify(ingredientRepository).findManualExpiringByUserId(1L, today, deadline);
+        verify(ingredientRepository, never()).findManualExpiringByUserIdAndStorageType(
+                1L,
+                today,
+                deadline,
+                StorageType.FRIDGE
+        );
+    }
+
+    @Test
+    void list_usesManualExpiringStorageTypeQueryWhenStorageTypeExists() {
+        LocalDate today = LocalDate.of(2026, 5, 1);
+        LocalDate deadline = LocalDate.of(2026, 5, 11);
+        when(ingredientRepository.findManualExpiringByUserIdAndStorageType(1L, today, deadline, StorageType.FRIDGE))
+                .thenReturn(List.of(ingredient("Fridge", LocalDate.of(2026, 5, 3), ExpirySourceType.MANUAL)));
+
+        List<AnalyticsDto.ExpiringItem> response = service.list(
+                new ListExpiringItemsUseCase.Query(1L, 10, StorageType.FRIDGE)
+        );
+
+        assertEquals(List.of("Fridge"), response.stream().map(AnalyticsDto.ExpiringItem::name).toList());
+        verify(ingredientRepository).findManualExpiringByUserIdAndStorageType(1L, today, deadline, StorageType.FRIDGE);
+        verify(ingredientRepository, never()).findManualExpiringByUserId(1L, today, deadline);
+    }
+
+    @Test
+    void list_usesDefaultMaxDDayWhenMaxDDayIsNull() {
+        LocalDate today = LocalDate.of(2026, 5, 1);
+        LocalDate deadline = LocalDate.of(2026, 5, 11);
+        when(ingredientRepository.findManualExpiringByUserId(1L, today, deadline))
+                .thenReturn(List.of());
+
+        service.list(new ListExpiringItemsUseCase.Query(1L, null, null));
+
+        verify(ingredientRepository).findManualExpiringByUserId(1L, today, deadline);
     }
 
     private static Ingredient ingredient(String name, LocalDate expiresAt, ExpirySourceType expirySourceType) {

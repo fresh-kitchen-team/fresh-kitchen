@@ -1,12 +1,15 @@
 package com.example.freshkitchen.domain.ingredient.repository;
 
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
+import com.example.freshkitchen.domain.ingredient.enums.ExpirySourceType;
 import com.example.freshkitchen.domain.ingredient.enums.IngredientStatus;
+import com.example.freshkitchen.domain.ingredient.enums.StorageType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -154,6 +157,59 @@ class IngredientRepositoryImpl implements IngredientRepositoryCustom {
                 .setParameter("userId", userId)
                 .setParameter("status", status)
                 .setParameter("name", escapedName)
+                .getResultList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Ingredient> findManualExpiringByUserId(Long userId, LocalDate today, LocalDate deadline) {
+        return entityManager.createQuery("""
+                select ingredient
+                from Ingredient ingredient
+                join fetch ingredient.storage
+                left join fetch ingredient.catalog catalog
+                left join fetch catalog.defaultImageAsset
+                where ingredient.user.id = :userId
+                  and ingredient.status = :status
+                  and ingredient.expirySourceType = :expirySourceType
+                  and ingredient.expiresAt between :today and :deadline
+                order by ingredient.expiresAt asc, ingredient.id asc
+                """, Ingredient.class)
+                .setParameter("userId", userId)
+                .setParameter("status", IngredientStatus.ACTIVE)
+                .setParameter("expirySourceType", ExpirySourceType.MANUAL)
+                .setParameter("today", today)
+                .setParameter("deadline", deadline)
+                .getResultList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Ingredient> findManualExpiringByUserIdAndStorageType(
+            Long userId,
+            LocalDate today,
+            LocalDate deadline,
+            StorageType storageType
+    ) {
+        return entityManager.createQuery("""
+                select ingredient
+                from Ingredient ingredient
+                join fetch ingredient.storage storage
+                left join fetch ingredient.catalog catalog
+                left join fetch catalog.defaultImageAsset
+                where ingredient.user.id = :userId
+                  and ingredient.status = :status
+                  and ingredient.expirySourceType = :expirySourceType
+                  and ingredient.expiresAt between :today and :deadline
+                  and storage.storageType = :storageType
+                order by ingredient.expiresAt asc, ingredient.id asc
+                """, Ingredient.class)
+                .setParameter("userId", userId)
+                .setParameter("status", IngredientStatus.ACTIVE)
+                .setParameter("expirySourceType", ExpirySourceType.MANUAL)
+                .setParameter("today", today)
+                .setParameter("deadline", deadline)
+                .setParameter("storageType", storageType)
                 .getResultList();
     }
 
