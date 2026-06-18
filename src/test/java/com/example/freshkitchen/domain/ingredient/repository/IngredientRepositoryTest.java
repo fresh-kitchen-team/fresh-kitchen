@@ -350,12 +350,13 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
             LocalDate expiresAt,
             ExpirySourceType expirySourceType
     ) {
+        LocalDate registeredAt = expiresAt != null ? expiresAt : LocalDate.of(2026, 5, 1);
         Ingredient ingredient = Ingredient.create(new Ingredient.CreateCommand(
                 user,
                 storage,
                 catalog,
                 name,
-                LocalDate.of(2026, 5, 1),
+                registeredAt,
                 expiresAt,
                 expirySourceType,
                 null,
