@@ -3,6 +3,7 @@ package com.example.freshkitchen.application.ingredient.service;
 import com.example.freshkitchen.application.ingredient.usecase.CreateIngredientUseCase;
 import com.example.freshkitchen.domain.catalog.entity.CatalogExpiryRule;
 import com.example.freshkitchen.domain.catalog.entity.CategoryExpiryRule;
+import com.example.freshkitchen.domain.catalog.entity.IngredientCatalogAlias;
 import com.example.freshkitchen.domain.catalog.entity.IngredientCatalog;
 import com.example.freshkitchen.domain.catalog.enums.CatalogCategory;
 import com.example.freshkitchen.domain.ingredient.entity.Ingredient;
@@ -120,6 +121,70 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
         assertEquals(CatalogCategory.VEGETABLE, ingredient.getCategory());
         assertEquals(LocalDate.of(2026, 5, 8), ingredient.getExpiresAt());
         assertEquals(ExpirySourceType.POLICY, ingredient.getExpirySourceType());
+    }
+
+    @Test
+    void create_mapsCatalogByAliasNameAndAppliesCatalogExpiryRuleAsPolicy() {
+        User user = persistUser("alias-mapping-user", Provider.GOOGLE);
+        Storage storage = persistStorage(user, StorageType.FRIDGE, "Fridge");
+        IngredientCatalog catalog = persistCatalog("베이컨", CatalogCategory.MEAT, StorageType.FRIDGE);
+        persistCatalogAlias(catalog, "슬라이스베이컨", "KO");
+        persistCatalogExpiryRule(catalog, StorageType.FRIDGE, 7);
+
+        Long ingredientId = createIngredientUseCase.create(new CreateIngredientUseCase.Command(
+                user.getId(),
+                StorageType.FRIDGE,
+                null,
+                "슬라이스베이컨",
+                LocalDate.of(2026, 5, 1),
+                null,
+                ExpirySourceType.MANUAL,
+                "sandwich",
+                IngredientSourceType.PHOTO
+        ));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Ingredient ingredient = ingredientRepository.findByIdAndUserId(ingredientId, user.getId())
+                .orElseThrow();
+
+        assertEquals("슬라이스베이컨", ingredient.getName());
+        assertEquals(storage.getId(), ingredient.getStorage().getId());
+        assertEquals(catalog.getId(), ingredient.getCatalog().getId());
+        assertEquals(CatalogCategory.MEAT, ingredient.getCategory());
+        assertEquals(LocalDate.of(2026, 5, 8), ingredient.getExpiresAt());
+        assertEquals(ExpirySourceType.POLICY, ingredient.getExpirySourceType());
+    }
+
+    @Test
+    void create_doesNotMapCatalogByPartialSubstringWithoutAlias() {
+        User user = persistUser("partial-substring-user", Provider.GOOGLE);
+        persistStorage(user, StorageType.FRIDGE, "Fridge");
+        persistCatalog("베이컨", CatalogCategory.MEAT, StorageType.FRIDGE);
+
+        Long ingredientId = createIngredientUseCase.create(new CreateIngredientUseCase.Command(
+                user.getId(),
+                StorageType.FRIDGE,
+                null,
+                "슬라이스베이컨",
+                LocalDate.of(2026, 5, 1),
+                null,
+                ExpirySourceType.MANUAL,
+                null,
+                IngredientSourceType.PHOTO
+        ));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Ingredient ingredient = ingredientRepository.findByIdAndUserId(ingredientId, user.getId())
+                .orElseThrow();
+
+        assertNull(ingredient.getCatalog());
+        assertNull(ingredient.getCategory());
+        assertNull(ingredient.getExpiresAt());
+        assertEquals(ExpirySourceType.UNKNOWN, ingredient.getExpirySourceType());
     }
 
     @Test
@@ -413,6 +478,15 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
                         "test rule"
                 )
         ));
+    }
+
+    private void persistCatalogAlias(IngredientCatalog catalog, String aliasName, String language) {
+        entityManager.persist(IngredientCatalogAlias.create(new IngredientCatalogAlias.CreateCommand(
+                catalog,
+                aliasName,
+                IngredientCatalogMappingService.normalizeAliasName(aliasName),
+                language
+        )));
     }
 
     private void persistCategoryExpiryRule(CatalogCategory category, StorageType storageType, int shelfLifeDays) {
