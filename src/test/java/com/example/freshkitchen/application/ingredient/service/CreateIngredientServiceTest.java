@@ -28,7 +28,6 @@ import org.springframework.test.context.TestConstructor;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -485,13 +484,9 @@ class CreateIngredientServiceTest extends PostgreSqlTestContainerSupport {
         entityManager.persist(IngredientCatalogAlias.create(new IngredientCatalogAlias.CreateCommand(
                 catalog,
                 aliasName,
-                normalizeTestAliasName(aliasName),
+                IngredientCatalogMappingService.normalizeAliasName(aliasName),
                 language
         )));
-    }
-
-    private static String normalizeTestAliasName(String aliasName) {
-        return aliasName.trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", "");
     }
 
     private void persistCategoryExpiryRule(CatalogCategory category, StorageType storageType, int shelfLifeDays) {

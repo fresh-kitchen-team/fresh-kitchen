@@ -24,7 +24,7 @@ public class IngredientCatalogAlias extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "catalog_id", nullable = false)
     private IngredientCatalog catalog;
 
