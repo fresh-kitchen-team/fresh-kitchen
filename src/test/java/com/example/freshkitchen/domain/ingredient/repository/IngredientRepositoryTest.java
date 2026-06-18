@@ -247,6 +247,71 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
         assertEquals(2, ingredients.get(0).getIngredientImages().size());
     }
 
+    @Test
+    void findManualExpiringByUserId_returnsOnlyActiveManualIngredientsWithinDateRange() {
+        User owner = persistUser("expiring-owner", Provider.GOOGLE);
+        User otherUser = persistUser("expiring-other", Provider.KAKAO);
+        Storage fridge = persistStorage(owner, StorageType.FRIDGE, "Owner fridge");
+        Storage freezer = persistStorage(owner, StorageType.FREEZER, "Owner freezer");
+        Storage otherStorage = persistStorage(otherUser, StorageType.FRIDGE, "Other fridge");
+        IngredientCatalog catalog = persistCatalog("Milk", CatalogCategory.DAIRY, StorageType.FRIDGE);
+
+        persistIngredient(owner, fridge, catalog, "Past", LocalDate.of(2026, 4, 30), ExpirySourceType.MANUAL);
+        Ingredient sameDayFirst = persistIngredient(owner, fridge, catalog, "Same day first", LocalDate.of(2026, 5, 2), ExpirySourceType.MANUAL);
+        Ingredient sameDaySecond = persistIngredient(owner, freezer, catalog, "Same day second", LocalDate.of(2026, 5, 2), ExpirySourceType.MANUAL);
+        Ingredient deadline = persistIngredient(owner, fridge, catalog, "Deadline", LocalDate.of(2026, 5, 11), ExpirySourceType.MANUAL);
+        persistIngredient(owner, fridge, catalog, "After deadline", LocalDate.of(2026, 5, 12), ExpirySourceType.MANUAL);
+        persistIngredient(owner, fridge, catalog, "Policy", LocalDate.of(2026, 5, 2), ExpirySourceType.POLICY);
+        persistIngredient(owner, fridge, catalog, "Unknown", LocalDate.of(2026, 5, 2), ExpirySourceType.UNKNOWN);
+        Ingredient consumed = persistIngredient(owner, fridge, catalog, "Consumed", LocalDate.of(2026, 5, 2), ExpirySourceType.MANUAL);
+        Ingredient discarded = persistIngredient(owner, fridge, catalog, "Discarded", LocalDate.of(2026, 5, 2), ExpirySourceType.MANUAL);
+        persistIngredient(otherUser, otherStorage, catalog, "Other user", LocalDate.of(2026, 5, 2), ExpirySourceType.MANUAL);
+        consumed.markConsumed(LocalDate.of(2026, 5, 1));
+        discarded.markDiscarded(LocalDate.of(2026, 5, 1));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        List<Ingredient> ingredients = ingredientRepository.findManualExpiringByUserId(
+                owner.getId(),
+                LocalDate.of(2026, 5, 1),
+                LocalDate.of(2026, 5, 11)
+        );
+        List<Long> ingredientIds = ingredients.stream()
+                .map(Ingredient::getId)
+                .toList();
+
+        assertEquals(List.of(sameDayFirst.getId(), sameDaySecond.getId(), deadline.getId()), ingredientIds);
+        assertTrue(Hibernate.isInitialized(ingredients.get(0).getStorage()));
+        assertTrue(Hibernate.isInitialized(ingredients.get(0).getCatalog()));
+        assertFalse(Hibernate.isInitialized(ingredients.get(0).getIngredientImages()));
+    }
+
+    @Test
+    void findManualExpiringByUserIdAndStorageType_filtersStorageType() {
+        User owner = persistUser("expiring-storage-owner", Provider.GOOGLE);
+        Storage fridge = persistStorage(owner, StorageType.FRIDGE, "Owner fridge");
+        Storage freezer = persistStorage(owner, StorageType.FREEZER, "Owner freezer");
+        Ingredient fridgeIngredient = persistIngredient(owner, fridge, "Fridge", LocalDate.of(2026, 5, 2), ExpirySourceType.MANUAL);
+        persistIngredient(owner, freezer, "Freezer", LocalDate.of(2026, 5, 2), ExpirySourceType.MANUAL);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        List<Ingredient> ingredients = ingredientRepository.findManualExpiringByUserIdAndStorageType(
+                owner.getId(),
+                LocalDate.of(2026, 5, 1),
+                LocalDate.of(2026, 5, 11),
+                StorageType.FRIDGE
+        );
+        List<Long> ingredientIds = ingredients.stream()
+                .map(Ingredient::getId)
+                .toList();
+
+        assertEquals(List.of(fridgeIngredient.getId()), ingredientIds);
+        assertEquals(StorageType.FRIDGE, ingredients.get(0).getStorage().getStorageType());
+    }
+
     private User persistUser(String providerUserId, Provider provider) {
         User user = User.create(new User.CreateCommand(providerUserId, provider));
         entityManager.persist(user);
@@ -264,14 +329,36 @@ class IngredientRepositoryTest extends PostgreSqlTestContainerSupport {
     }
 
     private Ingredient persistIngredient(User user, Storage storage, IngredientCatalog catalog, String name) {
+        return persistIngredient(user, storage, catalog, name, null, ExpirySourceType.UNKNOWN);
+    }
+
+    private Ingredient persistIngredient(
+            User user,
+            Storage storage,
+            String name,
+            LocalDate expiresAt,
+            ExpirySourceType expirySourceType
+    ) {
+        return persistIngredient(user, storage, null, name, expiresAt, expirySourceType);
+    }
+
+    private Ingredient persistIngredient(
+            User user,
+            Storage storage,
+            IngredientCatalog catalog,
+            String name,
+            LocalDate expiresAt,
+            ExpirySourceType expirySourceType
+    ) {
+        LocalDate registeredAt = expiresAt != null ? expiresAt : LocalDate.of(2026, 5, 1);
         Ingredient ingredient = Ingredient.create(new Ingredient.CreateCommand(
                 user,
                 storage,
                 catalog,
                 name,
-                null,
-                null,
-                ExpirySourceType.UNKNOWN,
+                registeredAt,
+                expiresAt,
+                expirySourceType,
                 null,
                 IngredientSourceType.MANUAL
         ));
