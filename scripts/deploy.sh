@@ -1,0 +1,73 @@
+#!/bin/bash
+set -e
+
+
+export ECR_REGISTRY="339713026502.dkr.ecr.us-east-1.amazonaws.com"
+export ECR_REPOSITORY="fresh-kitchen"
+export IMAGE_TAG="latest"
+export AWS_REGION="us-east-1"
+
+# Parameter Store에서 값 가져오기
+echo "▶ Parameter Store에서 환경변수 로드"
+export DB_URL=$(aws ssm get-parameter --name "/fresh-kitchen/DB_URL" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export DB_USERNAME=$(aws ssm get-parameter --name "/fresh-kitchen/DB_USERNAME" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export DB_PASSWORD=$(aws ssm get-parameter --name "/fresh-kitchen/DB_PASSWORD" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export JWT_SECRET=$(aws ssm get-parameter --name "/fresh-kitchen/JWT_SECRET" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export GOOGLE_CLIENT_ID=$(aws ssm get-parameter --name "/fresh-kitchen/GOOGLE_CLIENT_ID" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export KAKAO_CLIENT_ID=$(aws ssm get-parameter --name "/fresh-kitchen/KAKAO_CLIENT_ID" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export KAKAO_APP_KEY=$(aws ssm get-parameter --name "/fresh-kitchen/KAKAO_APP_KEY" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export REDIS_HOST=$(aws ssm get-parameter --name "/fresh-kitchen/REDIS_HOST" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export REDIS_PORT=$(aws ssm get-parameter --name "/fresh-kitchen/REDIS_PORT" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export GEMINI_API_KEY=$(aws ssm get-parameter --name "/fresh-kitchen/GEMINI_API_KEY" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export AI_SERVER_BASE_URL=$(aws ssm get-parameter --name "/fresh-kitchen/AI_SERVER_BASE_URL" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export AI_SERVER_TOKEN=$(aws ssm get-parameter --name "/fresh-kitchen/AI_SERVER_TOKEN" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export GOOGLE_PROJECT_ID=$(aws ssm get-parameter --name "/fresh-kitchen/GOOGLE_PROJECT_ID" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export IMAGE_STORAGE_TYPE=$(aws ssm get-parameter --name "/fresh-kitchen/IMAGE_STORAGE_TYPE" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export AWS_S3_BUCKET=$(aws ssm get-parameter --name "/fresh-kitchen/AWS_S3_BUCKET" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export IMAGE_STORAGE_S3_PUBLIC_BASE_URL=$(aws ssm get-parameter --name "/fresh-kitchen/IMAGE_STORAGE_S3_PUBLIC_BASE_URL" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+MAIL_USERNAME=$(aws ssm get-parameter --name "/fresh-kitchen/MAIL_USERNAME" --with-decryption --query Parameter.Value --output text --region "$AWS_REGION")
+export MAIL_USERNAME
+MAIL_PASSWORD=$(aws ssm get-parameter --name "/fresh-kitchen/MAIL_PASSWORD" --with-decryption --query Parameter.Value --output text --region "$AWS_REGION")
+export MAIL_PASSWORD
+INQUIRY_ADMIN_EMAIL=$(aws ssm get-parameter --name "/fresh-kitchen/INQUIRY_ADMIN_EMAIL" --with-decryption --query Parameter.Value --output text --region "$AWS_REGION")
+export INQUIRY_ADMIN_EMAIL
+LEGAL_TERMS_URL=$(aws ssm get-parameter --name "/fresh-kitchen/LEGAL_TERMS_URL" --with-decryption --query Parameter.Value --output text --region "$AWS_REGION")
+export LEGAL_TERMS_URL
+LEGAL_PRIVACY_URL=$(aws ssm get-parameter --name "/fresh-kitchen/LEGAL_PRIVACY_URL" --with-decryption --query Parameter.Value --output text --region "$AWS_REGION")
+export LEGAL_PRIVACY_URL
+
+# FCM 푸시 알림 설정 — 없으면 application.yml 기본값/컨테이너 기본값 사용
+FCM_FIREBASE_CREDENTIALS_LOCATION=$(aws ssm get-parameter --name "/fresh-kitchen/FCM_FIREBASE_CREDENTIALS_LOCATION" --query Parameter.Value --output text --region "$AWS_REGION" 2>/dev/null || echo "classpath:firebase/firebase.json")
+export FCM_FIREBASE_CREDENTIALS_LOCATION
+FCM_EXPIRING_NOTIFICATION_CRON=$(aws ssm get-parameter --name "/fresh-kitchen/FCM_EXPIRING_NOTIFICATION_CRON" --query Parameter.Value --output text --region "$AWS_REGION" 2>/dev/null || echo "0 0 9 * * *")
+export FCM_EXPIRING_NOTIFICATION_CRON
+FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD=$(aws ssm get-parameter --name "/fresh-kitchen/FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD" --query Parameter.Value --output text --region "$AWS_REGION" 2>/dev/null || echo "1")
+export FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD
+
+
+echo "------------------ 서버 배포 시작 --------------------------------"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "▶ ECR 로그인"
+aws ecr get-login-password --region "$AWS_REGION" \
+  | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+
+# .env는 ECR 로그인 이후에 로드 — AWS_ACCESS_KEY_ID가 포함된 경우 인스턴스 프로파일을 오염시키지 않도록
+if [ -f "$DIR/.env" ]; then
+  echo "▶ .env 파일을 로드합니다."
+  source "$DIR/.env"
+else
+  echo "⚠️ .env 파일이 없지만, 설정된 환경 변수로 계속 진행합니다."
+fi
+
+# S3 이미지 저장용 IAM 키 — ECR 로그인 이후에 export하여 인스턴스 프로파일 오염 방지
+export AWS_ACCESS_KEY_ID=$(aws ssm get-parameter --name "/fresh-kitchen/AWS_ACCESS_KEY_ID" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+export AWS_SECRET_ACCESS_KEY=$(aws ssm get-parameter --name "/fresh-kitchen/AWS_SECRET_ACCESS_KEY" --with-decryption --query Parameter.Value --output text --region $AWS_REGION)
+
+echo "▶ 기존 컨테이너 종료"
+docker-compose -f "$DIR/docker-compose.yml" down || true
+
+echo "▶ 새 컨테이너 실행"
+docker-compose -f "$DIR/docker-compose.yml" up -d
+
+echo "✅ 배포 완료"

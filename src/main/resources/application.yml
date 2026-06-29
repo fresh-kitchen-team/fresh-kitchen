@@ -1,0 +1,140 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+  ai:
+    google:
+      genai:
+        api-key: ${GEMINI_API_KEY}
+        project-id: ${GOOGLE_PROJECT_ID}
+        chat:
+          options:
+            model: gemini-2.5-flash
+        embedding:
+          api-key: ${GEMINI_API_KEY}
+          options:
+            model: gemini-embedding-001
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: always
+    retry:
+      max-attempts: 3
+      on-client-errors: false
+      backoff:
+        initial-interval: 2s
+        multiplier: 2
+        max-interval: 30s
+    vectorstore:
+      pgvector:
+        initialize-schema: false
+        dimensions: 3072
+        distance-type: cosine_distance
+
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: DEBUG
+    org.springframework.ai: DEBUG
+    org.springframework.ai.google: DEBUG
+    org.springframework.ai.chat.client.advisor: DEBUG
+    org.springframework.ai.retry: DEBUG
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-expiration-minutes: 30
+  refresh-expiration-days: 14
+
+oauth:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+  kakao:
+    client-id: ${KAKAO_CLIENT_ID}
+    app-key: ${KAKAO_APP_KEY}
+
+ai:
+  server:
+    base-url: ${AI_SERVER_BASE_URL}
+    token: ${AI_SERVER_TOKEN}
+    connect-timeout-ms: ${AI_SERVER_CONNECT_TIMEOUT_MS:3000}
+    read-timeout-ms: ${AI_SERVER_READ_TIMEOUT_MS:30000}
+
+chat:
+  intent-classifier:
+    enabled: ${INTENT_CLASSIFIER_ENABLED:true}
+    model: ${INTENT_CLASSIFIER_MODEL:gemini-2.5-flash-lite}
+    fallback-type: ${INTENT_CLASSIFIER_FALLBACK:GENERAL}
+
+
+
+fcm:
+  firebase-credentials-location: ${FCM_FIREBASE_CREDENTIALS_LOCATION:}
+  expiring-notification:
+    enabled: ${FCM_EXPIRING_NOTIFICATION_ENABLED:true}
+    cron: ${FCM_EXPIRING_NOTIFICATION_CRON:0 0 9 * * *}
+    zone: ${FCM_EXPIRING_NOTIFICATION_ZONE:Asia/Seoul}
+    days-ahead: ${FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD:1}
+
+image:
+  thumbnail:
+    enabled: ${IMAGE_THUMBNAIL_ENABLED:true}
+    max-dimension: ${IMAGE_THUMBNAIL_MAX_DIMENSION:320}
+  orphan-purge:
+    enabled: ${IMAGE_ORPHAN_PURGE_ENABLED:true}
+    cron: ${IMAGE_ORPHAN_PURGE_CRON:0 0 4 * * *}
+    zone: ${IMAGE_ORPHAN_PURGE_ZONE:Asia/Seoul}
+    grace-period: ${IMAGE_ORPHAN_PURGE_GRACE_PERIOD:PT24H}
+    batch-size: ${IMAGE_ORPHAN_PURGE_BATCH_SIZE:200}
+  storage:
+    type: ${IMAGE_STORAGE_TYPE:local}
+    local:
+      root-dir: ${IMAGE_STORAGE_LOCAL_ROOT_DIR:uploads}
+      public-base-url: ${IMAGE_STORAGE_LOCAL_PUBLIC_BASE_URL:/uploads}
+    s3:
+      region: ${AWS_REGION:us-east-1}
+      bucket: ${AWS_S3_BUCKET:}
+      access-key-id: ${AWS_ACCESS_KEY_ID:}
+      secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
+      public-base-url: ${IMAGE_STORAGE_S3_PUBLIC_BASE_URL:}
+
+app:
+  inquiry:
+    admin-email: ${INQUIRY_ADMIN_EMAIL:no-reply@example.invalid}  # CI/test fallback; docker-compose enforces required via :?
+  version:
+    latest-version: "1.0.0"
+    minimum-version: "1.0.0"
+    force-update: false
+    update-url: ""
+  legal:
+    terms-url: ${LEGAL_TERMS_URL:https://example.invalid/terms}      # CI/test fallback; docker-compose enforces required via :?
+    privacy-url: ${LEGAL_PRIVACY_URL:https://example.invalid/privacy}  # CI/test fallback; docker-compose enforces required via :?
+

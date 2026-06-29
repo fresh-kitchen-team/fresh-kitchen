@@ -1,0 +1,139 @@
+name: Deploy To Sanhak four/3
+
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Github Repository 파일 불러오기
+        uses: actions/checkout@v4
+
+
+      - name: JDK 17버전 설치
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Firebase credentials 복원
+        run: |
+          mkdir -p src/main/resources/firebase
+          echo "${{ secrets.FIREBASE_CREDENTIALS_B64 }}" | base64 -d > src/main/resources/firebase/firebase.json
+
+      - name: 테스트 및 빌드하기
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
+        run: ./gradlew clean build -x test
+
+
+      - name: AWS Resource 접근 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY}}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: ECR에 로그인하기
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Docker 이미지 빌드 및 Push + 배포 파일 생성
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: fresh-kitchen
+          IMAGE_TAG: ${{ github.sha }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          AI_SERVER_BASE_URL: ${{ secrets.AI_SERVER_BASE_URL }}
+          AI_SERVER_TOKEN: ${{ secrets.AI_SERVER_TOKEN }}
+          IMAGE_STORAGE_TYPE: ${{ secrets.IMAGE_STORAGE_TYPE }}
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          IMAGE_STORAGE_S3_PUBLIC_BASE_URL: ${{ secrets.IMAGE_STORAGE_S3_PUBLIC_BASE_URL }}
+          KAKAO_APP_KEY: ${{ secrets.KAKAO_APP_KEY }}
+          GOOGLE_PROJECT_ID: ${{ secrets.GOOGLE_PROJECT_ID }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          INQUIRY_ADMIN_EMAIL: ${{ secrets.INQUIRY_ADMIN_EMAIL }}
+          LEGAL_TERMS_URL: ${{ secrets.LEGAL_TERMS_URL }}
+          LEGAL_PRIVACY_URL: ${{ secrets.LEGAL_PRIVACY_URL }}
+          FCM_FIREBASE_CREDENTIALS_LOCATION: ${{ secrets.FCM_FIREBASE_CREDENTIALS_LOCATION || 'classpath:firebase/firebase.json' }}
+          FCM_EXPIRING_NOTIFICATION_CRON: ${{ secrets.FCM_EXPIRING_NOTIFICATION_CRON || '0 0 9 * * *' }}
+          FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD: ${{ secrets.FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD || '1' }}
+        run: |
+          # 이미지 빌드 & Push
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+          # scripts 폴더 생성
+          mkdir -p scripts
+
+          # .env 생성 (printf 사용으로 $ 포함 값도 안전하게 기록)
+          printf '%s\n' \
+            "ECR_REGISTRY=$ECR_REGISTRY" \
+            "ECR_REPOSITORY=$ECR_REPOSITORY" \
+            "IMAGE_TAG=$IMAGE_TAG" \
+            "DB_URL=$DB_URL" \
+            "DB_USERNAME=$DB_USERNAME" \
+            "DB_PASSWORD=$DB_PASSWORD" \
+            "JWT_SECRET=$JWT_SECRET" \
+            "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" \
+            "KAKAO_CLIENT_ID=$KAKAO_CLIENT_ID" \
+            "REDIS_HOST=$REDIS_HOST" \
+            "GEMINI_API_KEY=$GEMINI_API_KEY" \
+            "AI_SERVER_BASE_URL=$AI_SERVER_BASE_URL" \
+            "AI_SERVER_TOKEN=$AI_SERVER_TOKEN" \
+            "IMAGE_STORAGE_TYPE=$IMAGE_STORAGE_TYPE" \
+            "AWS_S3_BUCKET=$AWS_S3_BUCKET" \
+            "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
+            "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
+            "AWS_REGION=$AWS_REGION" \
+            "IMAGE_STORAGE_S3_PUBLIC_BASE_URL=$IMAGE_STORAGE_S3_PUBLIC_BASE_URL" \
+            "KAKAO_APP_KEY=$KAKAO_APP_KEY" \
+            "GOOGLE_PROJECT_ID=$GOOGLE_PROJECT_ID" \
+            "MAIL_USERNAME=$MAIL_USERNAME" \
+            "MAIL_PASSWORD=$MAIL_PASSWORD" \
+            "INQUIRY_ADMIN_EMAIL=$INQUIRY_ADMIN_EMAIL" \
+            "LEGAL_TERMS_URL=$LEGAL_TERMS_URL" \
+            "LEGAL_PRIVACY_URL=$LEGAL_PRIVACY_URL" \
+            "FCM_FIREBASE_CREDENTIALS_LOCATION=$FCM_FIREBASE_CREDENTIALS_LOCATION" \
+            "FCM_EXPIRING_NOTIFICATION_CRON=\"$FCM_EXPIRING_NOTIFICATION_CRON\"" \
+            "FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD=$FCM_EXPIRING_NOTIFICATION_DAYS_AHEAD" \
+            > scripts/.env
+
+          chmod +x scripts/deploy.sh
+          mv docker-compose.yml scripts/
+
+      - name: 압축 및 S3 업로드
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          zip -r deploy-$IMAGE_TAG.zip ./scripts appspec.yml
+          aws s3 cp --region us-east-1 --acl private \
+            ./deploy-$IMAGE_TAG.zip s3://fresh-kitchen-server
+
+      - name: CodeDeploy 배포 실행
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          aws deploy create-deployment \
+          --application-name fresh-app-server \
+          --deployment-config-name CodeDeployDefault.OneAtATime \
+          --deployment-group-name Production \
+          --s3-location bucket=fresh-kitchen-server,bundleType=zip,key=deploy-$IMAGE_TAG.zip

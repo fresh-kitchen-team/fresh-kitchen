@@ -1,0 +1,36 @@
+package com.example.freshkitchen.application.inquiry.service;
+
+import com.example.freshkitchen.application.inquiry.dto.InquiryResult;
+import com.example.freshkitchen.application.inquiry.exception.InquiryErrorCode;
+import com.example.freshkitchen.application.inquiry.exception.InquiryException;
+import com.example.freshkitchen.application.inquiry.usecase.GetInquiryDetailUseCase;
+import com.example.freshkitchen.domain.inquiry.entity.Inquiry;
+import com.example.freshkitchen.domain.inquiry.repository.InquiryRepository;
+import com.example.freshkitchen.global.exception.BusinessValidationException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class GetInquiryDetailService implements GetInquiryDetailUseCase {
+
+    private final InquiryRepository inquiryRepository;
+
+    @Override
+    public InquiryResult getDetail(Command command) {
+        if (command == null) throw new BusinessValidationException("command must not be null");
+        if (command.userId() == null) throw new BusinessValidationException("userId must not be null");
+        if (command.inquiryId() == null) throw new BusinessValidationException("inquiryId must not be null");
+
+        Inquiry inquiry = inquiryRepository.findById(command.inquiryId())
+                .orElseThrow(() -> new InquiryException(InquiryErrorCode.INQUIRY_NOT_FOUND));
+
+        if (!inquiry.getUserId().equals(command.userId())) {
+            throw new InquiryException(InquiryErrorCode.INQUIRY_NOT_FOUND);
+        }
+
+        return InquiryResult.from(inquiry);
+    }
+}
