@@ -1,10 +1,14 @@
-
-<div align="center">
-
 # 🥬 FreshKitchen (프레시 키친)
 
 ### 냉장고 속 식재료를 스캔 한 번으로, 유통기한 관리부터 AI 레시피까지
 
+[![GitHub](https://img.shields.io/badge/GitHub-fresh--kitchen--team-181717?style=flat&logo=github)](https://github.com/fresh-kitchen-team)
+![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?style=flat&logo=android&logoColor=white)
+![Backend](https://img.shields.io/badge/Backend-Spring%20Boot-6DB33F?style=flat&logo=springboot&logoColor=white)
+![Cloud](https://img.shields.io/badge/Cloud-AWS-FF9900?style=flat&logo=amazonaws&logoColor=white)
+![AI](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-4285F4?style=flat&logo=googlegemini&logoColor=white)
+
+---
 
 ## 📌 프로젝트 소개
 
@@ -34,7 +38,7 @@
 `Kotlin(Android)` `Spring Boot` `Spring Security(JWT+OAuth2.0)` `Spring AI` `FastAPI`
 
 **Database & Persistence**
-`PostgreSQL(RDS)` `Redis(ElastiCache)` `JPA` `Flyway(DB 관리용)`
+`PostgreSQL(RDS)` `Redis(ElastiCache)` `JPA` `Flyway`
 
 **AI / ML**
 `EfficientNet V2-M` `Gemini 2.5 Flash(VLM)` `Google Document AI(OCR)` `RAG Vector Store`
@@ -49,22 +53,7 @@
 
 ## 🏗️ 시스템 아키텍처
 
-```
-Client (Android · Kotlin)
-        │
-        ▼
-Backend (Spring Boot REST API)
-        │
-        ▼
-AWS Cloud ── EC2(ASG) · ALB · RDS · S3 · ElastiCache(Redis) · CloudFront
-        │
-        ▼
-External ── Gemini 2.5 Flash · Document AI(OCR) · Firebase FCM
-```
-
-- Presigned URL 도입 → 클라이언트가 S3에 직접 업로드, 서버 부하 감소 & DB 경량화
-- YOLO 단독 방식 대신 **EfficientNet V2-M(1차) → Gemini VLM(2차 보정)** 하이브리드 추론 구조 채택
-- 미학습/저신뢰도 이미지는 `/auto_labeled/`에 자동 저장되는 self-improving 데이터 파이프라인 구성
+![FreshKitchen 인프라 아키텍처](./architecture.png)
 
 ### ⚡ 성능 개선 — 대량 데이터 조회 최적화
 
@@ -117,10 +106,6 @@ External ── Gemini 2.5 Flash · Document AI(OCR) · Firebase FCM
 
 ---
 
-<div align="center">
-
 **21의 4분의 3조 · FreshKitchen** · 26-1 산학프로젝트
 
 [GitHub](https://github.com/fresh-kitchen-team) · Web (placeholder) · Figma (placeholder)
-
-</div>
